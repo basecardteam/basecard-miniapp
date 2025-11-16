@@ -71,6 +71,11 @@ NEXT_PUBLIC_CARD_TOKEN_ADDRESS="[배포된 ERC20 토큰 컨트랙트 주소]"
 # true = Base Sepolia (testnet), false = Base Mainnet (production)
 # 개발 중에는 true로 설정 (기본값: NODE_ENV가 development면 자동으로 testnet 사용)
 NEXT_PUBLIC_USE_TESTNET=true
+
+# 4. 목업 모드 설정 (선택사항)
+# Base 앱에서 디버깅이 느릴 때 목업 데이터를 사용하여 빠르게 개발할 수 있습니다.
+# true로 설정하면 Base 앱 연결 없이도 로컬에서 개발 가능합니다.
+NEXT_PUBLIC_USE_MOCK_DATA=false
 ```
 
 ### 3.3. 로컬에서 실행

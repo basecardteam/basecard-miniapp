@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useCallback } from "react";
 import type {
     CardGenerationData,
     CardGenerationResponse,
 } from "@/lib/types/api";
+import { useCallback, useState } from "react";
 
 // Hook에서 사용하는 Result 타입은 API Response와 동일
 export type CardGenerationResult = CardGenerationResponse;
@@ -55,6 +55,7 @@ export function useCardGeneration() {
                     success: responseData.success,
                     svg: responseData.svg,
                     ipfs: responseData.ipfs, // { cid, url } 또는 undefined
+                    profileImageBase64: responseData.profileImageBase64,
                 };
 
                 setResult(generationResult);

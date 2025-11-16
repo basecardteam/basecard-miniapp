@@ -1,0 +1,1 @@
+ALTER TABLE "cards" ADD COLUMN "token_id" integer;

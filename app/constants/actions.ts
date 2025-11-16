@@ -1,0 +1,1 @@
+export const ACTION_ADD_CARD = "add-card-collection";

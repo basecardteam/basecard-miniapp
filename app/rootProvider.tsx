@@ -4,7 +4,7 @@ import { ReactNode } from "react";
 
 import ErudaProvider from "@/components/providers/ErudaProvider";
 import JotaiClientProvider from "@/components/providers/JotaiProvider";
-import UIThemeProvider from "@/components/providers/UIProvider";
+import { MiniAppBootstrapper } from "@/components/providers/MiniAppBootstrapper";
 import Provider from "@/components/providers/WagmiProvider";
 
 export function RootProvider({ children }: { children: ReactNode }) {
@@ -13,11 +13,10 @@ export function RootProvider({ children }: { children: ReactNode }) {
         <>
             <ErudaProvider />
             <JotaiClientProvider>
-                <UIThemeProvider>
-                    <Provider>
-                        {children}
-                    </Provider>
-                </UIThemeProvider>
+                <Provider>
+                    <MiniAppBootstrapper />
+                    {children}
+                </Provider>
             </JotaiClientProvider >
         </>
     );

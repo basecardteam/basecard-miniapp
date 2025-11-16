@@ -1,12 +1,11 @@
 "use client";
 
 import BaseCardLogoTypo from "@/public/baseCardTypo.png";
-import Image from "next/image";
-import { useRouter } from "next/navigation";
-
 import { userProfileAtom } from "@/store/userProfileState";
 import sdk from "@farcaster/miniapp-sdk";
 import { useAtom } from "jotai";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
 import BalanceDisplay from "../token/BalanceDisplay";
 
 export default function Header() {
@@ -18,14 +17,14 @@ export default function Header() {
     const fixedColor2 = getFixedColorForUser(userProfile.fid ? Number(userProfile.fid) : 0, 1);
 
     const backgroundStyle = `linear-gradient(45deg, ${fixedColor1}, ${fixedColor2})`;
-    const initial = (userProfile.displayName || userProfile.fid)?.toString().charAt(0).toUpperCase() || '';
+    const initial = (userProfile?.displayName || userProfile?.fid)?.toString().charAt(0).toUpperCase() || '';
 
     const handleLogoClick = () => {
         router.push("/");
     };
 
     return (
-        <div className="w-full flex px-4 items-center justify-between border-b border-b-gray-200 bg-background-light" style={{ height: 60 }}>
+        <div className="fixed top-0 z-50 flex-none w-full flex px-4 items-center justify-between border-b border-b-gray-200 bg-background-light h-[60px]">
             <div
                 onClick={handleLogoClick}
                 className="relative flex flex-shrink-0 h-10"
@@ -35,22 +34,22 @@ export default function Header() {
                     alt="logo typo"
                     height={40}
                     className="object-contain"
+                    priority
                 />
             </div>
 
-            <div className="ml-auto flex items-center gap-x-1">
+            <div className="ml-auto flex items-center gap-x-1 bg-white rounded-full">
                 {/* 💡 h-8 대신 items-center를 사용하므로 h-8을 제거하거나, 필요하다면 유지 */}
-
                 {/* BalanceDisplay: 세로 높이 h-8과 패딩을 명확히 함 */}
-                <BalanceDisplay className="rounded-full pl-2 font-bold h-8 flex items-center" />
+                <BalanceDisplay className="rounded-full pl-2 font-bold h-8 flex items-center " />
 
                 {/* 프로필 이미지/이니셜 컨테이너: h-8 고정 */}
                 <div className="h-8 flex-shrink-0">
                     {
                         userProfile?.pfpUrl && userProfile?.fid
-                            ? <button
+                            ? <div
                                 onClick={() => actions.viewProfile({ fid: userProfile.fid! })}
-                                className="flex-shrink-0"
+                                className=""
                             >
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img
@@ -58,7 +57,7 @@ export default function Header() {
                                     alt="Profile"
                                     className="h-8 w-8 rounded-full object-cover"
                                 />
-                            </button>
+                            </div>
                             : <div
                                 style={{ background: backgroundStyle }}
                                 className="w-8 h-8 rounded-full flex justify-center items-center text-lg font-bold text-white flex-shrink-0"

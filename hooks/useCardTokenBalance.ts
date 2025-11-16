@@ -3,8 +3,9 @@
 import CARD_TOKEN_ABI_FULL from "@/lib/abi/CardToken.json";
 import { getConfig } from "@/lib/wagmi";
 import { updateBalanceAtom } from "@/store/tokenBalanceState";
+import { walletAddressAtom } from "@/store/walletState";
 import { formatAmount } from "@coinbase/onchainkit/token";
-import { useSetAtom } from "jotai";
+import { useAtom, useSetAtom } from "jotai";
 import { useEffect, useMemo } from "react";
 import { Abi, formatUnits } from "viem";
 import { useAccount, useReadContract } from "wagmi";
@@ -20,7 +21,8 @@ const wagmiConfig = getConfig();
  * 연결된 계정의 CARD 토큰 잔액을 조회하고 포맷팅하는 커스텀 훅
  */
 export function useCardTokenBalance() {
-    const { address: userAddress, isConnected } = useAccount();
+    const { isConnected } = useAccount();
+    const [userAddress] = useAtom(walletAddressAtom);
     const setBalanceState = useSetAtom(updateBalanceAtom);
 
     // Read token balance for connected wallet

@@ -1,3 +1,4 @@
+import { ACTION_ADD_CARD } from "@/app/constants/actions";
 import QRCode from "qrcode";
 
 export interface QRCodeOptions {
@@ -71,10 +72,10 @@ export function generateCardShareURL(cardId: string): string {
     const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
     console.log(
         "generated share URL",
-        `${baseUrl}/action=addcardcollection&id=${cardId}`
+        `${baseUrl}?action=${ACTION_ADD_CARD}&id=${cardId}`
     );
 
-    return `${baseUrl}/card/${cardId}`;
+    return `${baseUrl}?action=${ACTION_ADD_CARD}&id=${cardId}`;
 }
 
 /**

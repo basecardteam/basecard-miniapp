@@ -7,8 +7,9 @@ import { useCallback, useEffect, useState } from 'react';
 import ErrorModal from '@/components/common/ErrorModal';
 import LoadingModal from '@/components/common/LoadingModal';
 import { useMyCard } from '@/hooks/useMyCard';
-import { addCollection } from '@/lib/addCollection';
-import { useAccount } from 'wagmi';
+import { addCollection } from '@/lib/collection';
+import { walletAddressAtom } from '@/store/walletState';
+import { useAtom } from 'jotai';
 import ConfirmationModal from '../common/ConfirmationModal';
 
 interface CardCollectionAdderProps {
@@ -17,7 +18,7 @@ interface CardCollectionAdderProps {
 
 export default function CardCollectionAdder({ collectedCardId }: CardCollectionAdderProps) {
     const router = useRouter();
-    const { address } = useAccount();
+    const [address] = useAtom(walletAddressAtom);
     const { data: myCard, isLoading: isCardLoading } = useMyCard(address);
 
     const [isReadyToConfirm, setIsReadyToConfirm] = useState(false); // 확인 팝업 상태
@@ -47,7 +48,7 @@ export default function CardCollectionAdder({ collectedCardId }: CardCollectionA
 
             setIsProcessing(false);
             alert(`🎉 ${collectedCardId}번 카드를 성공적으로 수집했습니다!`);
-            router.replace("/")
+            router.replace("/");
 
         } catch (err: any) {
             setIsProcessing(false);

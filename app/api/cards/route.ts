@@ -1,11 +1,12 @@
-import { NextResponse } from "next/server";
-import { db } from "@/lib/db";
 import { cards } from "@/db/schema";
+import { db } from "@/lib/db";
+import { desc } from "drizzle-orm";
+import { NextResponse } from "next/server";
 
 // GET /api/cards
 export async function GET(_: Request) {
     try {
-        const allCards = await db.select().from(cards);
+        const allCards = await db.select().from(cards).orderBy(desc(cards.id));
         return NextResponse.json(allCards);
     } catch (error) {
         console.error("Error fetching cards:", error);

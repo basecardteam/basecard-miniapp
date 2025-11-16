@@ -1,26 +1,22 @@
-// import { SafeArea } from "@coinbase/onchainkit/minikit";
-import "./globals.css";
-
 import { minikitConfig } from "@/minikit.config";
 import { SafeArea } from "@coinbase/onchainkit/minikit";
-import { Metadata, Viewport } from "next";
-import { Inter, K2D, Source_Code_Pro } from "next/font/google";
+import type { Metadata } from "next";
+import { Viewport } from "next";
+import { Inter, K2D } from "next/font/google";
+import "./globals.css";
 import { RootProvider } from "./rootProvider";
 
 const inter = Inter({
-    variable: "--font-inter",
+    variable: "--font-sans",
     subsets: ["latin"],
-});
-
-const sourceCodePro = Source_Code_Pro({
-    variable: "--font-source-code-pro",
-    subsets: ["latin"],
+    display: "swap",
 });
 
 const k2d = K2D({
     variable: "--font-k2d",
     subsets: ["latin"],
-    weight: ["100", "200", "300", "400", "500", "600", "700", "800"],
+    weight: ["400", "500", "600", "700"],
+    display: "swap",
 });
 
 export const viewport: Viewport = {
@@ -51,10 +47,8 @@ export default function RootLayout({
 }>) {
 
     return (
-        <html lang="en">
-            <body
-                className={`${inter.variable} ${sourceCodePro.variable} ${k2d.variable}`}
-            >
+        <html lang="en" className={`${inter.variable} ${k2d.variable}`}>
+            <body className="overscroll-none">
                 <RootProvider>
                     <SafeArea>{children}</SafeArea>
                 </RootProvider>

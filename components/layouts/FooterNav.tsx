@@ -15,11 +15,12 @@ const navItems = [
 export default function FooterNav() {
     const pathname = usePathname();
 
-    const footerClasses = "fixed bottom-0 left-0 right-0 border-t bg-white z-50";
+    const footerClasses = "flex-none fixed bottom-0 left-0 right-0 border-t bg-white z-50";
 
     const footerStyle = {
         height: 'var(--bottom-nav-h, 64px)',
         paddingBottom: 'var(--safe-bottom, 0px)',
+        backgroundColor: '#ffffff',
     };
 
     return (

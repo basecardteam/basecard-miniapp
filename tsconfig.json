@@ -27,7 +27,6 @@
         "**/*.ts",
         "**/*.tsx",
         ".next/types/**/*.ts",
-        "tailwind.config.js"
     ],
     "exclude": [
         "node_modules", //node_modules 디렉토리 예외처리

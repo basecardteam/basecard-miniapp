@@ -14,7 +14,7 @@ export default function BackButton({ className, size = 40 }: BackButtonProps) {
 
     // 기본 스타일
     const baseClasses =
-        "absolute left-2 top-2 p-2 rounded-full cursor-pointer transition-colors duration-200 hover:bg-gray-100";
+        "absolute left-2 top-2 p-2 rounded-full cursor-pointer transition-colors duration-200 ";
 
     return (
         <FaAngleLeft

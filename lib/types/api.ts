@@ -15,6 +15,7 @@
 export interface CardGenerationResponse {
     success: boolean;
     svg?: string;
+    profileImageBase64?: string;
     ipfs?: {
         id?: string;
         cid?: string;
@@ -52,14 +53,17 @@ export interface IPFSUploadResponse {
  */
 export interface Card {
     id: number;
+    tokenId: number;
     nickname: string;
     bio?: string;
     imageURI?: string; // 생성된 BaseCard NFT 이미지 (IPFS URI)
-    profileImageURI?: string; // 카드 생성 시 사용한 원본 프로필 이미지 (IPFS URI or base64)
+    profileImage?: string; // 카드 생성 시 사용한 원본 프로필 이미지 (IPFS URI or base64)
     basename: string;
     role?: string;
     skills?: string[];
     address: string;
+    websites?: string[];
+    socials?: Record<string, string> | null;
 }
 
 /**

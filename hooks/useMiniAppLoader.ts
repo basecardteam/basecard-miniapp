@@ -1,92 +1,104 @@
 "use client";
 
-import { isDevelopment } from "@/lib/utils";
+import { MOCK_USER_PROFILE, USE_MOCK_DATA } from "@/lib/mockData";
 import { updateProfileAtom } from "@/store/userProfileState";
 import { useMiniKit } from "@coinbase/onchainkit/minikit";
-import { sdk } from "@farcaster/miniapp-sdk";
 import { useSetAtom } from "jotai";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useWallet } from "./useWallet";
 
 interface MiniAppLoaderResult {
     isInMiniApp: boolean;
     isFinishedLoading: boolean;
 }
 
+const INITIAL_LOAD_TIMEOUT = 2000; // 2초 후 강제 완료
+
+/**
+ * Base Mini App 로딩 상태를 관리하는 훅
+ */
 export function useMiniAppLoader(): MiniAppLoaderResult {
     const setProfile = useSetAtom(updateProfileAtom);
-    const [isInMiniApp, setIsInMiniApp] = useState<boolean>(true);
-    const [isLoading, setIsLoading] = useState<boolean>(true);
-    const [isEnvironmentChecked, setIsEnvironmentChecked] = useState<boolean>(false);
+    const { isMiniAppReady, setMiniAppReady, context } = useMiniKit();
+    const { address } = useWallet();
+    const [initialLoadTimeout, setInitialLoadTimeout] = useState(false);
 
-    const { isMiniAppReady, setMiniAppReady } = useMiniKit();
+    // Base MiniKit context에서 user 정보 추출
+    const userData = context?.user;
 
+    // 초기 로딩 타임아웃 처리 (브라우저 환경에서 MiniKit이 초기화되지 않는 경우 대비)
+    useEffect(() => {
+        if (USE_MOCK_DATA) {
+            return;
+        }
 
-    // 1. 환경 확인 및 Mini App Ready 호출 로직
-    const checkEnvironmentAndSetReady = useCallback(async () => {
-        try {
-            // A. 환경 확인: 실제 Mini App 환경인지 확인 (개발 모드에서는 강제 true)
-            const miniAppStatus = isDevelopment ? true : await sdk.isInMiniApp();
-            setIsInMiniApp(miniAppStatus);
-
-            // B. Mini App 환경일 경우에만 Frame Ready 신호 전송
-            if (miniAppStatus && !isMiniAppReady) {
+        const timeoutId = setTimeout(() => {
+            setInitialLoadTimeout(true);
+            // 타임아웃 후에도 MiniKit이 준비되지 않았으면 강제로 완료 처리
+            if (!isMiniAppReady) {
                 setMiniAppReady();
             }
-        } catch (error) {
-            console.error("Error checking Mini App status:", error);
-            setIsInMiniApp(false);
-        } finally {
-            // 환경 확인 로직이 끝났음을 표시
-            setIsEnvironmentChecked(true);
-        }
+        }, INITIAL_LOAD_TIMEOUT);
+
+        return () => clearTimeout(timeoutId);
     }, [isMiniAppReady, setMiniAppReady]);
 
-    // 2. 환경 확인 로직은 앱 마운트 시점에 한 번 실행
+    // 목업 모드 처리
     useEffect(() => {
-        checkEnvironmentAndSetReady();
-    }, [checkEnvironmentAndSetReady]);
-
-
-    // 3. 사용자 데이터 로딩 로직
-    const loadUserData = useCallback(async () => {
-        try {
-            // Mini App 환경이고, isMiniAppReady(Frame Ready) 신호가 완료되었는지 확인
-            if (isInMiniApp) {
-                const context = await sdk.context;
-                const userData = context.user;
-
-                setProfile({
-                    fid: userData.fid || null,
-                    username: userData.username || null,
-                    displayName: userData.displayName || null,
-                    pfpUrl: userData.pfpUrl || null,
-                });
+        if (USE_MOCK_DATA) {
+            setProfile({
+                fid: MOCK_USER_PROFILE.fid || null,
+                username: MOCK_USER_PROFILE.username || null,
+                displayName: MOCK_USER_PROFILE.displayName || null,
+                pfpUrl: MOCK_USER_PROFILE.pfpUrl || null,
+            });
+            if (!isMiniAppReady) {
+                setMiniAppReady();
             }
-        } catch (error) {
-            console.error("Error loading Mini App data:", error);
-        } finally {
-            setIsLoading(false);
-        }
-    }, [isInMiniApp, setProfile]);
-
-    // 4. 데이터 로딩 실행 useEffect:
-    // 환경 확인이 완료되었고 (isEnvironmentChecked),
-    // Frame Ready 신호가 완료되었거나 (isMiniAppReady),
-    // Mini App 환경이 아닐 때 (isInMiniApp이 false일 때) 실행합니다.
-    useEffect(() => {
-        if (isEnvironmentChecked) {
-            if (!isInMiniApp) {
-                // Mini App이 아니면, 데이터 로딩 없이 즉시 완료 (isLoading: false)
-                setIsLoading(false);
-            } else if (isMiniAppReady) {
-                // Mini App이 맞고, Frame Ready 신호가 완료되면 데이터 로딩 시작
-                loadUserData();
+        } else if (userData) {
+            // Base MiniKit context에서 제공하는 사용자 데이터 사용
+            setProfile({
+                fid: userData.fid || null,
+                username: userData.username || null,
+                displayName: userData.displayName || null,
+                pfpUrl: userData.pfpUrl || null,
+            });
+            if (!isMiniAppReady) {
+                setMiniAppReady();
+            }
+        } else if (initialLoadTimeout && !userData) {
+            // 브라우저 환경에서 userData가 없어도 프로필을 빈 값으로 설정하고 로딩 완료
+            setProfile({
+                fid: null,
+                username: null,
+                displayName: null,
+                pfpUrl: null,
+            });
+            if (!isMiniAppReady) {
+                setMiniAppReady();
             }
         }
-    }, [isEnvironmentChecked, isInMiniApp, isMiniAppReady, loadUserData]);
+    }, [USE_MOCK_DATA, userData, isMiniAppReady, setMiniAppReady, setProfile, initialLoadTimeout]);
 
-    return {
-        isInMiniApp,
-        isFinishedLoading: !isLoading,
-    };
+    // 미니앱 환경 여부 및 로딩 완료 상태 계산
+    const result = useMemo(() => {
+        if (USE_MOCK_DATA) {
+            return {
+                isInMiniApp: true,
+                isFinishedLoading: true,
+            };
+        }
+
+        // MiniApp이 준비되거나 타임아웃이 지나면 로딩 완료
+        // - 실제 미니앱 환경: isMiniAppReady가 true이고 address가 있으면 완료
+        // - 브라우저 환경: isMiniAppReady가 true이거나 타임아웃이 지나면 완료 (address 없어도 됨)
+        const isFinished = isMiniAppReady || initialLoadTimeout;
+
+        return {
+            isInMiniApp: !!address, // Base Wallet 연결 = 미니앱 환경
+            isFinishedLoading: isFinished,
+        };
+    }, [address, isMiniAppReady, initialLoadTimeout]);
+
+    return result;
 }

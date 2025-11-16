@@ -1,6 +1,6 @@
 "use client";
 
-import LandingBG from "@/public/assets/landing-page-backgroud.webp";
+import LandingBG from "@/public/assets/landing-page-backgrou.webp";
 import LandingCard from '@/public/assets/landing-page-background-card.webp';
 import Image from 'next/image';
 
@@ -14,36 +14,30 @@ export default function HeroSection({ onMintClick }: HeroSectionProps) {
             <Image
                 src={LandingBG}
                 alt="landing-page-background-image"
-                className='absolute inset-0 bg-no-repeat responsive-bg object-fill w-full'
-                fill={true}
+                className="absolute inset-0 bg-no-repeat responsive-bg object-fill w-full"
+                fill
             />
             {/* Title Section */}
             <div className="text-left">
-                <h1
-                    className="text-4xl sm:text-6xl md:text-7xl font-k2d-bold text-white mb-2 drop-shadow-lg"
-                    style={{
-                        letterSpacing: "-0.05em",
-                        lineHeight: "0.9",
-                    }}
-                >
+                <h1 className="text-4xl sm:text-6xl md:text-7xl font-k2d-bold text-white mb-2 drop-shadow-lg tracking-tight leading-tight">
                     Onchain social
                     <br />
                     business card
                 </h1>
-                <p className="text-l sm:text-2xl font-k2d-medium text-white max-w-2xl drop-shadow-md tracking-normal">
+                <p className="text-lg sm:text-2xl font-k2d-medium text-white max-w-2xl drop-shadow-md tracking-normal">
                     Turn your onchain story into
                     <br />
                     opportunity
                 </p>
             </div>
 
-            <div className='flex justify-center items-center'>
+            <div className="flex justify-center items-center">
                 <Image
                     src={LandingCard}
                     height={220}
                     alt="landing-page-card"
                     priority
-                    className='object-contain z-50'
+                    className="object-contain z-50"
                 />
             </div>
 
@@ -54,6 +48,15 @@ export default function HeroSection({ onMintClick }: HeroSectionProps) {
             >
                 Mint Your Card
             </button>
+
+            {/* 앱 연결 안내 (주소가 없을 때만) */}
+            {/* {!address && (
+                <div className="mt-4 z-20">
+                    <p className="text-sm text-white/80 text-center mb-2">
+                        💡 Connect your Base Wallet to mint your card
+                    </p>
+                </div>
+            )} */}
         </div>
     );
 }

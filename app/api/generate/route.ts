@@ -2,6 +2,7 @@ import { uploadBaseCardToIPFS } from "@/lib/ipfs";
 import type { CardGenerationResponse } from "@/lib/types/api";
 import fs from "fs/promises";
 import path from "path";
+import sharp from 'sharp';
 
 // SVG에 삽입할 데이터를 정의하는 타입
 type SvgData = {
@@ -11,6 +12,45 @@ type SvgData = {
     profileImage: {
         base64: string;
         mimeType: string;
+    };
+};
+
+// 라운딩을 포함한 NFT용 이미지 Base64를 생성 (SVG용)
+const optimizeImages = async (imageBuffer: Buffer): Promise<{
+    svgBase64: string;
+    mimeType: string;
+}> => {
+
+    const TARGET_SIZE = 512;
+    const RADIUS = 46;
+    const finalMimeType = 'image/webp';
+
+    // 1. **기본 파이프라인 생성 (단순 리사이징/압축)**
+    const baseSharpInstance = sharp(imageBuffer)
+        .resize({ width: TARGET_SIZE, height: TARGET_SIZE, fit: 'cover' })
+        .webp({ quality: 80 });
+
+    // 2. **NFT (SVG) 저장용 Base64 생성 (라운딩 마스크 적용)**
+
+    // 2-1. 라운딩 마스크 SVG 생성 (기존 로직 유지)
+    const maskSvgRightRounded = `
+        <svg width="${TARGET_SIZE}" height="${TARGET_SIZE}" viewBox="0 0 ${TARGET_SIZE} ${TARGET_SIZE}">
+            <path fill="#000" d="M 0 0 L ${TARGET_SIZE - RADIUS} 0 A ${RADIUS} ${RADIUS} 0 0 1 ${TARGET_SIZE} ${RADIUS} L ${TARGET_SIZE} ${TARGET_SIZE - RADIUS} A ${RADIUS} ${RADIUS} 0 0 1 ${TARGET_SIZE - RADIUS} ${TARGET_SIZE} L 0 ${TARGET_SIZE} Z" />
+        </svg>
+    `;
+    const maskBuffer = Buffer.from(maskSvgRightRounded);
+
+    // 2-2. 마스크 적용
+    const svgBuffer = await baseSharpInstance.clone() // 다시 clone
+        .composite([{ input: maskBuffer, blend: 'dest-in' }])
+        .toBuffer();
+
+    const svgBase64 = svgBuffer.toString('base64');
+
+
+    return {
+        svgBase64,
+        mimeType: finalMimeType,
     };
 };
 
@@ -69,15 +109,23 @@ export async function POST(request: Request) {
         // 3. 업로드된 이미지를 읽어 Base64로 인코딩
         const arrayBuffer = await uploadedFile.arrayBuffer();
         const buffer = Buffer.from(arrayBuffer);
-        const imageBase64 = buffer.toString("base64");
+
+        const originalBase64 = buffer.toString('base64');
+        const originalMimeType =
+            uploadedFile.type && uploadedFile.type.trim().length > 0
+                ? uploadedFile.type
+                : 'application/octet-stream';
+        const originalDataUrl = `data:${originalMimeType};base64,${originalBase64}`;
+
+        const { svgBase64, mimeType: cardImageMimeType } = await optimizeImages(buffer);
 
         const svgData: SvgData = {
             nickname,
             role,
             basename,
             profileImage: {
-                base64: imageBase64,
-                mimeType: uploadedFile.type || "image/jpeg",
+                base64: svgBase64,
+                mimeType: cardImageMimeType,
             },
         };
 
@@ -99,6 +147,7 @@ export async function POST(request: Request) {
             const response: CardGenerationResponse = {
                 success: true,
                 svg: baseCardSvg,
+                profileImageBase64: originalDataUrl,
                 ipfs: ipfsResult.success
                     ? {
                         id: ipfsResult.id,
@@ -120,6 +169,7 @@ export async function POST(request: Request) {
         const response: CardGenerationResponse = {
             success: true,
             svg: baseCardSvg,
+            profileImageBase64: originalDataUrl,
         };
 
         return new Response(JSON.stringify(response), {

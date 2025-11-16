@@ -14,8 +14,8 @@
  * The Pinata JWT will be exposed to the browser if imported client-side!
  */
 
-import { PinataSDK } from "pinata";
 import type { IPFSUploadResponse } from "@/lib/types/api";
+import { PinataSDK } from "pinata";
 
 /**
  * Get Pinata SDK instance
@@ -30,7 +30,7 @@ function getPinataSDK(): PinataSDK {
     if (typeof window !== "undefined") {
         throw new Error(
             "🚨 SECURITY ERROR: getPinataSDK() called on client-side! " +
-                "This function must only be used in API routes or server components."
+            "This function must only be used in API routes or server components."
         );
     }
 
@@ -41,7 +41,7 @@ function getPinataSDK(): PinataSDK {
         if (!jwt) {
             throw new Error(
                 "PINATA_JWT environment variable is required. " +
-                    "Get it from https://app.pinata.cloud/developers/api-keys"
+                "Get it from https://app.pinata.cloud/developers/api-keys"
             );
         }
 
@@ -102,7 +102,7 @@ export async function uploadBaseCardToIPFS(
         if (!group) {
             throw new Error(
                 "PINATA_GROUP environment variable is required. " +
-                    "Get it from https://app.pinata.cloud/developers/api-keys"
+                "Get it from https://app.pinata.cloud/developers/api-keys"
             );
         }
         // Convert SVG string to File
