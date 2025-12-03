@@ -1,8 +1,8 @@
 import { clsx, type ClassValue } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { CollectionFilterTag } from "./collection";
-import { COLLECTION_TAGS, TAG_ROLE_MAP } from "./constants/collections";
-import { Card } from "./types";
+import { COLLECTION_TAGS, TAG_ROLE_MAP } from "../constants/collections";
+import { Card } from "../types";
 
 export const isDevelopment = process.env.NODE_ENV === "development";
 
@@ -52,7 +52,6 @@ export async function remoteLog(payload: LogPayload) {
     }
 }
 
-
 export function filterCollections(
     cards: Card[] | undefined,
     selectedTag: CollectionFilterTag,
@@ -77,17 +76,19 @@ export function filterCollections(
 
         const searchableValues: (string | undefined | null)[] = [
             card.nickname,
-            card.basename,
+            // card.basename, // Removed
             card.role,
-            card.address,
+            card.user?.walletAddress, // Updated
         ];
 
-        if (Array.isArray(card.skills)) {
-            searchableValues.push(card.skills.join(" "));
-        }
+        // if (Array.isArray(card.skills)) {
+        //     searchableValues.push(card.skills.join(" "));
+        // }
 
         const haystack = searchableValues
-            .filter((value): value is string => !!value && value.trim().length > 0)
+            .filter(
+                (value): value is string => !!value && value.trim().length > 0
+            )
             .join(" ")
             .toLowerCase();
 

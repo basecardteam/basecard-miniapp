@@ -55,10 +55,10 @@ export default function CardContent({
     mode = "profile",
     title = "My BaseCard",
     onNavigateToCollection,
-    onClose
+    onClose,
 }: CardContentProps) {
-    const socialEntries: SocialEntry[] = useMemo(() => (
-        [
+    const socialEntries: SocialEntry[] = useMemo(
+        () => [
             {
                 key: "farcaster",
                 label: "Farcaster",
@@ -87,78 +87,109 @@ export default function CardContent({
                 label: "Twitter",
                 icon: <FaTwitter className="text-white" size={20} />,
             },
-        ]
-    ), []);
+        ],
+        []
+    );
 
-    const handleOpenUrl = useCallback((key: string, rawValue: string) => {
-        const url = valueToUrl(key, rawValue);
-        if (url.length === 0) {
-            return;
-        }
-        openUrl(url);
-    }, [openUrl]);
-
+    const handleOpenUrl = useCallback(
+        (key: string, rawValue: string) => {
+            const url = valueToUrl(key, rawValue);
+            if (url.length === 0) {
+                return;
+            }
+            openUrl(url);
+        },
+        [openUrl]
+    );
 
     return (
         <div className="relative flex-1 flex flex-col">
-            {mode === "profile" && <div className="flex  items-center h-12 gap-x-2 mb-1">
-                <BackButton className="relative top-0 left-0" />
-                <div className="font-k2d-bold text-black text-3xl tracking-tighter leading-none">
-                    {title}
+            {mode === "profile" && (
+                <div className="flex  items-center h-12 gap-x-2 mb-1">
+                    <BackButton className="relative top-0 left-0" />
+                    <div className="font-k2d-bold text-black text-3xl tracking-tighter leading-none">
+                        {title}
+                    </div>
                 </div>
-            </div>}
+            )}
 
             <div className="m-5 flex-1 relative flex flex-col">
                 <Image
                     src={MyCardBGImage}
                     alt="BaseCard Background"
                     fill
-                    style={{ objectFit: 'cover', objectPosition: '60% 50%', borderRadius: '12px' }}
+                    style={{
+                        objectFit: "cover",
+                        objectPosition: "60% 50%",
+                        borderRadius: "12px",
+                    }}
                     priority
                     unoptimized
                     className="-z-10"
                 />
-                {mode === "viewer" && <IoClose size={40} className="absolute top-2 right-2 text-white z-50 cursor-pointer p-1.5" onClick={onClose} />}
+                {mode === "viewer" && (
+                    <IoClose
+                        size={40}
+                        className="absolute top-2 right-2 text-white z-50 cursor-pointer p-1.5"
+                        onClick={onClose}
+                    />
+                )}
                 <div className="relative w-full h-full pt-5 flex flex-col flex-1">
                     <div className="flex flex-col items-center flex-1 w-full pb-5">
                         <div className="relative w-16 h-16 rounded-xl overflow-hidden shadow-xl flex-none mb-5">
                             <Image
-                                src={card?.profileImage ? card.profileImage : "/assets/default-profile.png"}
-                                alt={card.nickname}
-                                width={64} height={64} className=" object-cover w-full h-full "
+                                src={
+                                    card.user?.profileImage
+                                        ? card.user.profileImage
+                                        : "/assets/default-profile.png"
+                                }
+                                alt={card.nickname || "User"}
+                                width={64}
+                                height={64}
+                                className=" object-cover w-full h-full "
                                 priority
                             />
                         </div>
 
                         <div className="mb-5 text-center">
-                            <div className="font-k2d-bold text-white text-3xl flex-none">{card.nickname}</div>
-                            <div className="font-k2d-regular text-white text-xl flex-none">{card.role}</div>
+                            <div className="font-k2d-bold text-white text-3xl flex-none">
+                                {card.nickname}
+                            </div>
+                            <div className="font-k2d-regular text-white text-xl flex-none">
+                                {card.role}
+                            </div>
                         </div>
 
                         <div className="flex gap-4 px-5 mb-3">
-                            {socialEntries.map(({ key, icon, label }: SocialEntry) => {
-                                const rawValue = socials?.[key] ?? "";
-                                const value = rawValue.trim();
-                                const hasUrl = value.length > 0;
+                            {socialEntries.map(
+                                ({ key, icon, label }: SocialEntry) => {
+                                    const rawValue = socials?.[key] ?? "";
+                                    const value = rawValue.trim();
+                                    const hasUrl = value.length > 0;
 
-                                return (
-                                    <button
-                                        key={key}
-                                        type="button"
-                                        onClick={() => {
-                                            if (hasUrl) handleOpenUrl(key, value);
-                                        }}
-                                        disabled={!hasUrl || isSocialLoading}
-                                        className={clsx(
-                                            "w-10 h-10 rounded-full bg-black flex items-center justify-center transition-opacity",
-                                            (!hasUrl || isSocialLoading) && "opacity-40 cursor-not-allowed"
-                                        )}
-                                        aria-label={label}
-                                    >
-                                        {icon}
-                                    </button>
-                                );
-                            })}
+                                    return (
+                                        <button
+                                            key={key}
+                                            type="button"
+                                            onClick={() => {
+                                                if (hasUrl)
+                                                    handleOpenUrl(key, value);
+                                            }}
+                                            disabled={
+                                                !hasUrl || isSocialLoading
+                                            }
+                                            className={clsx(
+                                                "w-10 h-10 rounded-full bg-black flex items-center justify-center transition-opacity",
+                                                (!hasUrl || isSocialLoading) &&
+                                                    "opacity-40 cursor-not-allowed"
+                                            )}
+                                            aria-label={label}
+                                        >
+                                            {icon}
+                                        </button>
+                                    );
+                                }
+                            )}
                         </div>
 
                         <div className="w-full flex-1 px-5">
@@ -167,8 +198,8 @@ export default function CardContent({
                                 {card.bio}
                             </p>
 
-                            {/* Skills Section */}
-                            <div className="w-full flex flex-wrap gap-2 justify-center px-5 mt-5">
+                            {/* Skills Section - Removed as it is not in the new Card type */}
+                            {/* <div className="w-full flex flex-wrap gap-2 justify-center px-5 mt-5">
                                 {(card.skills ?? []).map((skill: string, index: number) => (
                                     <div
                                         key={index}
@@ -177,19 +208,19 @@ export default function CardContent({
                                         {skill}
                                     </div>
                                 ))}
-                            </div>
+                            </div> */}
                         </div>
                     </div>
 
-                    {/* Viewer 모드에서는 Basename만 표시 */}
+                    {/* Viewer 모드에서는 Basename만 표시 - Basename removed from type */}
                     {mode === "viewer" && (
                         <div className="w-full mt-auto">
-                            <button
+                            {/* <button
                                 onClick={() => openUrl(`https://base.org/name/${card.basename}`)}
                                 className="w-full py-3 bg-[#0050FF] text-white font-k2d-regular text-lg rounded-br-xl rounded-bl-xl"
                             >
                                 {card.basename.length > 0 ? card.basename : "No Basename"}
-                            </button>
+                            </button> */}
                         </div>
                     )}
                 </div>
@@ -198,13 +229,13 @@ export default function CardContent({
             {/* Action Buttons - viewer 모드에서는 숨김 */}
             {mode === "profile" && (
                 <div className="w-full flex flex-col gap-3 px-5 py-3">
-                    {/* Basename Button (Primary Action) */}
-                    <button
+                    {/* Basename Button (Primary Action) - Basename removed from type */}
+                    {/* <button
                         onClick={() => openUrl(`https://base.org/name/${card.basename}`)}
                         className="w-full py-3 bg-[#0050FF] text-white font-k2d-regular text-lg rounded-xl transition-colors shadow-lg"
                     >
                         {card.basename.length > 0 ? card.basename : "No Basename"}
-                    </button>
+                    </button> */}
 
                     {onNavigateToCollection && (
                         <button
@@ -216,7 +247,6 @@ export default function CardContent({
                     )}
                 </div>
             )}
-
         </div>
-    )
+    );
 }

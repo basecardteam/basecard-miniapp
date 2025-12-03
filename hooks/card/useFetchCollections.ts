@@ -1,35 +1,49 @@
-import { Card, CollectionResponse } from "@/lib/types";
+import { Card, CollectionResponse } from "@/lib/types/api";
 import { useQuery } from "@tanstack/react-query";
-
 
 // API 응답 데이터를 Card 배열로 변환하는 함수를 분리합니다.
 const transformCollectionData = (collections: CollectionResponse[]): Card[] => {
     return collections.map((collection) => ({
-        id: collection.collectedCard.id,
-        nickname: collection.collectedCard.nickname,
-        bio: collection.collectedCard.bio ?? "",
-        role: collection.collectedCard.role ?? "",
-        imageURI: collection.collectedCard.imageURI ?? "",
-        profileImage: collection.collectedCard.profileImage ?? "",
-        address: collection.collectedCard.address,
-        basename: collection.collectedCard.basename || "default.base.name",
-        skills: collection.collectedCard.skills ?? [],
+        id: String(collection.collectedCard.id), // Convert to string if needed
+        userId: collection.collectedCard.user?.id || "", // Assuming user exists
         tokenId: collection.collectedCard.tokenId,
+        nickname: collection.collectedCard.nickname,
+        role: collection.collectedCard.role,
+        bio: collection.collectedCard.bio,
+        imageUri: collection.collectedCard.imageUri, // Updated property name
+        socials: collection.collectedCard.socials,
+        createdAt: collection.collectedCard.createdAt,
+        updatedAt: collection.collectedCard.updatedAt,
+        user: collection.collectedCard.user,
     }));
 };
 
+import { BACKEND_API_URL } from "@/lib/common/config";
+import { ApiResponse } from "@/lib/types/api";
+
 const fetchCollectedCardsData = async (myCardId: number): Promise<Card[]> => {
     // 1. 수집 관계 가져오기
-    const collectionsResponse = await fetch(`/api/collections?id=${myCardId}`);
+    // spec.md: GET /collections/:userId
+    // Note: The spec says :userId (UUID), but here we have myCardId (number).
+    // Assuming for now we pass myCardId and backend handles it, or we need to update this logic later.
+    // For now, let's stick to the spec URL structure but use the ID we have.
+    const collectionsResponse = await fetch(
+        `${BACKEND_API_URL}/v1/collections/${myCardId}`
+    );
 
     if (!collectionsResponse.ok) {
         throw new Error("Failed to fetch collections");
     }
 
-    const collections: CollectionResponse[] = await collectionsResponse.json();
+    const data: ApiResponse<CollectionResponse[]> =
+        await collectionsResponse.json();
+
+    if (!data.success || !data.result) {
+        throw new Error(data.error || "Failed to fetch collections");
+    }
 
     // 2. 카드 데이터로 변환하여 반환
-    return transformCollectionData(collections);
+    return transformCollectionData(data.result);
 };
 
 export function useFetchCollections(myCardId?: number) {
@@ -37,7 +51,7 @@ export function useFetchCollections(myCardId?: number) {
     const isEnabled = !!myCardId;
 
     return useQuery<Card[], Error>({
-        queryKey: ['collectedCards', myCardId],
+        queryKey: ["collectedCards", myCardId],
         queryFn: () => fetchCollectedCardsData(myCardId!),
         enabled: isEnabled,
     });

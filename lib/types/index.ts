@@ -12,6 +12,8 @@ export type {
     CardGenerationData,
     IPFSUploadResponse,
     Card,
+    User,
+    ApiResponse,
     Program,
     ProgramWithDisplayData,
     CollectionResponse,

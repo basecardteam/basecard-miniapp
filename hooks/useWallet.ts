@@ -1,7 +1,7 @@
-import { MOCK_WALLET_ADDRESS, USE_MOCK_DATA } from '@/lib/mockData';
-import { walletAddressAtom } from '@/store/walletState';
-import { useSetAtom } from 'jotai';
-import { useEffect } from 'react';
+import { MOCK_WALLET_ADDRESS, USE_MOCK_DATA } from "@/lib/legacy/mockData";
+import { walletAddressAtom } from "@/store/walletState";
+import { useSetAtom } from "jotai";
+import { useEffect } from "react";
 import { useAccount } from "wagmi";
 
 /**
@@ -35,6 +35,6 @@ export const useWallet = () => {
 
     return {
         address,
-        isConnected
-    }
+        isConnected,
+    };
 };

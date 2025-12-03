@@ -1,6 +1,6 @@
 "use client";
 
-import { MOCK_USER_PROFILE, USE_MOCK_DATA } from "@/lib/mockData";
+import { MOCK_USER_PROFILE, USE_MOCK_DATA } from "@/lib/legacy/mockData";
 import { updateProfileAtom } from "@/store/userProfileState";
 import { useMiniKit } from "@coinbase/onchainkit/minikit";
 import { useSetAtom } from "jotai";
@@ -78,7 +78,14 @@ export function useMiniAppLoader(): MiniAppLoaderResult {
                 setMiniAppReady();
             }
         }
-    }, [USE_MOCK_DATA, userData, isMiniAppReady, setMiniAppReady, setProfile, initialLoadTimeout]);
+    }, [
+        USE_MOCK_DATA,
+        userData,
+        isMiniAppReady,
+        setMiniAppReady,
+        setProfile,
+        initialLoadTimeout,
+    ]);
 
     // 미니앱 환경 여부 및 로딩 완료 상태 계산
     const result = useMemo(() => {

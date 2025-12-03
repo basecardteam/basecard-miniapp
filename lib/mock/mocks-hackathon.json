@@ -1,0 +1,28 @@
+{
+    "hackathons": [
+        {
+            "id": "1",
+            "title": "ETHGlobal Online: Scaling Ethereum 2025",
+            "organization": "ETHGlobal",
+            "prizePool": 500000,
+            "prizeCurrency": "USDC",
+            "theme": "L2 Scaling & ZK Proofs",
+            "startDate": "2025-11-01T09:00:00Z",
+            "endDate": "2025-11-21T17:00:00Z",
+            "participantCount": 450,
+            "thumbnailUrl": "https://example.com/images/hackathon/ethglobal.png"
+        },
+        {
+            "id": "2",
+            "title": "Solana Hyperdrive Hackathon",
+            "organization": "Solana Foundation",
+            "prizePool": 1000000,
+            "prizeCurrency": "USDC",
+            "theme": "DePIN, Payments, and Gaming",
+            "startDate": "2025-11-10T09:00:00Z",
+            "endDate": "2025-12-18T17:00:00Z",
+            "participantCount": 820,
+            "thumbnailUrl": "https://example.com/images/hackathon/solana.png"
+        }
+    ]
+}

@@ -3,9 +3,9 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import type { Card } from "@/lib/types";
-import { safeImageURI } from "@/lib/imageUtils";
-import bountiesData from "@/db/seed/mock-bounties.json";
-import hackathonsData from "@/db/seed/mock-hackathon.json";
+import { safeImageURI } from "@/lib/legacy/imageUtils";
+import bountiesData from "@/lib/mock/mock-bounties.json";
+import hackathonsData from "@/lib/mock/mock-hackathons.json";
 
 interface Bounty {
     id: string;

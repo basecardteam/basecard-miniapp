@@ -4,8 +4,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CiSearch } from "react-icons/ci";
 
 import { useFetchCards } from "@/hooks/card/useFetchCards";
-import { CollectionFilterTag } from "@/lib/collection";
-import { filterCollections } from "@/lib/utils";
+import { CollectionFilterTag } from "@/lib/legacy/collection";
+import { filterCollections } from "@/lib/legacy/utils";
 import { CollectionFilter } from "../collection/CollectionFilter";
 import CardItem from "./collections/CardItem";
 
@@ -30,7 +30,14 @@ function mapWithHold(t: number, hold: number): number {
     return clamp01((t - hold) / (1 - hold));
 }
 
-type TransformTuple = { tx: number; ty: number; tz: number; sc: number; op: number; blur: number };
+type TransformTuple = {
+    tx: number;
+    ty: number;
+    tz: number;
+    sc: number;
+    op: number;
+    blur: number;
+};
 
 function computeLayerTransform(
     layerIndex: number,
@@ -91,11 +98,7 @@ export default function CollectCardsSection() {
     const [selectedTag, setSelectedTag] = useState<CollectionFilterTag>("All");
     const deferredSearchTerm = searchInput; // 단순화
 
-    const {
-        data: cards = [],
-        isPending,
-        isError,
-    } = useFetchCards();
+    const { data: cards = [], isPending, isError } = useFetchCards();
 
     const { filteredCards, tags } = useMemo(
         () => filterCollections(cards, selectedTag, deferredSearchTerm),
@@ -121,7 +124,9 @@ export default function CollectCardsSection() {
     // 뷰포트 높이 및 섹션 시작 위치 계산
     useEffect(() => {
         const recalc = () => {
-            setViewportH(typeof window !== "undefined" ? window.innerHeight : 0);
+            setViewportH(
+                typeof window !== "undefined" ? window.innerHeight : 0
+            );
             // 헤더(제목/검색/필터) 실제 높이 측정
             const headerEl = headerRef.current;
             setHeaderH(headerEl ? headerEl.offsetHeight : 0);
@@ -212,7 +217,10 @@ export default function CollectCardsSection() {
             const current = innerScrollRef.current.scrollTop;
             // 간소화: 가장 가까운 스텝으로 스냅
             const targetStepRounded = Math.round(current / SCROLL_STEP_PX);
-            const targetStep = Math.min(Math.max(targetStepRounded, 0), totalSteps);
+            const targetStep = Math.min(
+                Math.max(targetStepRounded, 0),
+                totalSteps
+            );
             // 안전 클램프
             // 동일 스텝이면 스냅 불필요
             if (targetStep === prevStepRef.current) {
@@ -222,7 +230,10 @@ export default function CollectCardsSection() {
             snappingRef.current = true;
             snapTargetRef.current = target;
             prevStepRef.current = targetStep;
-            innerScrollRef.current.scrollTo({ top: target, behavior: "smooth" });
+            innerScrollRef.current.scrollTo({
+                top: target,
+                behavior: "smooth",
+            });
             // 예상 스크롤 종료 시점에 플래그 해제
             window.setTimeout(() => {
                 snappingRef.current = false;
@@ -230,9 +241,14 @@ export default function CollectCardsSection() {
                 if (innerScrollRef.current) {
                     // 목표 근처에서 미세 흔들림 제거: 정확히 고정
                     if (snapTargetRef.current !== null) {
-                        const diff = Math.abs(innerScrollRef.current.scrollTop - snapTargetRef.current);
+                        const diff = Math.abs(
+                            innerScrollRef.current.scrollTop -
+                                snapTargetRef.current
+                        );
                         if (diff > 0 && diff < SCROLL_STEP_PX) {
-                            innerScrollRef.current.scrollTo({ top: snapTargetRef.current });
+                            innerScrollRef.current.scrollTo({
+                                top: snapTargetRef.current,
+                            });
                         }
                         // 완료 후 상태 갱신
                     }
@@ -249,11 +265,15 @@ export default function CollectCardsSection() {
 
     // 섹션 내 상대 스크롤량 계산 (섹션이 화면 상단에 닿는 시점부터 진행)
     const usingInnerScroll = innerScrollRef.current !== null;
-    const clamp = (v: number) => Math.min(Math.max(v, 0), Math.max(totalSteps * SCROLL_STEP_PX, 0));
+    const clamp = (v: number) =>
+        Math.min(Math.max(v, 0), Math.max(totalSteps * SCROLL_STEP_PX, 0));
     // 스냅 중에는 계산용 스크롤 값을 스냅 타깃으로 고정하여 움찔거림 방지
-    const calcScrollTop = snappingRef.current && snapTargetRef.current !== null
-        ? snapTargetRef.current
-        : (usingInnerScroll ? innerScrollY : (scrollY - sectionTop));
+    const calcScrollTop =
+        snappingRef.current && snapTargetRef.current !== null
+            ? snapTargetRef.current
+            : usingInnerScroll
+            ? innerScrollY
+            : scrollY - sectionTop;
     const relativeY = useMemo(
         () => clamp(calcScrollTop),
         [calcScrollTop, totalSteps]
@@ -275,7 +295,9 @@ export default function CollectCardsSection() {
     // 스테이지 표시 높이: (뷰포트 - 헤더 높이)
     const pinHeight = Math.max(viewportH - headerH, 0);
     const endPin = sectionTop + totalHeight - pinHeight + END_OFFSET_PX;
-    const inView = usingInnerScroll ? true : (scrollY >= startPin && scrollY <= endPin);
+    const inView = usingInnerScroll
+        ? true
+        : scrollY >= startPin && scrollY <= endPin;
 
     // 내부 스크롤 진행률 (0..1)
     const scrollProgress = useMemo(() => {
@@ -302,7 +324,9 @@ export default function CollectCardsSection() {
                             className="w-full h-12 px-4 pr-12 bg-white border-2 border-gray-200 rounded-xl text-black placeholder-gray-400 focus:border-[#0050FF] focus:outline-none transition-colors text-base font-k2d-regular"
                         />
                         <button
-                            onClick={() => setSearchInput((value) => value.trim())}
+                            onClick={() =>
+                                setSearchInput((value) => value.trim())
+                            }
                             className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-[#0050FF] transition-colors"
                         >
                             <CiSearch size={24} />
@@ -316,14 +340,10 @@ export default function CollectCardsSection() {
                 />
             </div>
 
-
-
             {/* States: Loading / Error / Empty */}
             {isPending && (
                 <div className="px-5 mt-5">
-                    <div className="relative w-full h-[200px] rounded-2xl bg-gray-200 overflow-hidden animate-pulse">
-
-                    </div>
+                    <div className="relative w-full h-[200px] rounded-2xl bg-gray-200 overflow-hidden animate-pulse"></div>
                 </div>
             )}
             {!isPending && isError && (
@@ -341,8 +361,12 @@ export default function CollectCardsSection() {
             {!isPending && !isError && isEmpty && (
                 <div className="px-5">
                     <div className="w-full h-[240px] rounded-2xl border border-dashed border-gray-300 bg-white flex flex-col items-center justify-center gap-2">
-                        <div className="text-gray-500 font-k2d-regular">표시할 카드가 없어요</div>
-                        <div className="text-gray-400 text-sm">필터를 변경하거나 다른 키워드를 검색해보세요</div>
+                        <div className="text-gray-500 font-k2d-regular">
+                            표시할 카드가 없어요
+                        </div>
+                        <div className="text-gray-400 text-sm">
+                            필터를 변경하거나 다른 키워드를 검색해보세요
+                        </div>
                     </div>
                 </div>
             )}
@@ -381,17 +405,31 @@ export default function CollectCardsSection() {
                                     "linear-gradient(to top, rgba(255,255,255,1), rgba(255,255,255,0))",
                             }}
                         />
-                        <div className="w-full flex items-center justify-center overflow-hidden" style={{ height: "100%" }}>
-                            <div className="relative w-full mx-auto flex items-center justify-center " style={{ perspective: 1200, height: "100%" }}>
+                        <div
+                            className="w-full flex items-center justify-center overflow-hidden"
+                            style={{ height: "100%" }}
+                        >
+                            <div
+                                className="relative w-full mx-auto flex items-center justify-center "
+                                style={{ perspective: 1200, height: "100%" }}
+                            >
                                 <div className="relative w-full ">
-                                    {renderStack({ cards: filteredCards, activeIndex, progress: stepProgress })}
+                                    {renderStack({
+                                        cards: filteredCards,
+                                        activeIndex,
+                                        progress: stepProgress,
+                                    })}
                                 </div>
                             </div>
                         </div>
                     </div>
                 )}
                 {/* 여분 스크롤 제거: 정확히 스텝 수만큼만 스크롤 가능 */}
-                <div ref={sectionRef} className="relative w-full" style={{ height: Math.max(totalSteps * SCROLL_STEP_PX, 0) }} />
+                <div
+                    ref={sectionRef}
+                    className="relative w-full"
+                    style={{ height: Math.max(totalSteps * SCROLL_STEP_PX, 0) }}
+                />
             </div>
             {/* Progress bar - subtle, blends with UI */}
             {!isPending && !isError && !isEmpty && (
@@ -413,7 +451,11 @@ function renderStackItems(cards: any[], activeIndex: number, progress: number) {
         const i = activeIndex + layer;
         if (i > maxIndex) break;
         const card = cards[i];
-        const { tx, ty, tz, sc, op, blur } = computeLayerTransform(layer, layer, progress);
+        const { tx, ty, tz, sc, op, blur } = computeLayerTransform(
+            layer,
+            layer,
+            progress
+        );
 
         const style: React.CSSProperties = {
             position: "absolute",
@@ -444,7 +486,10 @@ function renderStackItems(cards: any[], activeIndex: number, progress: number) {
                         overflow: "visible",
                     }}
                 >
-                    <CardItem card={card} isActive={layer === 0 && progress < 0.9} />
+                    <CardItem
+                        card={card}
+                        isActive={layer === 0 && progress < 0.9}
+                    />
                 </div>
             </div>
         );
@@ -471,5 +516,3 @@ function renderStack({
         </div>
     );
 }
-
-

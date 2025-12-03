@@ -12,7 +12,6 @@ export const baseCardAbi = [
                     { name: "nickname", type: "string" },
                     { name: "role", type: "string" },
                     { name: "bio", type: "string" },
-                    { name: "basename", type: "string" },
                 ],
             },
             { name: "_socialKeys", type: "string[]" },

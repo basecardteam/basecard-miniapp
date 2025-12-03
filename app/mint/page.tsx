@@ -7,7 +7,6 @@ import { MintErrorMessages } from "@/components/mint/MintErrorMessages";
 import { MintHeader } from "@/components/mint/MintHeader";
 import ProfileImagePreview from "@/components/mint/ProfileImagePreview";
 import { RoleSelector } from "@/components/mint/RoleSelector";
-import { SkillsSelector } from "@/components/mint/SkillsSelector";
 import { SocialsInput } from "@/components/mint/SocialsInput";
 import { WebsitesInput } from "@/components/mint/WebsitesInput";
 import { Input } from "@/components/ui/input";
@@ -26,21 +25,45 @@ import { Suspense, useCallback, useEffect, useState } from "react";
 import { useAccount } from "wagmi";
 
 // 모달 컴포넌트들을 lazy loading으로 처리 (필요할 때만 로드)
-const ErrorModal = dynamic(() => import("@/components/common/ErrorModal").then(mod => ({ default: mod.default })), {
-    ssr: false,
-});
+const ErrorModal = dynamic(
+    () =>
+        import("@/components/common/ErrorModal").then((mod) => ({
+            default: mod.default,
+        })),
+    {
+        ssr: false,
+    }
+);
 
-const LoadingModal = dynamic(() => import("@/components/common/LoadingModal").then(mod => ({ default: mod.default })), {
-    ssr: false,
-});
+const LoadingModal = dynamic(
+    () =>
+        import("@/components/common/LoadingModal").then((mod) => ({
+            default: mod.default,
+        })),
+    {
+        ssr: false,
+    }
+);
 
-const SuccessModal = dynamic(() => import("@/components/common/SuccessModal").then(mod => ({ default: mod.default })), {
-    ssr: false,
-});
+const SuccessModal = dynamic(
+    () =>
+        import("@/components/common/SuccessModal").then((mod) => ({
+            default: mod.default,
+        })),
+    {
+        ssr: false,
+    }
+);
 
-const WarningModal = dynamic(() => import("@/components/common/WarningModal").then(mod => ({ default: mod.default })), {
-    ssr: false,
-});
+const WarningModal = dynamic(
+    () =>
+        import("@/components/common/WarningModal").then((mod) => ({
+            default: mod.default,
+        })),
+    {
+        ssr: false,
+    }
+);
 
 export default function Mint() {
     const router = useRouter();
@@ -50,7 +73,8 @@ export default function Mint() {
 
     const username = userProfile?.username ?? "";
     const defaultProfileUrl = userProfile.pfpUrl || FALLBACK_PROFILE_IMAGE;
-    const isWalletNotReady = status !== 'connected' && status !== 'disconnected';
+    const isWalletNotReady =
+        status !== "connected" && status !== "disconnected";
 
     // Form state management
     const {
@@ -82,9 +106,7 @@ export default function Mint() {
         isPending: isMintPending,
         isConfirming: isMintConfirming,
         isGenerating,
-        isSaving,
         error: mintError,
-        hasMinted,
     } = useMintBaseCard();
 
     // Modal states
@@ -136,19 +158,26 @@ export default function Mint() {
                 return;
             }
 
+            if (!data.profileImageFile) {
+                showError(
+                    "Profile Image Required",
+                    "Please upload a profile image."
+                );
+                return;
+            }
+
             try {
-                const baseName = username.endsWith(".base.eth") ? username : "";
+                const baseName = username.endsWith(".base.eth")
+                    ? username
+                    : undefined;
 
                 // Execute complete minting flow
                 const result = await mintCard({
-                    name: data.name,
+                    nickname: data.name,
                     role: data.role,
                     bio: data.bio || "",
-                    baseName,
                     address,
-                    profileImageFile: data.profileImageFile || undefined,
-                    defaultProfileUrl,
-                    skills: data.selectedSkills,
+                    profileImage: data.profileImageFile,
                     socials: {
                         twitter: data.twitter || "",
                         github: data.github || "",
@@ -261,7 +290,7 @@ export default function Mint() {
             <div className="relative">
                 <BackButton />
             </div>
-            <MintHeader hasMinted={hasMinted === true} />
+            <MintHeader hasMinted={false} />
 
             <form
                 onSubmit={handleSubmit}
@@ -278,7 +307,10 @@ export default function Mint() {
 
                 {/* 이름 입력 */}
                 <div className="w-full space-y-2">
-                    <Label htmlFor="name" className="text-lg font-semibold text-gray-900">
+                    <Label
+                        htmlFor="name"
+                        className="text-lg font-semibold text-gray-900"
+                    >
                         Your Name <span className="text-red-500">*</span>
                     </Label>
                     <Input
@@ -286,10 +318,11 @@ export default function Mint() {
                         type="text"
                         {...register("name")}
                         placeholder="Enter your name"
-                        className={`h-12 text-base rounded-xl border-2 transition-all duration-300 ${errors.name
-                            ? "border-red-500 focus:border-red-600 focus:ring-red-500/20"
-                            : "border-gray-200 focus:border-[#0050FF] focus:ring-[#0050FF]/20 hover:border-gray-300"
-                            }`}
+                        className={`h-12 text-base rounded-xl border-2 transition-all duration-300 ${
+                            errors.name
+                                ? "border-red-500 focus:border-red-600 focus:ring-red-500/20"
+                                : "border-gray-200 focus:border-[#0050FF] focus:ring-[#0050FF]/20 hover:border-gray-300"
+                        }`}
                     />
                     {errors.name && (
                         <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
@@ -301,16 +334,16 @@ export default function Mint() {
                 {/* 역할 선택 */}
                 <RoleSelector
                     selectedRole={role}
-                    onRoleChange={(value: "Developer" | "Designer" | "Marketer") =>
-                        setValue("role", value)
-                    }
+                    onRoleChange={(
+                        value: "Developer" | "Designer" | "Marketer"
+                    ) => setValue("role", value)}
                 />
 
                 {/* 스킬 선택 */}
-                <SkillsSelector
+                {/* <SkillsSelector
                     selectedSkills={selectedSkills}
                     onToggleSkill={handleToggleSkill}
-                />
+                /> */}
 
                 {/* 소셜 링크 입력 */}
                 <SocialsInput
@@ -336,7 +369,10 @@ export default function Mint() {
 
                 {/* Base Name */}
                 <div className="w-full space-y-2">
-                    <Label htmlFor="base_name_input" className="text-lg font-semibold text-gray-900">
+                    <Label
+                        htmlFor="base_name_input"
+                        className="text-lg font-semibold text-gray-900"
+                    >
                         Base Name
                     </Label>
                     <Input
@@ -347,21 +383,27 @@ export default function Mint() {
                         placeholder="Auto-filled from your wallet"
                         className="h-12 text-base rounded-xl border-2 border-gray-200 bg-gray-50 text-gray-600 cursor-not-allowed"
                     />
-                    <p className="text-sm text-gray-500 italic">Automatically synced from your Base wallet</p>
+                    <p className="text-sm text-gray-500 italic">
+                        Automatically synced from your Base wallet
+                    </p>
                 </div>
 
                 {/* 자기소개 */}
                 <div className="w-full space-y-2">
-                    <Label htmlFor="bio" className="text-lg font-semibold text-gray-900">
+                    <Label
+                        htmlFor="bio"
+                        className="text-lg font-semibold text-gray-900"
+                    >
                         About Yourself
                     </Label>
                     <textarea
                         id="bio"
                         {...register("bio")}
-                        className={`w-full p-4 text-base rounded-xl border-2 transition-all duration-300 resize-none placeholder:text-sm placeholder:text-gray-400 ${errors.bio
-                            ? "border-red-500 focus:border-red-600 focus:ring-red-500/20"
-                            : "border-gray-200 focus:border-[#0050FF] focus:ring-[#0050FF]/20 hover:border-gray-300"
-                            }`}
+                        className={`w-full p-4 text-base rounded-xl border-2 transition-all duration-300 resize-none placeholder:text-sm placeholder:text-gray-400 ${
+                            errors.bio
+                                ? "border-red-500 focus:border-red-600 focus:ring-red-500/20"
+                                : "border-gray-200 focus:border-[#0050FF] focus:ring-[#0050FF]/20 hover:border-gray-300"
+                        }`}
                         rows={4}
                         placeholder="Tell us about yourself, your experience, and goals..."
                     />
@@ -370,13 +412,13 @@ export default function Mint() {
                             <span>⚠</span> {errors.bio.message}
                         </p>
                     )}
-                    <p className="text-sm text-gray-500 italic">Optional - Share more about yourself</p>
+                    <p className="text-sm text-gray-500 italic">
+                        Optional - Share more about yourself
+                    </p>
                 </div>
 
                 {/* 에러 메시지 */}
-                {mintError && (
-                    <MintErrorMessages mintError={mintError} />
-                )}
+                {mintError && <MintErrorMessages mintError={mintError} />}
 
                 {/* 민팅 버튼 */}
                 <MintButton

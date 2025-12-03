@@ -1,4 +1,4 @@
-import { CollectionFilterTag } from "@/lib/collection";
+import { CollectionFilterTag } from "@/lib/legacy/collection";
 import clsx from "clsx";
 import { useEffect, useMemo, useRef, useState } from "react";
 
@@ -8,7 +8,11 @@ interface CollectionFilterProps {
     onTagChange: (tag: CollectionFilterTag) => void;
 }
 
-export function CollectionFilter({ tags, selectedTag, onTagChange }: CollectionFilterProps) {
+export function CollectionFilter({
+    tags,
+    selectedTag,
+    onTagChange,
+}: CollectionFilterProps) {
     const activeIndex = useMemo(
         () => tags.findIndex((tag) => tag === selectedTag),
         [tags, selectedTag]
@@ -48,10 +52,14 @@ export function CollectionFilter({ tags, selectedTag, onTagChange }: CollectionF
                             className={clsx(
                                 "relative flex-1 min-w-0 px-4 py-2 text-sm transition-colors duration-200",
                                 "rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70",
-                                isSelected ? "text-[#0050FF] font-k2d-bold" : "text-black font-k2d-medium"
+                                isSelected
+                                    ? "text-[#0050FF] font-k2d-bold"
+                                    : "text-black font-k2d-medium"
                             )}
                         >
-                            <span className="relative z-10 truncate">{tag}</span>
+                            <span className="relative z-10 truncate">
+                                {tag}
+                            </span>
                         </button>
                     );
                 })}

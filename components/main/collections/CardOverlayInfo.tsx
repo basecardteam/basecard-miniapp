@@ -6,7 +6,10 @@ interface CardOverlayInfoProps {
     isActive: boolean;
 }
 
-const CardOverlayInfo: React.FC<CardOverlayInfoProps> = ({ card, isActive }) => {
+const CardOverlayInfo: React.FC<CardOverlayInfoProps> = ({
+    card,
+    isActive,
+}) => {
     return (
         <div
             className={clsx(
@@ -17,9 +20,8 @@ const CardOverlayInfo: React.FC<CardOverlayInfoProps> = ({ card, isActive }) => 
                     : "opacity-0 translate-y-4 pointer-events-none"
             )}
         >
-
-
-            {card.skills && card.skills.length > 0 && (
+            {/* Skills removed from Card type */}
+            {/* {card.skills && card.skills.length > 0 && (
                 <div className="flex flex-wrap gap-1 mt-3 justify-end">
                     {card.skills.slice(0, 3).map((skill: string, idx: number) => (
                         <span
@@ -35,7 +37,7 @@ const CardOverlayInfo: React.FC<CardOverlayInfoProps> = ({ card, isActive }) => 
                         </span>
                     )}
                 </div>
-            )}
+            )} */}
         </div>
     );
 };

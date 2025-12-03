@@ -1,17 +1,25 @@
-import { Card } from "@/lib/types";
+import { Card, ApiResponse } from "@/lib/types/api";
 import { useQuery } from "@tanstack/react-query";
 
 const CARDS_QUERY_KEY = ["cards"];
 const FIVE_MINUTES = 5 * 60 * 1000;
 
+import { BACKEND_API_URL } from "@/lib/common/config";
+
 const fetchCardsData = async (): Promise<Card[]> => {
-    const response = await fetch("/api/cards");
+    const response = await fetch(`${BACKEND_API_URL}/v1/cards`);
 
     if (!response.ok) {
         throw new Error("Failed to fetch cards");
     }
 
-    return response.json();
+    const data: ApiResponse<Card[]> = await response.json();
+
+    if (!data.success || !data.result) {
+        throw new Error(data.error || "Failed to fetch cards");
+    }
+
+    return data.result;
 };
 
 export function useFetchCards() {

@@ -1,7 +1,6 @@
-
 interface CollectionPayload {
-    cardId: number; // 수집하는 사람 (로그인된 유저)의 카드 ID
-    collectCardId: number; // 수집되는 사람 (QR 코드의 주인)의 카드 ID
+    cardId: string; // 수집하는 사람 (로그인된 유저)의 카드 ID
+    collectCardId: string; // 수집되는 사람 (QR 코드의 주인)의 카드 ID
 }
 
 /**
@@ -28,6 +27,4 @@ export async function addCollection(payload: CollectionPayload): Promise<any> {
     return data;
 }
 
-
 export type CollectionFilterTag = "All" | "Designer" | "Dev" | "MKT";
-

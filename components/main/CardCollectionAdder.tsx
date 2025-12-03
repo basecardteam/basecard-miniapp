@@ -1,25 +1,27 @@
 // src/components/miniapp/CardCollectionAdder.tsx
 "use client";
 
-import { useRouter } from 'next/navigation';
-import { useCallback, useEffect, useState } from 'react';
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
 
-import ErrorModal from '@/components/common/ErrorModal';
-import LoadingModal from '@/components/common/LoadingModal';
-import { useMyCard } from '@/hooks/useMyCard';
-import { addCollection } from '@/lib/collection';
-import { walletAddressAtom } from '@/store/walletState';
-import { useAtom } from 'jotai';
-import ConfirmationModal from '../common/ConfirmationModal';
+import ErrorModal from "@/components/common/ErrorModal";
+import LoadingModal from "@/components/common/LoadingModal";
+import { useMyBaseCard } from "@/hooks/useMyBaseCard";
+import { addCollection } from "@/lib/legacy/collection";
+import { walletAddressAtom } from "@/store/walletState";
+import { useAtom } from "jotai";
+import ConfirmationModal from "../common/ConfirmationModal";
 
 interface CardCollectionAdderProps {
-    collectedCardId: number;
+    collectedCardId: string;
 }
 
-export default function CardCollectionAdder({ collectedCardId }: CardCollectionAdderProps) {
+export default function CardCollectionAdder({
+    collectedCardId,
+}: CardCollectionAdderProps) {
     const router = useRouter();
     const [address] = useAtom(walletAddressAtom);
-    const { data: myCard, isLoading: isCardLoading } = useMyCard(address);
+    const { data: myCard, isLoading: isCardLoading } = useMyBaseCard(address);
 
     const [isReadyToConfirm, setIsReadyToConfirm] = useState(false); // 확인 팝업 상태
     const [isProcessing, setIsProcessing] = useState(false); // API 처리 로딩 상태
@@ -49,7 +51,6 @@ export default function CardCollectionAdder({ collectedCardId }: CardCollectionA
             setIsProcessing(false);
             alert(`🎉 ${collectedCardId}번 카드를 성공적으로 수집했습니다!`);
             router.replace("/");
-
         } catch (err: any) {
             setIsProcessing(false);
 
@@ -71,14 +72,13 @@ export default function CardCollectionAdder({ collectedCardId }: CardCollectionA
         // A. 로그인 및 명함이 없을 경우 (에러/안내)
         if (!myCard?.id) {
             // 주소는 있지만 명함이 없을 경우 (민팅 유도)
-            if (myCard?.address) {
+            if (myCard?.user?.walletAddress) {
                 setError("명함을 찾을 수 없습니다. 먼저 명함을 민팅해주세요.");
             } else {
                 // 아예 로그인 정보가 없는 경우
                 setError("카드를 수집하려면 로그인이 필요합니다.");
             }
             return; // 팝업 로직 중단
-
         }
 
         // B. 자기 자신의 카드인 경우 (에러)
@@ -89,8 +89,12 @@ export default function CardCollectionAdder({ collectedCardId }: CardCollectionA
 
         // C. 모든 조건 만족 시, 확인 팝업 띄울 준비 완료
         setIsReadyToConfirm(true);
-
-    }, [isCardLoading, myCard?.id, myCard?.address, collectedCardId]);
+    }, [
+        isCardLoading,
+        myCard?.id,
+        myCard?.user?.walletAddress,
+        collectedCardId,
+    ]);
 
     // -------------------------------------------------------------
     // 3. UX 관련 헬퍼 함수
@@ -98,12 +102,12 @@ export default function CardCollectionAdder({ collectedCardId }: CardCollectionA
     const handleCancel = useCallback(() => {
         // 취소 시에도 딥링크 파라미터를 제거하고 홈 화면으로 돌아가기
         setIsReadyToConfirm(false);
-        router.replace("/")
+        router.replace("/");
     }, [router]);
 
     const handleCloseError = useCallback(() => {
         setError(null);
-        router.replace("/")
+        router.replace("/");
     }, [router]);
 
     // -------------------------------------------------------------
@@ -116,8 +120,14 @@ export default function CardCollectionAdder({ collectedCardId }: CardCollectionA
             {/* A. 초기 로딩 모달 (myCard 정보 로딩 중) */}
             <LoadingModal
                 isOpen={isInitialLoading || isProcessing}
-                title={isInitialLoading ? "프로필 확인 중..." : "카드 수집 중..."}
-                description={isInitialLoading ? "로그인된 사용자 명함을 확인하고 있습니다." : "컬렉션에 추가하고 있습니다."}
+                title={
+                    isInitialLoading ? "프로필 확인 중..." : "카드 수집 중..."
+                }
+                description={
+                    isInitialLoading
+                        ? "로그인된 사용자 명함을 확인하고 있습니다."
+                        : "컬렉션에 추가하고 있습니다."
+                }
             />
 
             {/* B. 수집 확인 모달 */}
