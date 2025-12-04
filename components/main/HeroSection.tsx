@@ -1,8 +1,9 @@
 "use client";
 
 import LandingBG from "@/public/assets/landing-page-backgrou.webp";
-import LandingCard from '@/public/assets/landing-page-background-card.webp';
-import Image from 'next/image';
+import LandingCard from "@/public/assets/landing-page-background-card.webp";
+import BaseButton from "@/components/ui/BaseButton";
+import Image from "next/image";
 
 interface HeroSectionProps {
     onMintClick: () => void;
@@ -42,12 +43,13 @@ export default function HeroSection({ onMintClick }: HeroSectionProps) {
             </div>
 
             {/* Mint Button */}
-            <button
+            <BaseButton
                 onClick={onMintClick}
-                className="z-20 w-full mt-3 max-w-md py-4 bg-gray-900 hover:bg-gray-800 active:bg-black text-white font-k2d-semibold rounded-xl transition-all duration-300 shadow-xl text-lg transform hover:scale-105 active:scale-95"
+                // className="z-20 mt-3 max-w-md py-4 bg-gray-900 hover:bg-gray-800 active:bg-black font-k2d-semibold transition-all duration-300 shadow-xl transform hover:scale-105 active:scale-95"
+                className="z-20"
             >
                 Mint Your Card
-            </button>
+            </BaseButton>
 
             {/* 앱 연결 안내 (주소가 없을 때만) */}
             {/* {!address && (

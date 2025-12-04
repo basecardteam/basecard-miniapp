@@ -88,18 +88,30 @@ export async function createBaseCard(
 
 export async function updateCardTokenId(
     address: string,
-    tokenId: number
+    tokenId: number | null,
+    txHash?: string
 ): Promise<void> {
     const response = await fetch(`${BACKEND_API_URL}/v1/basecards/${address}`, {
         method: "PUT",
         headers: {
             "Content-Type": "application/json",
         },
-        body: JSON.stringify({ tokenId }),
+        body: JSON.stringify({ tokenId, txHash }),
     });
 
     if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || "Failed to update tokenId");
+    }
+}
+
+export async function deleteBaseCard(address: string): Promise<void> {
+    const response = await fetch(`${BACKEND_API_URL}/v1/basecards/${address}`, {
+        method: "DELETE",
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to delete card");
     }
 }

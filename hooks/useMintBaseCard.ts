@@ -2,28 +2,26 @@
 
 import {
     createBaseCard,
-    updateCardTokenId,
+    deleteBaseCard,
     CreateBaseCardParams,
 } from "@/lib/api/basecards";
-import { BACKEND_API_URL } from "@/lib/common/config";
-import { extractTokenIdFromReceipt } from "@/lib/contracts/utils";
 import { ensureCorrectNetwork } from "@/lib/utils/network";
 import { baseCardAbi } from "@/lib/abi/abi";
 import { activeChain } from "@/lib/wagmi";
 import { walletAddressAtom } from "@/store/walletState";
+import { useQueryClient } from "@tanstack/react-query";
 import { useAtom } from "jotai";
 import { useCallback, useState } from "react";
-import { decodeErrorResult, decodeEventLog } from "viem";
+import { decodeErrorResult } from "viem";
 import {
-    useAccount,
     useChainId,
     usePublicClient,
-    useReadContract,
     useSwitchChain,
     useWriteContract,
 } from "wagmi";
 import { BASECARD_CONTRACT_ADDRESS } from "@/lib/constants/contracts";
 import { REQUIRED_CHAIN_ID } from "@/lib/constants/chainId";
+import { logger } from "@/lib/common/logger";
 
 /**
  * BaseCard NFT 민팅을 위한 Hook
@@ -35,20 +33,13 @@ export function useMintBaseCard() {
     const [isConfirming, setIsConfirming] = useState(false);
     const [isGenerating, setIsGenerating] = useState(false); // Used for API call status
     const [isSaving, setIsSaving] = useState(false); // Not used anymore but kept for compatibility if needed
-
-    // Get current chain ID
-    const chainId = useChainId();
-    const isCorrectChain = chainId === REQUIRED_CHAIN_ID;
-
-    // Get public client for waiting transaction receipt
-    const publicClient = usePublicClient();
-
-    // Switch chain hook for network switching
     const { switchChainAsync } = useSwitchChain();
-
-    // writeContract hook for sending transaction
     const { writeContractAsync } = useWriteContract();
+    const publicClient = usePublicClient();
+    const chainId = useChainId();
+    const queryClient = useQueryClient();
 
+    const isCorrectChain = chainId === REQUIRED_CHAIN_ID;
     /**
      * Ensure user is on the correct network
      */
@@ -106,25 +97,19 @@ export function useMintBaseCard() {
                     ],
                 });
 
-                console.log("✅ Transaction sent. Hash:", hash);
+                logger.info("✅ Transaction sent. Hash:", hash);
+
+                const explorerUrl = `https://sepolia.basescan.org/tx/${hash}`;
+                console.log("🔗 Explorer Link:", explorerUrl);
+
                 setIsPending(false);
-                setIsConfirming(true);
+                setIsConfirming(false); // No longer waiting for confirmation
 
-                // 5. Wait for Receipt
-                if (!publicClient) throw new Error("Public client unavailable");
+                // Invalidate queries to refresh data
+                queryClient.invalidateQueries({ queryKey: ["user"] });
+                queryClient.invalidateQueries({ queryKey: ["myBaseCard"] });
 
-                const receipt = await publicClient.waitForTransactionReceipt({
-                    hash,
-                });
-                const tokenId = extractTokenIdFromReceipt(receipt);
-
-                if (!tokenId) throw new Error("Failed to extract tokenId");
-
-                // 6. Update DB
-                await updateCardTokenId(input.address, Number(tokenId));
-
-                setIsConfirming(false);
-                return { success: true, hash, tokenId };
+                return { success: true, hash };
             } catch (error) {
                 console.error("❌ Mint error:", error);
                 setIsPending(false);
@@ -163,10 +148,8 @@ export function useMintBaseCard() {
                 }
 
                 // Cleanup DB if needed
-                if (!errorMessage.includes("rejected") && input.address) {
-                    fetch(`${BACKEND_API_URL}/v1/cards/card/${input.address}`, {
-                        method: "DELETE",
-                    }).catch(console.warn);
+                if (errorMessage.includes("User rejected the request")) {
+                    deleteBaseCard(input.address).catch(console.warn);
                 }
 
                 setMintError(errorMessage);

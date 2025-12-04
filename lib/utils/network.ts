@@ -1,5 +1,6 @@
 import { PublicClient } from "viem";
 import { REQUIRED_CHAIN_ID } from "@/lib/constants/chainId";
+import { logger } from "../common/logger";
 
 /**
  * Ensure user is on the correct network
@@ -17,6 +18,9 @@ export async function ensureCorrectNetwork(
     }
 
     const currentChainId = await publicClient.getChainId();
+    logger.debug("Current chain id: ", {
+        chainId: currentChainId,
+    });
     if (currentChainId === REQUIRED_CHAIN_ID) {
         return;
     }

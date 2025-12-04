@@ -1,4 +1,4 @@
-import { atom } from 'jotai';
+import { atom } from "jotai";
 
 interface UserProfile {
     fid: number | null;
@@ -18,7 +18,8 @@ export const userProfileAtom = atom<UserProfile>(initialUserProfile);
 
 export const updateProfileAtom = atom(
     null,
-    (get, set, update: UserProfile) => {
-        set(userProfileAtom, update);
+    (get, set, update: Partial<UserProfile>) => {
+        const current = get(userProfileAtom);
+        set(userProfileAtom, { ...current, ...update });
     }
 );

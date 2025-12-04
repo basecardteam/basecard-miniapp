@@ -25,9 +25,8 @@ export default function Collection() {
         window.location.reload();
     };
 
-
     return (
-        < >
+        <>
             <div className="relative ">
                 <div className="flex gap-x-2 h-12 mb-5 items-center">
                     <BackButton className="relative top-0 left-0" />
@@ -47,13 +46,14 @@ export default function Collection() {
                         {isMyCardLoading || isLoading ? (
                             <CollectionLoading />
                         ) : myCardError || error ? (
-                            <CollectionError error={myCardError || error} onRetry={handleRetry} />
+                            <CollectionError
+                                error={myCardError || error}
+                                onRetry={handleRetry}
+                            />
                         ) : filteredCards.length === 0 ? (
                             <CollectionEmpty hasCards={allCards.length > 0} />
                         ) : (
-                            <CollectionList
-                                cards={filteredCards}
-                            />
+                            <CollectionList cards={filteredCards} />
                         )}
                     </div>
                 </div>

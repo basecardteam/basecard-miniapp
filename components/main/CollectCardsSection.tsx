@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CiSearch } from "react-icons/ci";
 
-import { useFetchCards } from "@/hooks/card/useFetchCards";
+import { useMyBaseCard } from "@/hooks/useMyBaseCard";
 import { CollectionFilterTag } from "@/lib/legacy/collection";
 import { filterCollections } from "@/lib/legacy/utils";
 import { CollectionFilter } from "../collection/CollectionFilter";
@@ -98,7 +98,8 @@ export default function CollectCardsSection() {
     const [selectedTag, setSelectedTag] = useState<CollectionFilterTag>("All");
     const deferredSearchTerm = searchInput; // 단순화
 
-    const { data: cards = [], isPending, isError } = useFetchCards();
+    const { data: myCard, isPending, isError } = useMyBaseCard();
+    const cards = useMemo(() => (myCard ? [myCard] : []), [myCard]);
 
     const { filteredCards, tags } = useMemo(
         () => filterCollections(cards, selectedTag, deferredSearchTerm),

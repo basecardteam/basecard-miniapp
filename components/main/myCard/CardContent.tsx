@@ -1,4 +1,5 @@
 import BackButton from "@/components/common/BackButton";
+import BaseButton from "@/components/ui/BaseButton";
 import { Card } from "@/lib/types";
 import MyCardBGImage from "@/public/assets/mybasecard-background.webp";
 import FacasterLogo from "@/public/logo/farcaster-logo.png";
@@ -238,12 +239,12 @@ export default function CardContent({
                     </button> */}
 
                     {onNavigateToCollection && (
-                        <button
+                        <BaseButton
                             onClick={onNavigateToCollection}
-                            className="w-full py-3 bg-gray-800 text-white font-k2d-regular text-lg rounded-xl transition-colors shadow-lg flex-none"
+                            className="flex-none"
                         >
                             My Collection
-                        </button>
+                        </BaseButton>
                     )}
                 </div>
             )}

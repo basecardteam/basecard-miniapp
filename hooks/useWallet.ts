@@ -1,6 +1,6 @@
 import { MOCK_WALLET_ADDRESS, USE_MOCK_DATA } from "@/lib/legacy/mockData";
 import { walletAddressAtom } from "@/store/walletState";
-import { useSetAtom } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import { useEffect } from "react";
 import { useAccount } from "wagmi";
 
@@ -9,32 +9,25 @@ import { useAccount } from "wagmi";
  * 목업 모드일 때는 목업 지갑 주소를 반환합니다.
  */
 export const useWallet = () => {
-    const { address, isConnected } = useAccount();
-
+    const { address: wagmiAddress, isConnected: isWagmiConnected } =
+        useAccount();
     const setWalletAddress = useSetAtom(walletAddressAtom);
+    const address = useAtomValue(walletAddressAtom);
 
     useEffect(() => {
         if (USE_MOCK_DATA) {
             // 목업 모드: 항상 목업 지갑 주소 사용
             setWalletAddress(MOCK_WALLET_ADDRESS);
-        } else if (isConnected && address) {
+        } else if (isWagmiConnected && wagmiAddress) {
             // 실제 모드: 실제 지갑 주소 사용
-            setWalletAddress(address);
+            setWalletAddress(wagmiAddress);
         } else {
             setWalletAddress(undefined);
         }
-    }, [address, isConnected, setWalletAddress]);
-
-    // 목업 모드일 때는 목업 데이터 반환
-    if (USE_MOCK_DATA) {
-        return {
-            address: MOCK_WALLET_ADDRESS,
-            isConnected: true,
-        };
-    }
+    }, [wagmiAddress, isWagmiConnected, setWalletAddress]);
 
     return {
         address,
-        isConnected,
+        isConnected: !!address,
     };
 };

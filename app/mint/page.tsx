@@ -167,17 +167,13 @@ export default function Mint() {
             }
 
             try {
-                const baseName = username.endsWith(".base.eth")
-                    ? username
-                    : undefined;
-
                 // Execute complete minting flow
                 const result = await mintCard({
+                    address: address,
                     nickname: data.name,
                     role: data.role,
                     bio: data.bio || "",
-                    address,
-                    profileImage: data.profileImageFile,
+                    profileImageFile: data.profileImageFile,
                     socials: {
                         twitter: data.twitter || "",
                         github: data.github || "",

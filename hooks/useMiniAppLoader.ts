@@ -1,10 +1,12 @@
 "use client";
 
+import { sdk } from "@farcaster/miniapp-sdk";
 import { MOCK_USER_PROFILE, USE_MOCK_DATA } from "@/lib/legacy/mockData";
 import { updateProfileAtom } from "@/store/userProfileState";
 import { useMiniKit } from "@coinbase/onchainkit/minikit";
 import { useSetAtom } from "jotai";
 import { useEffect, useMemo, useState } from "react";
+import { useUser } from "./useUser";
 import { useWallet } from "./useWallet";
 
 interface MiniAppLoaderResult {
@@ -12,7 +14,7 @@ interface MiniAppLoaderResult {
     isFinishedLoading: boolean;
 }
 
-const INITIAL_LOAD_TIMEOUT = 2000; // 2초 후 강제 완료
+const INITIAL_LOAD_TIMEOUT = 500; // 0.5초 후 강제 완료
 
 /**
  * Base Mini App 로딩 상태를 관리하는 훅
@@ -37,11 +39,21 @@ export function useMiniAppLoader(): MiniAppLoaderResult {
             // 타임아웃 후에도 MiniKit이 준비되지 않았으면 강제로 완료 처리
             if (!isMiniAppReady) {
                 setMiniAppReady();
+                sdk.actions.ready();
             }
         }, INITIAL_LOAD_TIMEOUT);
 
         return () => clearTimeout(timeoutId);
     }, [isMiniAppReady, setMiniAppReady]);
+
+    const { data: user } = useUser();
+
+    // 지갑 주소가 변경되면 백엔드에서 사용자 정보를 가져와 프로필 이미지를 업데이트합니다.
+    useEffect(() => {
+        if (user?.profileImage) {
+            setProfile({ pfpUrl: user.profileImage });
+        }
+    }, [user, setProfile]);
 
     // 목업 모드 처리
     useEffect(() => {
@@ -54,9 +66,11 @@ export function useMiniAppLoader(): MiniAppLoaderResult {
             });
             if (!isMiniAppReady) {
                 setMiniAppReady();
+                sdk.actions.ready();
             }
         } else if (userData) {
             // Base MiniKit context에서 제공하는 사용자 데이터 사용
+            // 초기 설정만 하고, 이후 백엔드 데이터가 있으면 위 useEffect에서 덮어씁니다.
             setProfile({
                 fid: userData.fid || null,
                 username: userData.username || null,
@@ -65,6 +79,7 @@ export function useMiniAppLoader(): MiniAppLoaderResult {
             });
             if (!isMiniAppReady) {
                 setMiniAppReady();
+                sdk.actions.ready();
             }
         } else if (initialLoadTimeout && !userData) {
             // 브라우저 환경에서 userData가 없어도 프로필을 빈 값으로 설정하고 로딩 완료
@@ -76,6 +91,7 @@ export function useMiniAppLoader(): MiniAppLoaderResult {
             });
             if (!isMiniAppReady) {
                 setMiniAppReady();
+                sdk.actions.ready();
             }
         }
     }, [
