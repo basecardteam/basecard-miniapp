@@ -1,5 +1,6 @@
-import BackButton from "@/components/common/BackButton";
-import BaseButton from "@/components/ui/BaseButton";
+import BackButton from "@/components/buttons/BackButton";
+import BaseButton from "@/components/buttons/BaseButton";
+import { useUser } from "@/hooks/useUser";
 import { Card } from "@/lib/types";
 import MyCardBGImage from "@/public/assets/mybasecard-background.webp";
 import FacasterLogo from "@/public/logo/farcaster-logo.png";
@@ -103,12 +104,14 @@ export default function CardContent({
         [openUrl]
     );
 
+    const { data: user } = useUser();
+
     return (
         <div className="relative flex-1 flex flex-col">
             {mode === "profile" && (
                 <div className="flex  items-center h-12 gap-x-2 mb-1">
                     <BackButton className="relative top-0 left-0" />
-                    <div className="font-k2d-bold text-black text-3xl tracking-tighter leading-none">
+                    <div className="font-k2d font-bold text-black text-3xl tracking-tighter leading-none">
                         {title}
                     </div>
                 </div>
@@ -140,8 +143,8 @@ export default function CardContent({
                         <div className="relative w-16 h-16 rounded-xl overflow-hidden shadow-xl flex-none mb-5">
                             <Image
                                 src={
-                                    card.user?.profileImage
-                                        ? card.user.profileImage
+                                    user?.profileImage
+                                        ? user.profileImage
                                         : "/assets/default-profile.png"
                                 }
                                 alt={card.nickname || "User"}
@@ -153,10 +156,10 @@ export default function CardContent({
                         </div>
 
                         <div className="mb-5 text-center">
-                            <div className="font-k2d-bold text-white text-3xl flex-none">
+                            <div className="font-k2d font-bold text-white text-3xl flex-none">
                                 {card.nickname}
                             </div>
-                            <div className="font-k2d-regular text-white text-xl flex-none">
+                            <div className="font-k2d font-normal text-white text-xl flex-none">
                                 {card.role}
                             </div>
                         </div>
@@ -195,7 +198,7 @@ export default function CardContent({
 
                         <div className="w-full flex-1 px-5">
                             {/* Bio Section */}
-                            <p className="min-h-32 font-k2d-regular border border-[#3E7CFF] leading-5 text-white text-base text-center flex justify-center items-center p-3 rounded-2xl shadow-xl  bg-white/[4%] overflow-auto">
+                            <p className="min-h-32 font-k2d font-normal border border-[#3E7CFF] leading-5 text-white text-base text-center flex justify-center items-center p-3 rounded-2xl shadow-xl  bg-white/[4%] overflow-auto">
                                 {card.bio}
                             </p>
 
@@ -204,7 +207,7 @@ export default function CardContent({
                                 {(card.skills ?? []).map((skill: string, index: number) => (
                                     <div
                                         key={index}
-                                        className="font-k2d-medium text-sm text-white text-center px-4 py-1.5 rounded-xl bg-[#0050FF] border border-[#3E7CFF]"
+                                        className="font-k2d font-medium text-sm text-white text-center px-4 py-1.5 rounded-xl bg-[#0050FF] border border-[#3E7CFF]"
                                     >
                                         {skill}
                                     </div>
@@ -218,7 +221,7 @@ export default function CardContent({
                         <div className="w-full mt-auto">
                             {/* <button
                                 onClick={() => openUrl(`https://base.org/name/${card.basename}`)}
-                                className="w-full py-3 bg-[#0050FF] text-white font-k2d-regular text-lg rounded-br-xl rounded-bl-xl"
+                                className="w-full py-3 bg-[#0050FF] text-white font-k2d font-normal text-lg rounded-br-xl rounded-bl-xl"
                             >
                                 {card.basename.length > 0 ? card.basename : "No Basename"}
                             </button> */}
@@ -233,7 +236,7 @@ export default function CardContent({
                     {/* Basename Button (Primary Action) - Basename removed from type */}
                     {/* <button
                         onClick={() => openUrl(`https://base.org/name/${card.basename}`)}
-                        className="w-full py-3 bg-[#0050FF] text-white font-k2d-regular text-lg rounded-xl transition-colors shadow-lg"
+                        className="w-full py-3 bg-[#0050FF] text-white font-k2d font-normal text-lg rounded-xl transition-colors shadow-lg"
                     >
                         {card.basename.length > 0 ? card.basename : "No Basename"}
                     </button> */}

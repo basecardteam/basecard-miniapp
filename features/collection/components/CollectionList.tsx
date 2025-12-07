@@ -1,4 +1,4 @@
-import CardItem from "@/components/main/collections/CardItem";
+import CardItem from "./CardItem";
 import { Card } from "@/lib/types";
 
 interface CollectionListProps {
@@ -13,13 +13,8 @@ export function CollectionList({ cards }: CollectionListProps) {
     return (
         <div className="grid grid-cols-1 gap-y-5">
             {cards.map((card) => (
-                <CardItem
-                    key={card.id}
-                    isActive={true}
-                    card={card}
-                />
+                <CardItem key={card.id} isActive={true} card={card} />
             ))}
         </div>
     );
 }
-

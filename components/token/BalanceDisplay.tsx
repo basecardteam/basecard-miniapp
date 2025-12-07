@@ -18,7 +18,7 @@ export default function BalanceDisplay({ className }: BalanceDisplayProps) {
                 {isPending ? (
                     <AiOutlineLoading size={14} className="animate-spin" />
                 ) : (
-                    <span className={cn(dsText.body, "font-k2d-bold")}>
+                    <span className={cn(dsText.body, "font-k2d font-bold")}>
                         {user?.totalPoints?.toLocaleString() ?? 0} Point
                     </span>
                 )}

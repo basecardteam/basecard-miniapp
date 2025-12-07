@@ -9,7 +9,7 @@ const MainHome = lazy(async () => {
     if (config.ENABLE_LAZY_LOAD_TEST) {
         await new Promise((resolve) => setTimeout(resolve, 3000));
     }
-    return import("@/components/main/MainHome");
+    return import("@/features/home/HomeScreen");
 });
 
 const MainSkeleton = () => (

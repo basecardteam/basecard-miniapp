@@ -1,5 +1,5 @@
 import QuestCardImage from "./QuestCardImage";
-import BaseButton from "@/components/ui/BaseButton";
+import BaseButton from "@/components/buttons/BaseButton";
 
 export default function QuestHeroSection() {
     return (

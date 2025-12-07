@@ -3,11 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BsCreditCard } from "react-icons/bs";
-import { FaMoneyBillAlt, FaScroll } from "react-icons/fa";
+import { FaMoneyBillAlt, FaScroll, FaAddressCard } from "react-icons/fa";
 import { GoHomeFill } from "react-icons/go";
 
 const navItems = [
-    { href: "/mycard", label: "My BaseCard", icon: BsCreditCard },
+    { href: "/mybasecard", label: "My Card", icon: FaAddressCard },
     { href: "/", label: "Home", icon: GoHomeFill },
     { href: "/quest", label: "Quest", icon: FaScroll },
     { href: "/earn", label: "Earn", icon: FaMoneyBillAlt },

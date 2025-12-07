@@ -6,10 +6,10 @@ import { useMyBaseCard } from "@/hooks/useMyBaseCard";
 import { useUser } from "@/hooks/useUser";
 import { useAccount } from "wagmi";
 import { useRouter } from "next/navigation";
-import CardCollectionAdder from "./CardCollectionAdder";
-import CollectCardsSection from "./CollectCardsSection";
-import HeroSection from "./HeroSection";
-import MyCardSection from "./MyCardSection";
+import CardCollectionAdder from "./components/CardCollectionAdder";
+import CollectCardsSection from "./components/CollectCardsSection";
+import HeroSection from "./components/HeroSection";
+import MyCardSection from "./components/MyCardSection";
 
 const MainSkeleton = () => (
     <div className="flex flex-col w-full gap-4 px-5">
@@ -44,7 +44,7 @@ const MainSkeleton = () => (
     </div>
 );
 
-export default function MainHome() {
+export default function HomeContent() {
     const router = useRouter();
     const { address } = useAccount();
     const { data: userData, isPending: isUserPending } = useUser();

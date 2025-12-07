@@ -1,7 +1,7 @@
 "use client";
 
 import { useAccount, useConnect, useDisconnect } from "wagmi";
-import BaseButton from "@/components/ui/BaseButton";
+import BaseButton from "@/components/buttons/BaseButton";
 import ConnectedUserDisplay from "./ConnectedUserDisplay";
 
 export default function BrowserWalletConnect() {

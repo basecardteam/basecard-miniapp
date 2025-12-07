@@ -14,7 +14,7 @@ export default function BaseButton({
     return (
         <button
             className={cn(
-                "w-full py-4 font-k2d-semibold text-lg rounded-xl transition-all duration-300 shadow-xl flex justify-center items-center",
+                "w-full py-4 font-k2d font-semibold text-lg rounded-xl transition-all duration-300 shadow-xl flex justify-center items-center",
                 "transform hover:scale-105 active:scale-95",
                 "bg-gray-900 text-white hover:bg-gray-800 active:bg-black",
                 className

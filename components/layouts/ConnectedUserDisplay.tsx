@@ -1,5 +1,5 @@
 import BalanceDisplay from "../token/BalanceDisplay";
-import UserProfileAvatar from "@/components/common/UserProfileAvatar";
+import UserProfileAvatar from "@/components/avatars/UserProfileAvatar";
 
 export default function ConnectedUserDisplay() {
     return (

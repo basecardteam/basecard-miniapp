@@ -1,15 +1,15 @@
 "use client";
 
-import MyBaseCardScreen from "@/features/my-base-card/MyBaseCardScreen";
+import dynamic from "next/dynamic";
+
+const CardViewerContent = dynamic(() => import("./CardViewerContent"), {
+    ssr: false,
+});
 
 interface CardViewerScreenProps {
     address: string;
 }
 
-export default function CardViewerScreen({ address }: CardViewerScreenProps) {
-    return (
-        <div className="relative">
-            <MyBaseCardScreen address={address} mode="viewer" title="" />
-        </div>
-    );
+export default function CardViewerScreen(props: CardViewerScreenProps) {
+    return <CardViewerContent {...props} />;
 }

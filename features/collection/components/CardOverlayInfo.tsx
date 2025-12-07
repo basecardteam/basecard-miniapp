@@ -26,13 +26,13 @@ const CardOverlayInfo: React.FC<CardOverlayInfoProps> = ({
                     {card.skills.slice(0, 3).map((skill: string, idx: number) => (
                         <span
                             key={idx}
-                            className="px-2 py-1 bg-white/15 text-white rounded-full text-[11px] font-k2d-regular"
+                            className="px-2 py-1 bg-white/15 text-white rounded-full text-[11px] font-k2d font-normal"
                         >
                             {skill}
                         </span>
                     ))}
                     {card.skills.length > 3 && (
-                        <span className="px-2 py-1 bg-white/15 text-white rounded-full text-[11px] font-k2d-regular">
+                        <span className="px-2 py-1 bg-white/15 text-white rounded-full text-[11px] font-k2d font-normal">
                             +{card.skills.length - 3}
                         </span>
                     )}

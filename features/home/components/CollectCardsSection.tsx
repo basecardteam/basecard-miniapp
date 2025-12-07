@@ -6,8 +6,8 @@ import { CiSearch } from "react-icons/ci";
 import { useMyBaseCard } from "@/hooks/useMyBaseCard";
 import { CollectionFilterTag } from "@/unused/collection";
 import { filterCollections } from "@/unused/utils";
-import { CollectionFilter } from "../collection/CollectionFilter";
-import CardItem from "./collections/CardItem";
+import { CollectionFilter } from "@/features/collection/components/CollectionFilter";
+import CardItem from "@/features/collection/components/CardItem";
 
 const SCROLL_STEP_PX = 260; // 한 카드가 교체되는 스크롤 거리
 const STACK_SIZE = 4; // 동시에 보여줄 카드 수 (활성 + 다음 카드들)
@@ -312,7 +312,7 @@ export default function CollectCardsSection() {
         <div className="bg-white pt-6">
             {/* Header + Search + Filter */}
             <div ref={headerRef} className="px-5">
-                <h2 className="text-3xl sm:text-4xl font-k2d-bold text-black mb-2 tracking-tight">
+                <h2 className="text-3xl sm:text-4xl font-k2d font-bold text-black mb-2 tracking-tight">
                     Collect cards
                 </h2>
                 <div className="mb-3">
@@ -322,7 +322,7 @@ export default function CollectCardsSection() {
                             placeholder="designer, dev, marketer, ..."
                             value={searchInput}
                             onChange={(e) => setSearchInput(e.target.value)}
-                            className="w-full h-12 px-4 pr-12 bg-white border-2 border-gray-200 rounded-xl text-black placeholder-gray-400 focus:border-[#0050FF] focus:outline-none transition-colors text-base font-k2d-regular"
+                            className="w-full h-12 px-4 pr-12 bg-white border-2 border-gray-200 rounded-xl text-black placeholder-gray-400 focus:border-[#0050FF] focus:outline-none transition-colors text-base font-k2d font-normal"
                         />
                         <button
                             onClick={() =>
@@ -362,7 +362,7 @@ export default function CollectCardsSection() {
             {!isPending && !isError && isEmpty && (
                 <div className="px-5">
                     <div className="w-full h-[240px] rounded-2xl border border-dashed border-gray-300 bg-white flex flex-col items-center justify-center gap-2">
-                        <div className="text-gray-500 font-k2d-regular">
+                        <div className="text-gray-500 font-k2d font-normal">
                             표시할 카드가 없어요
                         </div>
                         <div className="text-gray-400 text-sm">

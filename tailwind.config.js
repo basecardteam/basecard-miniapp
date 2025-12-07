@@ -13,6 +13,7 @@ module.exports = {
         extend: {
             fontFamily: {
                 sans: ["var(--font-sans)", "system-ui", "sans-serif"],
+                k2d: ["var(--font-k2d)", "system-ui", "sans-serif"],
             },
             colors: {
                 background: "var(--background)",

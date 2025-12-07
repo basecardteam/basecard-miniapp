@@ -10,10 +10,7 @@ export default function CardLayout({
     return (
         <div className="w-full flex flex-col min-h-screen">
             <Header />
-            <main className="flex-1 pt-[var(--header-h,60px)]">
-                {children}
-            </main>
+            <main className="flex-1 pt-[var(--header-h,60px)]">{children}</main>
         </div>
     );
 }
-

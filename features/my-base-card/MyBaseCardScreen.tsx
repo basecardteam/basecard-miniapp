@@ -1,28 +1,12 @@
 "use client";
 
-import { Card } from "@/lib/types";
+import dynamic from "next/dynamic";
+import { MyBaseCardScreenProps } from "./MyBaseCardContent";
 
-import MyBaseCardProfile from "./components/MyBaseCardProfile";
-import MyBaseCardViewer from "./components/MyBaseCardViewer";
+const MyBaseCardContent = dynamic(() => import("./MyBaseCardContent"), {
+    ssr: false,
+});
 
-interface MyBaseCardScreenProps {
-    card?: Card;
-    address?: string;
-    mode?: "viewer" | "profile";
-    title?: string;
+export default function MyBaseCardScreen(props: MyBaseCardScreenProps) {
+    return <MyBaseCardContent {...props} />;
 }
-
-export default function MyBaseCardScreen({
-    card,
-    address,
-    mode = "profile",
-    title,
-}: MyBaseCardScreenProps = {}) {
-    if (mode === "viewer" || card || address) {
-        return <MyBaseCardViewer card={card} address={address} title={title} />;
-    }
-
-    return <MyBaseCardProfile title={title} />;
-}
-
-export { MyBaseCardProfile, MyBaseCardViewer };

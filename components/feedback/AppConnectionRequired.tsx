@@ -64,7 +64,7 @@ export function AppConnectionRequired({
                     />
                 </div>
 
-                <h2 className="text-xl sm:text-2xl font-k2d-bold text-gray-800 mb-3">
+                <h2 className="text-xl sm:text-2xl font-k2d font-bold text-gray-800 mb-3">
                     {title}
                 </h2>
 
@@ -76,7 +76,7 @@ export function AppConnectionRequired({
                     {isMobile ? (
                         <a
                             href={deepLinkUrl}
-                            className="inline-flex items-center justify-center w-full py-3 px-4 bg-blue-600 text-white font-k2d-semibold rounded-xl shadow-lg hover:bg-blue-700 transition-colors space-x-2"
+                            className="inline-flex items-center justify-center w-full py-3 px-4 bg-blue-600 text-white font-k2d font-semibold rounded-xl shadow-lg hover:bg-blue-700 transition-colors space-x-2"
                             target="_blank"
                             rel="noopener noreferrer"
                         >
@@ -86,7 +86,7 @@ export function AppConnectionRequired({
                     ) : (
                         <a
                             href={appStoreLink}
-                            className="inline-flex items-center justify-center w-full py-3 px-4 bg-blue-600 text-white font-k2d-semibold rounded-xl shadow-lg hover:bg-blue-700 transition-colors space-x-2"
+                            className="inline-flex items-center justify-center w-full py-3 px-4 bg-blue-600 text-white font-k2d font-semibold rounded-xl shadow-lg hover:bg-blue-700 transition-colors space-x-2"
                             target="_blank"
                             rel="noopener noreferrer"
                         >

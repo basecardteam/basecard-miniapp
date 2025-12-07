@@ -32,7 +32,7 @@ export default function ConfirmationModal({
             >
                 {/* Title and Description */}
                 <div className="text-center mb-6 w-full">
-                    <h2 className="text-2xl font-k2d-bold text-gray-800 mb-2">
+                    <h2 className="text-2xl font-k2d font-bold text-gray-800 mb-2">
                         {title}
                     </h2>
                     <p className="text-gray-600 text-sm leading-relaxed px-1">

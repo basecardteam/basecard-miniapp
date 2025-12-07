@@ -4,11 +4,12 @@
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
-import ErrorModal from "@/components/common/ErrorModal";
-import LoadingModal from "@/components/common/LoadingModal";
+import ConfirmationModal from "@/components/modals/ConfirmationModal";
+import ErrorModal from "@/components/modals/ErrorModal";
+import LoadingModal from "@/components/modals/LoadingModal";
+import SuccessModal from "@/components/modals/SuccessModal";
 import { useMyBaseCard } from "@/hooks/useMyBaseCard";
 import { addCollection } from "@/unused/collection";
-import ConfirmationModal from "../common/ConfirmationModal";
 
 interface CardCollectionAdderProps {
     collectedCardId: string;

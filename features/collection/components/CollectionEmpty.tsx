@@ -5,7 +5,7 @@ interface CollectionEmptyProps {
 export function CollectionEmpty({ hasCards }: CollectionEmptyProps) {
     return (
         <div className="text-center py-8">
-            <p className="text-gray-500 font-k2d-regular">
+            <p className="text-gray-500 font-k2d font-normal">
                 {hasCards
                     ? "No cards match your search"
                     : "No cards collected yet"}

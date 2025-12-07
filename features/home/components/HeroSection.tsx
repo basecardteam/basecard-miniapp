@@ -2,7 +2,7 @@
 
 import LandingBG from "@/public/assets/landing-page-backgrou.webp";
 import LandingCard from "@/public/assets/landing-page-background-card.webp";
-import BaseButton from "@/components/ui/BaseButton";
+import BaseButton from "@/components/buttons/BaseButton";
 import Image from "next/image";
 
 interface HeroSectionProps {
@@ -20,12 +20,12 @@ export default function HeroSection({ onMintClick }: HeroSectionProps) {
             />
             {/* Title Section */}
             <div className="text-left">
-                <h1 className="text-4xl sm:text-6xl md:text-7xl font-k2d-bold text-white mb-2 drop-shadow-lg tracking-tight leading-tight">
+                <h1 className="text-4xl sm:text-6xl md:text-7xl font-k2d font-bold text-white mb-2 drop-shadow-lg tracking-tight leading-tight">
                     Onchain social
                     <br />
                     business card
                 </h1>
-                <p className="text-lg sm:text-2xl font-k2d-medium text-white max-w-2xl drop-shadow-md tracking-normal">
+                <p className="text-lg sm:text-2xl font-k2d font-medium text-white max-w-2xl drop-shadow-md tracking-normal">
                     Turn your onchain story into
                     <br />
                     opportunity
@@ -45,7 +45,7 @@ export default function HeroSection({ onMintClick }: HeroSectionProps) {
             {/* Mint Button */}
             <BaseButton
                 onClick={onMintClick}
-                // className="z-20 mt-3 max-w-md py-4 bg-gray-900 hover:bg-gray-800 active:bg-black font-k2d-semibold transition-all duration-300 shadow-xl transform hover:scale-105 active:scale-95"
+                // className="z-20 mt-3 max-w-md py-4 bg-gray-900 hover:bg-gray-800 active:bg-black font-k2d font-semibold transition-all duration-300 shadow-xl transform hover:scale-105 active:scale-95"
                 className="z-20"
             >
                 Mint Your Card

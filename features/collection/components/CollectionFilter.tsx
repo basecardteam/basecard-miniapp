@@ -53,8 +53,8 @@ export function CollectionFilter({
                                 "relative flex-1 min-w-0 px-4 py-2 text-sm transition-colors duration-200",
                                 "rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-white/70",
                                 isSelected
-                                    ? "text-[#0050FF] font-k2d-bold"
-                                    : "text-black font-k2d-medium"
+                                    ? "text-[#0050FF] font-k2d font-bold"
+                                    : "text-black font-k2d font-medium"
                             )}
                         >
                             <span className="relative z-10 truncate">

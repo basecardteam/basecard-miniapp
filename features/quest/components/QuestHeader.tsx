@@ -3,7 +3,8 @@
 import Image from "next/image";
 import BaseCardLogoTypo from "@/public/baseCardTypo.png";
 import { useUser } from "@/hooks/useUser";
-import UserProfileAvatar from "@/components/common/UserProfileAvatar";
+import BackButton from "@/components/buttons/BackButton";
+import UserProfileAvatar from "@/components/avatars/UserProfileAvatar";
 import { cn } from "@/lib/utils";
 
 export default function QuestHeader() {

@@ -18,7 +18,7 @@ export default function MyCardSection() {
     };
 
     const handleMyCardClick = () => {
-        router.push("/mycard");
+        router.push("/mybasecard");
     };
 
     const handleShareClick = () => {
@@ -34,7 +34,7 @@ export default function MyCardSection() {
     return (
         <div className="relative w-full px-4 sm:px-6 md:px-8 flex flex-col justify-center items-center py-3 sm:py-4 gap-4 sm:gap-6">
             {/* Title Section */}
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-k2d-bold text-left tracking-tight leading-tight">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-k2d font-bold text-left tracking-tight leading-tight">
                 Onchain social
                 <br />
                 Business Card

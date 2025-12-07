@@ -89,7 +89,7 @@ export const MintButton = memo(function MintButton({
     // 버튼 스타일 클래스 결정
     const buttonClasses = useMemo(() => {
         const baseClasses =
-            "w-full py-4 px-6 mt-6 text-lg font-k2d-semibold rounded-2xl transition-all duration-300 shadow-xl flex items-center justify-center gap-2 min-h-[56px] disabled:cursor-not-allowed disabled:opacity-70 relative overflow-hidden";
+            "w-full py-4 px-6 mt-6 text-lg font-k2d font-semibold rounded-2xl transition-all duration-300 shadow-xl flex items-center justify-center gap-2 min-h-[56px] disabled:cursor-not-allowed disabled:opacity-70 relative overflow-hidden";
 
         if (isDisabled) {
             return `${baseClasses} bg-gradient-to-r from-gray-400 to-gray-500 text-white cursor-not-allowed`;

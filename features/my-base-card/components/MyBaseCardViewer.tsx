@@ -1,29 +1,19 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-
 import { useBaseCardSocials } from "@/hooks/useBaseCardDetail";
 import { useMyBaseCard } from "@/hooks/useMyBaseCard";
-import { Card } from "@/lib/types";
 import { useOpenUrl } from "@coinbase/onchainkit/minikit";
-
 import CardContent from "./CardContent";
 
 interface MyCardViewerProps {
-    card?: Card;
-    address?: string;
     title?: string;
 }
 
-export default function MyBaseCardViewer({
-    card: cardProp,
-    address,
-    title,
-}: MyCardViewerProps) {
+export default function MyBaseCardViewer({ title }: MyCardViewerProps) {
     const router = useRouter();
     const openUrl = useOpenUrl();
     const { data: fetchedCard, isLoading } = useMyBaseCard();
-
     const { socials, isLoading: isSocialLoading } = useBaseCardSocials(
         fetchedCard?.tokenId ?? null,
         {
@@ -31,7 +21,6 @@ export default function MyBaseCardViewer({
             enabled: fetchedCard?.tokenId !== undefined,
         }
     );
-
     const rootHeight = {
         minHeight: "calc(100dvh - var(--header-h, 60px))",
     };
@@ -55,7 +44,7 @@ export default function MyBaseCardViewer({
                 className="w-full flex flex-col overflow-hidden relative"
                 style={rootHeight}
             >
-                <div className="flex-1 h-full flex items-center justify-center bg-gradient-to-b from-[#0050FF] to-[#0080FF] px-6 py-8 text-white font-k2d-medium text-center">
+                <div className="flex-1 h-full flex items-center justify-center bg-gradient-to-b from-[#0050FF] to-[#0080FF] px-6 py-8 text-white font-k2d font-medium text-center">
                     해당 주소의 카드를 찾을 수 없습니다.
                 </div>
             </div>

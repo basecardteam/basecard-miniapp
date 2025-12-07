@@ -8,10 +8,6 @@ export interface ApiResponse<T> {
     error: string | null;
 }
 
-/**
- * Create Card API Response
- * POST /v1/cards 엔드포인트의 응답 타입
- */
 export interface CreateCardResponse {
     profile_image: string;
     card_data: {
@@ -33,20 +29,16 @@ export interface User {
 }
 
 export interface Card {
-    id: string;
-    userId: string; // Owner User ID
-    tokenId: number | null;
-    nickname: string | null;
-    role: string | null;
-    bio: string | null;
-    imageUri: string | null; // NFT Metadata URI (IPFS)
-    socials: Record<string, string> | null;
+    tokenId: number;
+    nickname: string;
+    role: string;
+    bio: string;
+    imageUri: string; // NFT Metadata URI (IPFS)
+    socials: Record<string, string>;
     skills: string[]; // Not in DB but in spec
-    address: string; // Mapped from user.walletAddress in GET /cards
 }
 
 export interface Quest {
-    id: string;
     title: string;
     description: string | null;
     rewardAmount: number;
@@ -66,7 +58,6 @@ export interface Collection {
 }
 
 export interface PointLog {
-    id: string;
     userId: string;
     amount: number;
     type: "QUEST_REWARD" | "MINT_BONUS" | "REFERRAL" | "ADMIN_ADJUST";
