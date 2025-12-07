@@ -5,10 +5,12 @@ import baseCardTypo from "@/public/baseCardTypo.png";
 import Image from "next/image";
 import { useMemo } from "react";
 import { FaArrowRight } from "react-icons/fa";
-import { useIsMobile } from "@/hooks/utils/useIsMobile";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
-const IOS_STORE_URL = "https://apps.apple.com/kr/app/coinbase-%EC%A7%80%EA%B0%91-nfts-%EC%95%94%ED%98%B8%ED%99%94%ED%8F%90/id1278383455";
-const ANDROID_STORE_URL = "https://play.google.com/store/apps/details?id=org.toshi&pcampaignid=web_share";
+const IOS_STORE_URL =
+    "https://apps.apple.com/kr/app/coinbase-%EC%A7%80%EA%B0%91-nfts-%EC%95%94%ED%98%B8%ED%99%94%ED%8F%90/id1278383455";
+const ANDROID_STORE_URL =
+    "https://play.google.com/store/apps/details?id=org.toshi&pcampaignid=web_share";
 
 interface AppConnectionRequiredProps {
     title?: string;
@@ -25,9 +27,12 @@ export function AppConnectionRequired({
     const { isMobile, isIOS } = useIsMobile();
 
     const { deepLinkUrl, appStoreLink, buttonText } = useMemo(() => {
-        const queryString = typeof window !== 'undefined' ? window.location.search : '';
+        const queryString =
+            typeof window !== "undefined" ? window.location.search : "";
         const targetUrl = `${ROOT_URL}${queryString}`;
-        const deepLink = `cbwallet://miniapp?url=${encodeURIComponent(targetUrl)}`;
+        const deepLink = `cbwallet://miniapp?url=${encodeURIComponent(
+            targetUrl
+        )}`;
 
         let storeLink = ANDROID_STORE_URL;
         let btnText = "Download on Google Play";
@@ -43,7 +48,7 @@ export function AppConnectionRequired({
         return {
             deepLinkUrl: deepLink,
             appStoreLink: storeLink,
-            buttonText: btnText
+            buttonText: btnText,
         };
     }, [isIOS, isMobile]);
 
@@ -51,7 +56,12 @@ export function AppConnectionRequired({
         <div className="flex flex-col items-center justify-center min-h-[60vh] bg-gray-50 p-6">
             <div className="bg-white p-8 rounded-2xl shadow-lg text-center max-w-md w-full border border-gray-200">
                 <div className="flex justify-center mb-6">
-                    <Image src={baseCardTypo} alt="bc-logo" height={60} className="object-contain" />
+                    <Image
+                        src={baseCardTypo}
+                        alt="bc-logo"
+                        height={60}
+                        className="object-contain"
+                    />
                 </div>
 
                 <h2 className="text-xl sm:text-2xl font-k2d-bold text-gray-800 mb-3">
@@ -87,9 +97,21 @@ export function AppConnectionRequired({
 
                     {!isMobile && (
                         <div className="mt-2 text-sm text-gray-500 space-x-4">
-                            <a href={IOS_STORE_URL} target="_blank" className="hover:text-blue-600 underline">iOS Download</a>
+                            <a
+                                href={IOS_STORE_URL}
+                                target="_blank"
+                                className="hover:text-blue-600 underline"
+                            >
+                                iOS Download
+                            </a>
                             <span>|</span>
-                            <a href={ANDROID_STORE_URL} target="_blank" className="hover:text-blue-600 underline">Android Download</a>
+                            <a
+                                href={ANDROID_STORE_URL}
+                                target="_blank"
+                                className="hover:text-blue-600 underline"
+                            >
+                                Android Download
+                            </a>
                         </div>
                     )}
                 </div>
@@ -97,4 +119,3 @@ export function AppConnectionRequired({
         </div>
     );
 }
-

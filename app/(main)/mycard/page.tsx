@@ -1,4 +1,4 @@
-import MyCard from "@/components/main/myCard/MyCard";
+import MyBaseCardScreen from "@/features/my-base-card/MyBaseCardScreen";
 import { Suspense } from "react";
 
 const CardSkeleton = () => (
@@ -12,7 +12,7 @@ const CardSkeleton = () => (
 export default function MyCardPage() {
     return (
         <Suspense fallback={<CardSkeleton />}>
-            <MyCard />
+            <MyBaseCardScreen />
         </Suspense>
     );
 }

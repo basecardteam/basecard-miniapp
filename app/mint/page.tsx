@@ -12,7 +12,7 @@ import { WebsitesInput } from "@/components/mint/WebsitesInput";
 import { useFrameContext } from "@/components/providers/FrameProvider";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useMintForm } from "@/hooks/mint/useMintForm";
+import { useMintForm } from "@/hooks/useMintForm";
 import { useMintBaseCard } from "@/hooks/useMintBaseCard";
 import { MAX_WEBSITES } from "@/lib/constants/mint";
 import type { MintFormData } from "@/lib/schemas/mintFormSchema";

@@ -6,7 +6,7 @@ import { CollectionFilter } from "@/components/collection/CollectionFilter";
 import { CollectionList } from "@/components/collection/CollectionList";
 import { CollectionLoading } from "@/components/collection/CollectionLoading";
 import BackButton from "@/components/common/BackButton";
-import { useCollectionPage } from "@/hooks/collection/useCollectionPage";
+import { useCollectionPage } from "@/hooks/useCollectionPage";
 
 export default function Collection() {
     const {

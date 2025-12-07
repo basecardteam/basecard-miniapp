@@ -1,6 +1,6 @@
 "use client";
 
-import MyCard from "@/components/main/myCard/MyCard";
+import CardViewerScreen from "@/features/card-viewer/CardViewerScreen";
 import { use } from "react";
 
 const CardSkeleton = () => (
@@ -16,7 +16,5 @@ interface CardPageProps {
 export default function CardPage({ params }: CardPageProps) {
     const { address } = use(params);
 
-    return <div className="relative">
-        <MyCard address={address} mode="viewer" title="" />
-    </div>;
+    return <CardViewerScreen address={address} />;
 }

@@ -3,7 +3,7 @@
 import FooterNav from "@/components/layouts/FooterNav";
 import Header from "@/components/layouts/Header";
 import { useMiniAppLoader } from "@/hooks/useMiniAppLoader";
-import { useIsMobile } from "@/hooks/utils/useIsMobile";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import BCLogo from "@/public/bc-icon.png";
 import Image from "next/image";
 import { useEffect, useState } from "react";
@@ -50,4 +50,3 @@ export default function MainLayoutClient({
         </div>
     );
 }
-

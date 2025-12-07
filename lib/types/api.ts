@@ -43,15 +43,13 @@ export interface Card {
     socials: Record<string, string> | null;
     skills: string[]; // Not in DB but in spec
     address: string; // Mapped from user.walletAddress in GET /cards
-    createdAt: string; // ISO Date string
-    updatedAt: string; // ISO Date string
 }
 
 export interface Quest {
     id: string;
     title: string;
     description: string | null;
-    reward: number;
+    rewardAmount: number;
     actionType: string;
 }
 
@@ -65,7 +63,6 @@ export interface Collection {
     id: string;
     collectorUserId: string;
     collectedCardId: string;
-    createdAt: string;
 }
 
 export interface PointLog {
@@ -74,5 +71,4 @@ export interface PointLog {
     amount: number;
     type: "QUEST_REWARD" | "MINT_BONUS" | "REFERRAL" | "ADMIN_ADJUST";
     referenceId: string | null;
-    createdAt: string;
 }

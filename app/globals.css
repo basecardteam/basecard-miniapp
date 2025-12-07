@@ -123,7 +123,6 @@
 
 /* iPhone-specific optimizations */
 @supports (-webkit-touch-callout: none) {
-
     /* iOS Safari specific styles */
     .min-h-screen {
         min-height: -webkit-fill-available;
@@ -162,7 +161,6 @@
 
 /* Enhanced touch targets for mobile */
 @media (max-width: 640px) {
-
     button,
     input,
     select,
@@ -257,7 +255,6 @@
 
 /* Button Animations */
 @keyframes gradient-x {
-
     0%,
     100% {
         background-position: 0% 50%;

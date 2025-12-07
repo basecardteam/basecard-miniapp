@@ -1,6 +1,6 @@
 "use client";
 
-import { useBaseCardSocials } from "@/hooks/card/useBaseCardDetail";
+import { useBaseCardSocials } from "@/hooks/useBaseCardDetail";
 import { useOpenUrl } from "@coinbase/onchainkit/minikit";
 import { useRouter } from "next/navigation";
 import { AiOutlineLoading } from "react-icons/ai";
@@ -23,7 +23,7 @@ interface MyCardProfileProps {
     title?: string;
 }
 
-export default function MyCardProfile({ title }: MyCardProfileProps) {
+export default function MyBaseCardProfile({ title }: MyCardProfileProps) {
     const router = useRouter();
     const openUrl = useOpenUrl();
 

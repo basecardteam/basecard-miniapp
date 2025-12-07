@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 
-import { useBaseCardSocials } from "@/hooks/card/useBaseCardDetail";
+import { useBaseCardSocials } from "@/hooks/useBaseCardDetail";
 import { useMyBaseCard } from "@/hooks/useMyBaseCard";
 import { Card } from "@/lib/types";
 import { useOpenUrl } from "@coinbase/onchainkit/minikit";
@@ -15,7 +15,7 @@ interface MyCardViewerProps {
     title?: string;
 }
 
-export default function MyCardViewer({
+export default function MyBaseCardViewer({
     card: cardProp,
     address,
     title,
