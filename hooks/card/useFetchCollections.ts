@@ -1,11 +1,28 @@
-import { Card, CollectionResponse } from "@/lib/types/api";
+import { Card, User } from "@/lib/types/api";
 import { useQuery } from "@tanstack/react-query";
+import { config } from "@/lib/common/config";
+import { ApiResponse } from "@/lib/types/api";
+
+interface CollectionResponse {
+    collectedCard: {
+        id: number;
+        tokenId: number | null;
+        nickname: string | null;
+        role: string | null;
+        bio: string | null;
+        imageUri: string | null;
+        socials: Record<string, string> | null;
+        createdAt: string;
+        updatedAt: string;
+        user: User;
+    };
+}
 
 // API 응답 데이터를 Card 배열로 변환하는 함수를 분리합니다.
 const transformCollectionData = (collections: CollectionResponse[]): Card[] => {
     return collections.map((collection) => ({
         id: String(collection.collectedCard.id), // Convert to string if needed
-        userId: collection.collectedCard.user?.id || "", // Assuming user exists
+        userId: collection.collectedCard.user?.walletAddress || "", // Assuming walletAddress is userId or mapping
         tokenId: collection.collectedCard.tokenId,
         nickname: collection.collectedCard.nickname,
         role: collection.collectedCard.role,
@@ -15,11 +32,10 @@ const transformCollectionData = (collections: CollectionResponse[]): Card[] => {
         createdAt: collection.collectedCard.createdAt,
         updatedAt: collection.collectedCard.updatedAt,
         user: collection.collectedCard.user,
+        skills: [], // Missing in response
+        address: collection.collectedCard.user?.walletAddress || "", // Missing in response
     }));
 };
-
-import { BACKEND_API_URL } from "@/lib/common/config";
-import { ApiResponse } from "@/lib/types/api";
 
 const fetchCollectedCardsData = async (myCardId: number): Promise<Card[]> => {
     // 1. 수집 관계 가져오기
@@ -28,7 +44,7 @@ const fetchCollectedCardsData = async (myCardId: number): Promise<Card[]> => {
     // Assuming for now we pass myCardId and backend handles it, or we need to update this logic later.
     // For now, let's stick to the spec URL structure but use the ID we have.
     const collectionsResponse = await fetch(
-        `${BACKEND_API_URL}/v1/collections/${myCardId}`
+        `${config.BACKEND_API_URL}/v1/collections/${myCardId}`
     );
 
     if (!collectionsResponse.ok) {

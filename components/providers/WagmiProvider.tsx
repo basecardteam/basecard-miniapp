@@ -9,7 +9,6 @@ import { activeChain, getConfig } from "@/lib/wagmi";
 
 import { NetworkChecker } from "../common/NetworkChecker";
 
-
 export default function Provider({ children }: { children: React.ReactNode }) {
     // QueryClient 최적화: 미니앱 환경에 맞춘 캐싱 전략
     const [queryClient] = useState(
@@ -38,7 +37,6 @@ export default function Provider({ children }: { children: React.ReactNode }) {
                     },
                     wallet: {
                         display: "modal",
-                        preference: "all",
                     },
                 }}
                 miniKit={{
@@ -47,7 +45,9 @@ export default function Provider({ children }: { children: React.ReactNode }) {
                 }}
             >
                 <NetworkChecker />
-                <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+                <QueryClientProvider client={queryClient}>
+                    {children}
+                </QueryClientProvider>
             </OnchainKitProvider>
         </WagmiProvider>
     );

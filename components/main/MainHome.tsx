@@ -1,11 +1,10 @@
 "use client";
 
-import { ACTION_ADD_CARD } from "@/app/constants/actions";
+import { ACTION_ADD_CARD } from "@/lib/constants/actions";
 import { useMiniappParams } from "@/hooks/useMiniappParams";
 import { useMyBaseCard } from "@/hooks/useMyBaseCard";
 import { useUser } from "@/hooks/useUser";
-import { walletAddressAtom } from "@/store/walletState";
-import { useAtom } from "jotai";
+import { useAccount } from "wagmi";
 import { useRouter } from "next/navigation";
 import CardCollectionAdder from "./CardCollectionAdder";
 import CollectCardsSection from "./CollectCardsSection";
@@ -47,9 +46,9 @@ const MainSkeleton = () => (
 
 export default function MainHome() {
     const router = useRouter();
-    const [address] = useAtom(walletAddressAtom);
-    const { data: userData, isPending: isUserPending } = useUser(address);
-    const { data: card, isPending: isCardPending } = useMyBaseCard(address);
+    const { address } = useAccount();
+    const { data: userData, isPending: isUserPending } = useUser();
+    const { data: card, isPending: isCardPending } = useMyBaseCard();
     const { action, cardId } = useMiniappParams();
 
     const handleMintRedirect = () => {

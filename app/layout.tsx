@@ -4,7 +4,7 @@ import type { Metadata } from "next";
 import { Viewport } from "next";
 import { Inter, K2D } from "next/font/google";
 import "./globals.css";
-import { RootProvider } from "./rootProvider";
+import { Providers } from "./providers";
 
 const inter = Inter({
     variable: "--font-sans",
@@ -27,7 +27,6 @@ export const viewport: Viewport = {
     userScalable: false,
 };
 
-
 export const metadata: Metadata = {
     title: minikitConfig.miniapp.name,
     openGraph: {
@@ -35,23 +34,21 @@ export const metadata: Metadata = {
         description: minikitConfig.miniapp.description,
         images: [minikitConfig.miniapp.imageUrl],
         url: minikitConfig.miniapp.homeUrl,
-        siteName: minikitConfig.miniapp.name
+        siteName: minikitConfig.miniapp.name,
     },
 };
-
 
 export default function RootLayout({
     children,
 }: Readonly<{
     children: React.ReactNode;
 }>) {
-
     return (
         <html lang="en" className={`${inter.variable} ${k2d.variable}`}>
-            <body className="overscroll-none">
-                <RootProvider>
+            <body>
+                <Providers>
                     <SafeArea>{children}</SafeArea>
-                </RootProvider>
+                </Providers>
             </body>
         </html>
     );

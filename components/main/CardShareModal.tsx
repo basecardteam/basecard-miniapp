@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 
 // import { generateCardShareQRCode } from "@/lib/qrCodeGenerator";
-import { generateCardShareQRCode } from "@/lib/legacy/qrCodeGenerator";
+import { generateCardShareQRCode } from "@/unused/qrCodeGenerator";
 import { Card } from "@/lib/types";
 import BCLogo from "@/public/bc-icon.png";
 import Image from "next/image";

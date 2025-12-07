@@ -1,9 +1,7 @@
 "use client";
 
 import { useBaseCardSocials } from "@/hooks/card/useBaseCardDetail";
-import { walletAddressAtom } from "@/store/walletState";
 import { useOpenUrl } from "@coinbase/onchainkit/minikit";
-import { useAtom } from "jotai";
 import { useRouter } from "next/navigation";
 import { AiOutlineLoading } from "react-icons/ai";
 
@@ -28,9 +26,8 @@ interface MyCardProfileProps {
 export default function MyCardProfile({ title }: MyCardProfileProps) {
     const router = useRouter();
     const openUrl = useOpenUrl();
-    const [walletAddress] = useAtom(walletAddressAtom);
 
-    const { data: cardData, isPending, error } = useMyBaseCard(walletAddress);
+    const { data: cardData, isLoading: isPending, error } = useMyBaseCard();
     const { socials, isLoading: isSocialLoading } = useBaseCardSocials(
         cardData?.tokenId ?? null,
         {

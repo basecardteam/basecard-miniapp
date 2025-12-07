@@ -1,11 +1,11 @@
-import { BACKEND_API_URL } from "@/lib/common/config";
+import { config } from "@/lib/common/config";
 import { ApiResponse, User } from "@/lib/types/api";
 
 /**
  * Get or Create User by wallet address
  */
 export async function fetchUser(walletAddress: string): Promise<User> {
-    const response = await fetch(`${BACKEND_API_URL}/v1/users`, {
+    const response = await fetch(`${config.BACKEND_API_URL}/v1/users`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",

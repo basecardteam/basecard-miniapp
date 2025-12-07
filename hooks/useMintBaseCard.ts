@@ -5,12 +5,10 @@ import {
     deleteBaseCard,
     CreateBaseCardParams,
 } from "@/lib/api/basecards";
-import { ensureCorrectNetwork } from "@/lib/utils/network";
+import { ensureCorrectNetwork } from "@/lib/network";
 import { baseCardAbi } from "@/lib/abi/abi";
 import { activeChain } from "@/lib/wagmi";
-import { walletAddressAtom } from "@/store/walletState";
 import { useQueryClient } from "@tanstack/react-query";
-import { useAtom } from "jotai";
 import { useCallback, useState } from "react";
 import { decodeErrorResult } from "viem";
 import {
@@ -18,7 +16,9 @@ import {
     usePublicClient,
     useSwitchChain,
     useWriteContract,
+    useAccount,
 } from "wagmi";
+import { waitForTransactionReceipt } from "wagmi/actions";
 import { BASECARD_CONTRACT_ADDRESS } from "@/lib/constants/contracts";
 import { REQUIRED_CHAIN_ID } from "@/lib/constants/chainId";
 import { logger } from "@/lib/common/logger";
@@ -27,7 +27,7 @@ import { logger } from "@/lib/common/logger";
  * BaseCard NFT 민팅을 위한 Hook
  */
 export function useMintBaseCard() {
-    const [userAddress] = useAtom(walletAddressAtom);
+    const { address, isConnected } = useAccount();
     const [mintError, setMintError] = useState<string | null>(null);
     const [isPending, setIsPending] = useState(false);
     const [isConfirming, setIsConfirming] = useState(false);

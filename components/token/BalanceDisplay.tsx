@@ -1,8 +1,6 @@
 "use client";
 
-import { walletAddressAtom } from "@/store/walletState";
 import { cn, text as dsText } from "@coinbase/onchainkit/theme";
-import { useAtom } from "jotai";
 import { AiOutlineLoading } from "react-icons/ai";
 import { useUser } from "@/hooks/useUser";
 
@@ -11,9 +9,7 @@ interface BalanceDisplayProps {
 }
 
 export default function BalanceDisplay({ className }: BalanceDisplayProps) {
-    const [address] = useAtom(walletAddressAtom);
-    const { data: user, isPending } = useUser(address);
-
+    const { data: user, isPending } = useUser();
     return (
         <div
             className={`text-ock-foreground relative flex w-full items-center justify-between ${className} `}

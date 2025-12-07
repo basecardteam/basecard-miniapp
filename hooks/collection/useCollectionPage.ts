@@ -1,7 +1,7 @@
 import { useFetchCollections } from "@/hooks/card/useFetchCollections";
 import { useMyBaseCard } from "@/hooks/useMyBaseCard";
-import { CollectionFilterTag } from "@/lib/legacy/collection";
-import { filterCollections } from "@/lib/legacy/utils";
+import { CollectionFilterTag } from "@/unused/collection";
+import { filterCollections } from "@/unused/utils";
 import { walletAddressAtom } from "@/store/walletState";
 import { useOpenUrl } from "@coinbase/onchainkit/minikit";
 import { useAtom } from "jotai";

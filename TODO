@@ -1,2 +1,0 @@
-# 백엔드 서버가 켜져 있을 때
-npx openapi-typescript-codegen -i http://localhost:3000/api-json -o ./src/client -c axios

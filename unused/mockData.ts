@@ -3,7 +3,7 @@
  * Base 앱에서 디버깅이 느릴 때 개발용 목업 데이터
  */
 
-import { Card } from "../types";
+import { Card } from "../lib/types";
 
 /**
  * 목업 모드 활성화 여부 확인

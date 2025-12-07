@@ -1,4 +1,4 @@
-import { ACTION_ADD_CARD } from "@/app/constants/actions";
+import { ACTION_ADD_CARD } from "@/lib/constants/actions";
 import QRCode from "qrcode";
 
 export interface QRCodeOptions {

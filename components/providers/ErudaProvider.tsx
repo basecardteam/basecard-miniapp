@@ -1,6 +1,6 @@
 "use client";
 
-import { isDevelopment } from "@/lib/legacy/utils";
+import { isDevelopment } from "@/unused/utils";
 import { useEffect } from "react";
 
 export default function ErudaProvider() {

@@ -1,4 +1,4 @@
-import { CollectionFilterTag } from "@/lib/legacy/collection";
+import { CollectionFilterTag } from "@/unused/collection";
 import clsx from "clsx";
 import { useEffect, useMemo, useRef, useState } from "react";
 

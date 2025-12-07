@@ -1,8 +1,6 @@
 "use client";
 
 import { useMyBaseCard } from "@/hooks/useMyBaseCard";
-import { walletAddressAtom } from "@/store/walletState";
-import { useAtom } from "jotai";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -10,8 +8,7 @@ import { CardShareModal } from "./CardShareModal";
 
 export default function MyCardSection() {
     const router = useRouter();
-    const [address] = useAtom(walletAddressAtom);
-    const { data: card, isLoading, error } = useMyBaseCard(address);
+    const { data: card, isLoading, error } = useMyBaseCard();
     const [showShareFloating, setShowShareFloating] = useState(false);
 
     // IPFS Gateway URL
@@ -92,7 +89,7 @@ export default function MyCardSection() {
                 <button
                     onClick={handleShareClick}
                     disabled={!card}
-                    className={`flex py-4 w-full rounded-xl justify-center items-center text-white font-semibold text-sm ${
+                    className={`flex py-4 userProfileStatew-full rounded-xl justify-center items-center text-white font-semibold text-sm ${
                         card ? "bg-button-1 " : "bg-gray-400 cursor-not-allowed"
                     }`}
                 >

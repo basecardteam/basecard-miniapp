@@ -4,8 +4,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CiSearch } from "react-icons/ci";
 
 import { useMyBaseCard } from "@/hooks/useMyBaseCard";
-import { CollectionFilterTag } from "@/lib/legacy/collection";
-import { filterCollections } from "@/lib/legacy/utils";
+import { CollectionFilterTag } from "@/unused/collection";
+import { filterCollections } from "@/unused/utils";
 import { CollectionFilter } from "../collection/CollectionFilter";
 import CardItem from "./collections/CardItem";
 

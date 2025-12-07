@@ -1,20 +1,19 @@
 import { fetchUser } from "@/lib/api/users";
 import { logger } from "@/lib/common/logger";
 import { User } from "@/lib/types/api";
-import { walletAddressAtom } from "@/store/walletState";
 import { useQuery } from "@tanstack/react-query";
-import { useAtomValue } from "jotai";
+import { useAccount } from "wagmi";
 
 export function useUser() {
-    const walletAddress = useAtomValue(walletAddressAtom);
+    const { address, isConnected } = useAccount();
 
     const query = useQuery<User, Error>({
-        queryKey: ["user", walletAddress],
+        queryKey: ["user", address],
         queryFn: () => {
-            logger.debug("Fetching user data", { walletAddress });
-            return fetchUser(walletAddress!);
+            logger.debug("Fetching user data", { address });
+            return fetchUser(address!);
         },
-        enabled: !!walletAddress,
+        enabled: isConnected,
         staleTime: 1000 * 60 * 5, // 5 minutes
         retry: 1,
     });

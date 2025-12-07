@@ -1,6 +1,6 @@
 "use client";
 
-import { safeImageURI } from "@/lib/legacy/imageUtils";
+import { safeImageURI } from "@/unused/imageUtils";
 import { Card } from "@/lib/types";
 import clsx from "clsx";
 import Image from "next/image";

@@ -1,4 +1,4 @@
-import { BACKEND_API_URL } from "@/lib/common/config";
+import { config } from "@/lib/common/config";
 import { ApiResponse, Card, CreateCardResponse } from "@/lib/types/api";
 
 /**
@@ -12,7 +12,7 @@ export async function fetchCardByAddress(
     // or we use the list endpoint and filter.
     // Let's try GET /v1/cards?address={address}
     const response = await fetch(
-        `${BACKEND_API_URL}/v1/basecards?address=${address}`
+        `${config.BACKEND_API_URL}/v1/basecards?address=${address}`
     );
 
     if (!response.ok) {
@@ -67,10 +67,13 @@ export async function createBaseCard(
     if (params.socials)
         formData.append("socials", JSON.stringify(params.socials));
 
-    const response = await fetch(`${BACKEND_API_URL}/v1/basecards`, {
-        method: "POST",
-        body: formData,
-    });
+    const response = await fetch(
+        `${config.BACKEND_API_URL}/v1/basecards/${params.address}`,
+        {
+            method: "POST",
+            body: formData,
+        }
+    );
 
     if (!response.ok) {
         const errorData = await response.json();
@@ -91,13 +94,16 @@ export async function updateCardTokenId(
     tokenId: number | null,
     txHash?: string
 ): Promise<void> {
-    const response = await fetch(`${BACKEND_API_URL}/v1/basecards/${address}`, {
-        method: "PUT",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ tokenId, txHash }),
-    });
+    const response = await fetch(
+        `${config.BACKEND_API_URL}/v1/basecards/${address}`,
+        {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ tokenId, txHash }),
+        }
+    );
 
     if (!response.ok) {
         const errorData = await response.json();
@@ -106,9 +112,12 @@ export async function updateCardTokenId(
 }
 
 export async function deleteBaseCard(address: string): Promise<void> {
-    const response = await fetch(`${BACKEND_API_URL}/v1/basecards/${address}`, {
-        method: "DELETE",
-    });
+    const response = await fetch(
+        `${config.BACKEND_API_URL}/v1/basecards/${address}`,
+        {
+            method: "DELETE",
+        }
+    );
 
     if (!response.ok) {
         const errorData = await response.json();

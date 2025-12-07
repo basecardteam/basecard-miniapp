@@ -1,45 +1,20 @@
-import { minikitConfig } from "@/minikit.config";
-import { Metadata } from "next";
-import MainLayoutClient from "./MainLayoutClient";
+"use client";
 
-const frame = {
-    version: "next",
-    imageUrl: minikitConfig.miniapp.imageUrl,
-    button: {
-        title: "Open",
-        action: {
-            type: "launch_frame",
-            name: minikitConfig.miniapp.name,
-            url: minikitConfig.miniapp.homeUrl,
-            splashImageUrl: minikitConfig.miniapp.iconUrl,
-            splashBackgroundColor: minikitConfig.miniapp.splashBackgroundColor
-        }
-    }
-};
-
-export const revalidate = 300;
-
-export async function generateMetadata(): Promise<Metadata> {
-    return {
-        title: minikitConfig.miniapp.name,
-        openGraph: {
-            title: minikitConfig.miniapp.name,
-            description: minikitConfig.miniapp.description,
-            images: [minikitConfig.miniapp.imageUrl],
-            url: minikitConfig.miniapp.homeUrl,
-            siteName: minikitConfig.miniapp.name
-        },
-        other: {
-            "fc:frame": JSON.stringify(frame),
-            "fc:miniapp": JSON.stringify(frame),
-        }
-    };
-}
+import FooterNav from "@/components/layouts/FooterNav";
+import Header from "@/components/layouts/Header";
 
 export default function MainLayout({
     children,
 }: {
     children: React.ReactNode;
 }) {
-    return <MainLayoutClient>{children}</MainLayoutClient>;
+    return (
+        <div className="w-full flex flex-col h-dvh overflow-hidden">
+            <Header />
+            <main className="scroll-container scrollbar-hide pt-[var(--header-h,60px)] pb-[var(--bottom-nav-h,64px)]">
+                {children}
+            </main>
+            <FooterNav />
+        </div>
+    );
 }

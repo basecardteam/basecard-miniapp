@@ -7,9 +7,7 @@ import { useCallback, useEffect, useState } from "react";
 import ErrorModal from "@/components/common/ErrorModal";
 import LoadingModal from "@/components/common/LoadingModal";
 import { useMyBaseCard } from "@/hooks/useMyBaseCard";
-import { addCollection } from "@/lib/legacy/collection";
-import { walletAddressAtom } from "@/store/walletState";
-import { useAtom } from "jotai";
+import { addCollection } from "@/unused/collection";
 import ConfirmationModal from "../common/ConfirmationModal";
 
 interface CardCollectionAdderProps {
@@ -20,8 +18,7 @@ export default function CardCollectionAdder({
     collectedCardId,
 }: CardCollectionAdderProps) {
     const router = useRouter();
-    const [address] = useAtom(walletAddressAtom);
-    const { data: myCard, isLoading: isCardLoading } = useMyBaseCard(address);
+    const { data: myCard, isLoading: isCardLoading } = useMyBaseCard();
 
     const [isReadyToConfirm, setIsReadyToConfirm] = useState(false); // 확인 팝업 상태
     const [isProcessing, setIsProcessing] = useState(false); // API 처리 로딩 상태
@@ -66,6 +63,9 @@ export default function CardCollectionAdder({
     // 2. 초기 로드 및 확인 로직 (useEffect)
     // -------------------------------------------------------------
     useEffect(() => {
+        // TODO: 이 로직이 왜 필요한지, 어떻게 사용해야 할지 명확하지 않아 잠시 disable 함.
+        // 추후 로직 확인 후 복구 필요.
+        /* 
         // myCard 정보 로딩이 완료된 시점에만 실행
         if (isCardLoading) return;
 
@@ -88,11 +88,12 @@ export default function CardCollectionAdder({
         }
 
         // C. 모든 조건 만족 시, 확인 팝업 띄울 준비 완료
-        setIsReadyToConfirm(true);
+        setIsReadyToConfirm(true); 
+        */
     }, [
         isCardLoading,
         myCard?.id,
-        myCard?.user?.walletAddress,
+        // myCard?.user?.walletAddress, // 주석 처리
         collectedCardId,
     ]);
 

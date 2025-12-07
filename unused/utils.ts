@@ -1,8 +1,6 @@
-import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
 import { CollectionFilterTag } from "./collection";
-import { COLLECTION_TAGS, TAG_ROLE_MAP } from "../constants/collections";
-import { Card } from "../types";
+import { COLLECTION_TAGS, TAG_ROLE_MAP } from "../lib/constants/collections";
+import { Card } from "../lib/types";
 
 export const isDevelopment = process.env.NODE_ENV === "development";
 
@@ -13,10 +11,6 @@ export const isDevelopment = process.env.NODE_ENV === "development";
 export const isMockMode = () => {
     return process.env.NEXT_PUBLIC_USE_MOCK_DATA === "true";
 };
-
-export function cn(...inputs: ClassValue[]) {
-    return twMerge(clsx(inputs));
-}
 
 // 🚨 Next.js API Route로 데이터를 전송하는 함수입니다.
 interface LogPayload {

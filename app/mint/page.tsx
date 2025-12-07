@@ -9,6 +9,7 @@ import ProfileImagePreview from "@/components/mint/ProfileImagePreview";
 import { RoleSelector } from "@/components/mint/RoleSelector";
 import { SocialsInput } from "@/components/mint/SocialsInput";
 import { WebsitesInput } from "@/components/mint/WebsitesInput";
+import { useFrameContext } from "@/components/providers/FrameProvider";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useMintForm } from "@/hooks/mint/useMintForm";
@@ -16,9 +17,6 @@ import { useMintBaseCard } from "@/hooks/useMintBaseCard";
 import { MAX_WEBSITES } from "@/lib/constants/mint";
 import type { MintFormData } from "@/lib/schemas/mintFormSchema";
 import FALLBACK_PROFILE_IMAGE from "@/public/assets/empty_pfp.png";
-import { userProfileAtom } from "@/store/userProfileState";
-import { walletAddressAtom } from "@/store/walletState";
-import { useAtom } from "jotai";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { Suspense, useCallback, useEffect, useState } from "react";
@@ -66,15 +64,13 @@ const WarningModal = dynamic(
 );
 
 export default function Mint() {
+    const frameContext = useFrameContext();
     const router = useRouter();
-    const [userProfile] = useAtom(userProfileAtom);
-    const [address] = useAtom(walletAddressAtom);
-    const { status } = useAccount();
+    const { address, isConnected } = useAccount();
 
-    const username = userProfile?.username ?? "";
-    const defaultProfileUrl = userProfile.pfpUrl || FALLBACK_PROFILE_IMAGE;
-    const isWalletNotReady =
-        status !== "connected" && status !== "disconnected";
+    const username = (frameContext?.context as any)?.user?.username;
+    const defaultProfileUrl =
+        (frameContext?.context as any)?.user?.pfpUrl || FALLBACK_PROFILE_IMAGE;
 
     // Form state management
     const {
@@ -93,7 +89,6 @@ export default function Mint() {
 
     // Watch 복잡한 필드들만 (register로 관리되지 않는 필드)
     const role = watch("role");
-    const selectedSkills = watch("selectedSkills");
     const websites = watch("websites");
     const profileImageFile = watch("profileImageFile");
 
@@ -205,14 +200,6 @@ export default function Mint() {
 
     // Wrapper for form submit (with wallet validation)
     const handleSubmit = formHandleSubmit(onSubmit);
-
-    // Toggle skill with warning
-    const handleToggleSkill = useCallback(
-        (skill: string) => {
-            toggleSkill(skill, showWarning);
-        },
-        [toggleSkill, showWarning]
-    );
 
     // URL 에러 상태 (모달 대신 인라인 메시지로 표시)
     const [urlError, setUrlError] = useState<string | null>(null);
@@ -335,12 +322,6 @@ export default function Mint() {
                     ) => setValue("role", value)}
                 />
 
-                {/* 스킬 선택 */}
-                {/* <SkillsSelector
-                    selectedSkills={selectedSkills}
-                    onToggleSkill={handleToggleSkill}
-                /> */}
-
                 {/* 소셜 링크 입력 */}
                 <SocialsInput
                     twitterRegister={register("twitter")}
@@ -422,7 +403,7 @@ export default function Mint() {
                     isMintPending={isMintPending}
                     isMintConfirming={isMintConfirming}
                     isMintSuccess={false}
-                    isWalletNotReady={isWalletNotReady}
+                    isWalletNotReady={!isConnected}
                     hasAddress={!!address}
                     onSubmit={handleSubmit}
                 />

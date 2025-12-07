@@ -1,5 +1,8 @@
 import { MAX_SKILLS, MAX_WEBSITES } from "@/lib/constants/mint";
-import { mintFormSchema, type MintFormData } from "@/lib/schemas/mintFormSchema";
+import {
+    mintFormSchema,
+    type MintFormData,
+} from "@/lib/schemas/mintFormSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useCallback, useRef } from "react";
 import { useForm } from "react-hook-form";
@@ -34,16 +37,22 @@ export function useMintForm(initialData?: Partial<MintFormData>) {
     }, []);
 
     // 파일 변경 핸들러
-    const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            setValue("profileImageFile", file, { shouldValidate: true });
-        }
-    }, [setValue]);
+    const handleFileChange = useCallback(
+        (e: React.ChangeEvent<HTMLInputElement>) => {
+            const file = e.target.files?.[0];
+            if (file) {
+                setValue("profileImageFile", file, { shouldValidate: true });
+            }
+        },
+        [setValue]
+    );
 
     // 스킬 토글 핸들러
     const toggleSkill = useCallback(
-        (skill: string, showWarning?: (title: string, description: string) => void) => {
+        (
+            skill: string,
+            showWarning?: (title: string, description: string) => void
+        ) => {
             const currentSkills = getValues("selectedSkills");
 
             if (currentSkills.includes(skill)) {
@@ -62,39 +71,42 @@ export function useMintForm(initialData?: Partial<MintFormData>) {
                     );
                     return;
                 }
-                setValue(
-                    "selectedSkills",
-                    [...currentSkills, skill],
-                    { shouldValidate: true }
-                );
+                setValue("selectedSkills", [...currentSkills, skill], {
+                    shouldValidate: true,
+                });
             }
         },
         [getValues, setValue]
     );
 
     // 웹사이트 추가 핸들러
-    const handleAddWebsite = useCallback((newWebsiteUrl: string) => {
-        const currentWebsites = getValues("websites");
-        const urlToAdd = newWebsiteUrl.trim();
+    const handleAddWebsite = useCallback(
+        (newWebsiteUrl: string) => {
+            const currentWebsites = getValues("websites");
+            const urlToAdd = newWebsiteUrl.trim();
 
-        if (!urlToAdd || currentWebsites.includes(urlToAdd) || currentWebsites.length >= MAX_WEBSITES) {
-            return false;
-        }
+            if (
+                !urlToAdd ||
+                currentWebsites.includes(urlToAdd) ||
+                currentWebsites.length >= MAX_WEBSITES
+            ) {
+                return false;
+            }
 
-        try {
-            // URL 유효성 검사
-            new URL(urlToAdd);
-            setValue(
-                "websites",
-                [...currentWebsites, urlToAdd],
-                { shouldValidate: true }
-            );
-            return true;
-        } catch {
-            // URL 형식이 잘못된 경우
-            return false;
-        }
-    }, [getValues, setValue]);
+            try {
+                // URL 유효성 검사
+                new URL(urlToAdd);
+                setValue("websites", [...currentWebsites, urlToAdd], {
+                    shouldValidate: true,
+                });
+                return true;
+            } catch {
+                // URL 형식이 잘못된 경우
+                return false;
+            }
+        },
+        [getValues, setValue]
+    );
 
     // 웹사이트 제거 핸들러
     const handleRemoveWebsite = useCallback(

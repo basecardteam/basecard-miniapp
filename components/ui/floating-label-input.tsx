@@ -2,7 +2,7 @@ import * as React from "react";
 
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { cn } from "@/lib/legacy/utils";
+import { cn } from "@/lib/utils"; // Tailwind 클래스 병합 유틸리티 (cn)
 
 export type InputProps = React.InputHTMLAttributes<HTMLInputElement>;
 

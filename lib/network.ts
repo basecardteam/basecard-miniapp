@@ -1,6 +1,6 @@
 import { PublicClient } from "viem";
 import { REQUIRED_CHAIN_ID } from "@/lib/constants/chainId";
-import { logger } from "../common/logger";
+import { logger } from "./common/logger";
 
 /**
  * Ensure user is on the correct network

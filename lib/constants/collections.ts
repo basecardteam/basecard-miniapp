@@ -1,4 +1,4 @@
-import { CollectionFilterTag } from "../legacy/collection";
+import { CollectionFilterTag } from "../../unused/collection";
 
 export const COLLECTION_TAGS: CollectionFilterTag[] = [
     "All",

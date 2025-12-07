@@ -1,3 +1,5 @@
+import { config } from "./config";
+
 type LogLevel = "debug" | "info" | "warn" | "error";
 
 const LOG_LEVELS: Record<LogLevel, number> = {
@@ -7,8 +9,7 @@ const LOG_LEVELS: Record<LogLevel, number> = {
     error: 3,
 };
 
-const CURRENT_LOG_LEVEL: LogLevel =
-    (process.env.NEXT_PUBLIC_LOG_LEVEL as LogLevel) || "debug";
+const CURRENT_LOG_LEVEL: LogLevel = config.LOG_LEVEL as LogLevel;
 
 class Logger {
     private shouldLog(level: LogLevel): boolean {

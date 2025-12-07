@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@/lib/legacy/utils"; // Tailwind 클래스 병합 유틸리티 (cn)
+import { cn } from "@/lib/utils"; // Tailwind 클래스 병합 유틸리티 (cn)
 import { useRouter } from "next/navigation";
 import { FaAngleLeft } from "react-icons/fa6"; // FaAngleLeft 아이콘 사용
 

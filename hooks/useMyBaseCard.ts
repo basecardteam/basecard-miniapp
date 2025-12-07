@@ -3,24 +3,22 @@
 import { fetchCardByAddress } from "@/lib/api/basecards";
 import { logger } from "@/lib/common/logger";
 import { Card } from "@/lib/types/api";
-import { walletAddressAtom } from "@/store/walletState";
 import { useQuery } from "@tanstack/react-query";
-import { useAtomValue } from "jotai";
+import { useAccount } from "wagmi";
 
 /**
  * Custom hook to get user's card data
  */
-export function useMyBaseCard(address?: string | null) {
-    const globalAddress = useAtomValue(walletAddressAtom);
-    const targetAddress = address || globalAddress;
+export function useMyBaseCard() {
+    const { address, isConnected } = useAccount();
 
     return useQuery<Card | null, Error>({
-        queryKey: ["myBaseCard", targetAddress],
+        queryKey: ["myBaseCard", address],
         queryFn: () => {
-            logger.debug("Fetching myBaseCard data", { targetAddress });
-            return fetchCardByAddress(targetAddress!);
+            logger.debug("Fetching myBaseCard data", { address });
+            return fetchCardByAddress(address!);
         },
-        enabled: !!targetAddress,
+        enabled: isConnected,
         staleTime: 1000 * 30, // 30 seconds
         refetchInterval: 1000 * 30, // 30 seconds
         retry: 1,

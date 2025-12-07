@@ -22,12 +22,7 @@ export default function MyCardViewer({
 }: MyCardViewerProps) {
     const router = useRouter();
     const openUrl = useOpenUrl();
-    const shouldFetch = !cardProp && !!address;
-    const {
-        data: fetchedCard,
-        isLoading,
-        error,
-    } = useMyBaseCard(shouldFetch ? address : undefined);
+    const { data: fetchedCard, isLoading } = useMyBaseCard();
 
     const { socials, isLoading: isSocialLoading } = useBaseCardSocials(
         fetchedCard?.tokenId ?? null,
@@ -54,7 +49,7 @@ export default function MyCardViewer({
         );
     }
 
-    if (!fetchedCard || error) {
+    if (!fetchedCard) {
         return (
             <div
                 className="w-full flex flex-col overflow-hidden relative"

@@ -2,20 +2,23 @@ import sdk from "@farcaster/miniapp-sdk";
 import Image from "next/image";
 import DefaultProfile from "@/public/assets/default-profile.png";
 import { cn } from "@/lib/utils";
+import { MiniAppContext, useFrameContext } from "../providers/FrameProvider";
 
 interface UserProfileAvatarProps {
-    userProfile?: {
-        pfpUrl?: string | null;
-        fid?: number | null;
-    };
     className?: string;
 }
 
 export default function UserProfileAvatar({
-    userProfile,
     className,
 }: UserProfileAvatarProps) {
     const { actions } = sdk;
+    const frameContext = useFrameContext();
+    const user = (frameContext?.context as MiniAppContext)?.user;
+
+    const userProfile = {
+        pfpUrl: user?.pfpUrl,
+        fid: user?.fid,
+    };
 
     const handleProfileClick = () => {
         if (userProfile?.fid) {
