@@ -22,7 +22,7 @@
         max-width: 100vw;
         overflow-x: hidden;
         /* Prevent rubber-band overscroll on most browsers */
-        overscroll-behavior: none;
+        overscroll-behavior-y: none;
         height: 100%;
     }
 
@@ -73,11 +73,6 @@
     --sidebar-accent-foreground: oklch(0.21 0.034 264.665);
     --sidebar-border: oklch(0.928 0.006 264.531);
     --sidebar-ring: oklch(0.707 0.022 261.325);
-
-    --buton-1: #303030;
-    --primary-1: #0050ff;
-    --background-light: #f0f0f0;
-    --background-light-2: #f5f5f5;
 }
 
 /* Custom 3D transforms for cards */
@@ -123,7 +118,6 @@
 
 /* iPhone-specific optimizations */
 @supports (-webkit-touch-callout: none) {
-
     /* iOS Safari specific styles */
     .min-h-screen {
         min-height: -webkit-fill-available;
@@ -145,7 +139,7 @@
 .scroll-container {
     height: 100dvh;
     overflow: auto;
-    overscroll-behavior: contain;
+    overscroll-behavior-y: none;
     -webkit-overflow-scrolling: touch;
 }
 
@@ -162,7 +156,6 @@
 
 /* Enhanced touch targets for mobile */
 @media (max-width: 640px) {
-
     button,
     input,
     select,
@@ -176,46 +169,6 @@
         min-height: 48px;
         min-width: 48px;
     }
-}
-
-/* K2D Font Utility Classes */
-.font-k2d {
-    font-family: var(--font-k2d), system-ui, sans-serif;
-}
-
-.font-k2d-thin {
-    font-family: var(--font-k2d), system-ui, sans-serif;
-    font-weight: 100;
-}
-
-.font-k2d-light {
-    font-family: var(--font-k2d), system-ui, sans-serif;
-    font-weight: 300;
-}
-
-.font-k2d-regular {
-    font-family: var(--font-k2d), system-ui, sans-serif;
-    font-weight: 400;
-}
-
-.font-k2d-medium {
-    font-family: var(--font-k2d), system-ui, sans-serif;
-    font-weight: 500;
-}
-
-.font-k2d-semibold {
-    font-family: var(--font-k2d), system-ui, sans-serif;
-    font-weight: 600;
-}
-
-.font-k2d-bold {
-    font-family: var(--font-k2d), system-ui, sans-serif;
-    font-weight: 700;
-}
-
-.font-k2d-extrabold {
-    font-family: var(--font-k2d), system-ui, sans-serif;
-    font-weight: 800;
 }
 
 /* Responsive SVG Background */
@@ -257,7 +210,6 @@
 
 /* Button Animations */
 @keyframes gradient-x {
-
     0%,
     100% {
         background-position: 0% 50%;
@@ -290,7 +242,6 @@
 
     100% {
         transform: scale(1);
-        opacity: 1;
     }
 }
 

@@ -1,6 +1,16 @@
-import MainHome from "@/components/main/MainHome";
-import { Suspense } from "react";
+"use client";
 
+import { Suspense, lazy } from "react";
+
+import { config } from "@/lib/common/config";
+
+// MainHome lazy load with optional delay for testing
+const MainHome = lazy(async () => {
+    if (config.ENABLE_LAZY_LOAD_TEST) {
+        await new Promise((resolve) => setTimeout(resolve, 3000));
+    }
+    return import("@/features/home/HomeScreen");
+});
 
 const MainSkeleton = () => (
     <div className="flex flex-col w-full gap-4 px-5">
@@ -13,6 +23,8 @@ const MainSkeleton = () => (
         </div>
     </div>
 );
+
+// ... metadata ...
 
 export default function MainPage() {
     return (

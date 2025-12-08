@@ -13,10 +13,14 @@ export const mintFormSchema = z.object({
     github: z.string().optional(),
     farcaster: z.string().optional(),
     twitter: z.string().optional(),
-    websites: z.array(z.string().url("Invalid URL")).max(MAX_WEBSITES, `Maximum ${MAX_WEBSITES} websites allowed`),
-    selectedSkills: z.array(z.string()).max(MAX_SKILLS, `Maximum ${MAX_SKILLS} skills allowed`),
+    linkedin: z.string().optional(),
+    websites: z
+        .array(z.string().url("Invalid URL"))
+        .max(MAX_WEBSITES, `Maximum ${MAX_WEBSITES} websites allowed`),
+    selectedSkills: z
+        .array(z.string())
+        .max(MAX_SKILLS, `Maximum ${MAX_SKILLS} skills allowed`),
     profileImageFile: z.instanceof(File).optional().nullable(),
 });
 
 export type MintFormData = z.infer<typeof mintFormSchema>;
-

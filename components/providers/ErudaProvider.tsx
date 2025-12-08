@@ -1,7 +1,8 @@
 "use client";
 
-import { isDevelopment } from "@/lib/utils";
 import { useEffect } from "react";
+
+const isDevelopment = process.env.NODE_ENV === "development";
 
 export default function ErudaProvider() {
     useEffect(() => {
@@ -27,7 +28,10 @@ export default function ErudaProvider() {
 
                 // Position the trigger button in bottom right corner
                 setTimeout(() => {
-                    erudaInstance.position({ x: window.innerWidth - 60, y: window.innerHeight - 60 });
+                    erudaInstance.position({
+                        x: window.innerWidth - 60,
+                        y: window.innerHeight - 60,
+                    });
                 }, 100);
 
                 console.log("Eruda initialized for debugging");
@@ -42,4 +46,4 @@ declare global {
     interface Window {
         eruda?: unknown;
     }
-} 
+}
