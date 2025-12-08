@@ -47,7 +47,7 @@ const MainSkeleton = () => (
 export default function HomeContent() {
     const router = useRouter();
     const { address } = useAccount();
-    const { data: userData, isPending: isUserPending } = useUser();
+    const { data: _, isPending: isUserPending } = useUser();
     const { data: card, isPending: isCardPending } = useMyBaseCard();
     const { action, cardId } = useMiniappParams();
 

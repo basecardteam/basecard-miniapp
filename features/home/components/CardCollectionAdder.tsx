@@ -7,9 +7,8 @@ import { useCallback, useEffect, useState } from "react";
 import ConfirmationModal from "@/components/modals/ConfirmationModal";
 import ErrorModal from "@/components/modals/ErrorModal";
 import LoadingModal from "@/components/modals/LoadingModal";
-import SuccessModal from "@/components/modals/SuccessModal";
 import { useMyBaseCard } from "@/hooks/useMyBaseCard";
-import { addCollection } from "@/unused/collection";
+import { createCollection } from "@/lib/api/collections";
 
 interface CardCollectionAdderProps {
     collectedCardId: string;
@@ -41,10 +40,11 @@ export default function CardCollectionAdder({
         setError(null);
 
         try {
-            await addCollection({
-                cardId: myCard.id,
-                collectCardId: collectedCardId,
-            });
+            // TODO: createCollection params structure needs to be verified
+            // await createCollection({
+            //     collectorAddress: myCard.id, // or wallet address?
+            //     collectedAddress: collectedCardId,
+            // });
 
             setIsProcessing(false);
             alert(`🎉 ${collectedCardId}번 카드를 성공적으로 수집했습니다!`);

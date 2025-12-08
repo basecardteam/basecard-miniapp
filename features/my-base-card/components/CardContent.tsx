@@ -244,7 +244,7 @@ export default function CardContent({
                     {onNavigateToCollection && (
                         <BaseButton
                             onClick={onNavigateToCollection}
-                            className="flex-none"
+                            className="flex-none w-full"
                         >
                             My Collection
                         </BaseButton>

@@ -4,8 +4,10 @@ import {
     type MintFormData,
 } from "@/lib/schemas/mintFormSchema";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
+
+const STORAGE_KEY = "basecard-mint-form-v1";
 
 /**
  * Mint 폼 상태 관리 훅 (React Hook Form 사용)
@@ -29,7 +31,37 @@ export function useMintForm(initialData?: Partial<MintFormData>) {
         mode: "onBlur", // 성능 최적화: onBlur 시에만 유효성 검사 (onChange 대신)
     });
 
-    const { watch, setValue, getValues } = form;
+    const { watch, setValue, getValues, reset } = form;
+
+    // Load saved data on mount
+    useEffect(() => {
+        const savedData = localStorage.getItem(STORAGE_KEY);
+        if (savedData) {
+            try {
+                const parsed = JSON.parse(savedData);
+                // initialData가 있으면(수정 모드 등) 저장된 데이터보다 우선순위를 가질 수 있으나
+                // 현재는 초기 데이터가 없으므로 저장된 데이터를 복원함
+                // profileImageFile은 저장되지 않으므로 제외
+                reset({
+                    ...form.getValues(), // 기본값 유지
+                    ...parsed,
+                    profileImageFile: null, // 파일은 복원 불가
+                });
+            } catch (e) {
+                console.error("Failed to parse saved form data", e);
+            }
+        }
+    }, [reset]); // mount 시 1회 실행
+
+    // Save data on change
+    useEffect(() => {
+        const subscription = watch((value) => {
+            // 파일 객체는 제외하고 저장
+            const { profileImageFile, ...rest } = value;
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(rest));
+        });
+        return () => subscription.unsubscribe();
+    }, [watch]);
 
     // 이미지 클릭 핸들러
     const handleImageClick = useCallback(() => {

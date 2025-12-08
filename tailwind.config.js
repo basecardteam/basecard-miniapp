@@ -66,10 +66,10 @@ module.exports = {
                     border: "var(--sidebar-border)",
                     ring: "var(--sidebar-ring)",
                 },
-                "button-1": "var(--buton-1)",
-                "primary-1": "var(--primary-1)",
-                "background-light": "var(--background-light)",
                 "basecard-blue": "#0050FF",
+                "basecard-white": "#F0F0F0",
+                "basecard-black": "#303030",
+                "basecard-gray": "#62748D",
             },
             borderRadius: {
                 lg: "var(--radius-lg)",

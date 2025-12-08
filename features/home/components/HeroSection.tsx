@@ -46,7 +46,7 @@ export default function HeroSection({ onMintClick }: HeroSectionProps) {
             <BaseButton
                 onClick={onMintClick}
                 // className="z-20 mt-3 max-w-md py-4 bg-gray-900 hover:bg-gray-800 active:bg-black font-k2d font-semibold transition-all duration-300 shadow-xl transform hover:scale-105 active:scale-95"
-                className="z-20"
+                className="z-20 w-full"
             >
                 Mint Your Card
             </BaseButton>

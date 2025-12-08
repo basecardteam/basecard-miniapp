@@ -13,6 +13,7 @@ export const mintFormSchema = z.object({
     github: z.string().optional(),
     farcaster: z.string().optional(),
     twitter: z.string().optional(),
+    linkedin: z.string().optional(),
     websites: z
         .array(z.string().url("Invalid URL"))
         .max(MAX_WEBSITES, `Maximum ${MAX_WEBSITES} websites allowed`),

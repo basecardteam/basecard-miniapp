@@ -1,7 +1,8 @@
 "use client";
 
-import { isDevelopment } from "@/unused/utils";
 import { useEffect } from "react";
+
+const isDevelopment = process.env.NODE_ENV === "development";
 
 export default function ErudaProvider() {
     useEffect(() => {

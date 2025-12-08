@@ -2,7 +2,12 @@
 
 import { ALL_SKILLS, MAX_SKILLS } from "@/lib/constants/mint";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { IoCheckmarkCircle, IoChevronDown, IoClose, IoSearch } from "react-icons/io5";
+import {
+    IoCheckmarkCircle,
+    IoChevronDown,
+    IoClose,
+    IoSearch,
+} from "react-icons/io5";
 
 interface SkillsSelectorProps {
     selectedSkills: string[];
@@ -12,7 +17,10 @@ interface SkillsSelectorProps {
 /**
  * 스킬 선택 컴포넌트 - 드롭다운 + 검색
  */
-export const SkillsSelector = memo(function SkillsSelector({ selectedSkills, onToggleSkill }: SkillsSelectorProps) {
+export const SkillsSelector = memo(function SkillsSelector({
+    selectedSkills,
+    onToggleSkill,
+}: SkillsSelectorProps) {
     const selectedCount = selectedSkills.length;
     const [isOpen, setIsOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
@@ -25,7 +33,9 @@ export const SkillsSelector = memo(function SkillsSelector({ selectedSkills, onT
             return ALL_SKILLS;
         }
 
-        return ALL_SKILLS.filter((skill) => skill.toLowerCase().includes(normalizedSearch));
+        return ALL_SKILLS.filter((skill) =>
+            skill.toLowerCase().includes(normalizedSearch)
+        );
     }, [normalizedSearch]);
 
     const closeDropdown = useCallback(() => {
@@ -46,14 +56,15 @@ export const SkillsSelector = memo(function SkillsSelector({ selectedSkills, onT
     const handleSelectSkill = useCallback(
         (skill: string) => {
             const isAlreadySelected = selectedSkills.includes(skill);
-            const isSelectionBlocked = !isAlreadySelected && selectedCount >= MAX_SKILLS;
+            const isSelectionBlocked =
+                !isAlreadySelected && selectedCount >= MAX_SKILLS;
             if (isSelectionBlocked) {
                 return;
             }
 
             onToggleSkill(skill);
         },
-        [onToggleSkill, selectedCount, selectedSkills],
+        [onToggleSkill, selectedCount, selectedSkills]
     );
 
     useEffect(() => {
@@ -107,7 +118,10 @@ export const SkillsSelector = memo(function SkillsSelector({ selectedSkills, onT
                     Skills <span className="text-red-500">*</span>
                 </label>
                 <span className="text-xs text-gray-600 font-medium">
-                    <span className="text-[#0050FF] font-bold">{selectedCount}</span> / {MAX_SKILLS}
+                    <span className="text-[#0050FF] font-bold">
+                        {selectedCount}
+                    </span>{" "}
+                    / {MAX_SKILLS}
                 </span>
             </div>
 
@@ -116,10 +130,11 @@ export const SkillsSelector = memo(function SkillsSelector({ selectedSkills, onT
                     type="button"
                     onClick={handleToggleDropdown}
                     aria-expanded={isOpen}
-                    className={`flex w-full items-center justify-between rounded-xl border-2 bg-white px-4 py-3 text-left text-sm font-medium transition-all duration-200 ${selectedCount > 0
-                        ? "border-[#0050FF]/60 bg-blue-50/70 text-[#0A2B6B]"
-                        : "border-gray-200 text-gray-600 hover:border-gray-300"
-                        }`}
+                    className={`flex w-full items-center justify-between rounded-xl border-2 bg-white px-4 py-3 text-left text-sm font-medium transition-all duration-200 ${
+                        selectedCount > 0
+                            ? "border-[#0050FF]/60 bg-blue-50/70 text-[#0A2B6B]"
+                            : "border-gray-200 text-gray-600 hover:border-gray-300"
+                    }`}
                 >
                     <div className="flex flex-wrap gap-2">
                         {selectedCount > 0 ? (
@@ -136,7 +151,11 @@ export const SkillsSelector = memo(function SkillsSelector({ selectedSkills, onT
                         )}
                     </div>
                     <IoChevronDown
-                        className={`h-4 w-4 transition-transform duration-200 ${isOpen ? "rotate-180 text-[#0050FF]" : "text-gray-400"}`}
+                        className={`h-4 w-4 transition-transform duration-200 ${
+                            isOpen
+                                ? "rotate-180 text-[#0050FF]"
+                                : "text-gray-400"
+                        }`}
                     />
                 </button>
 
@@ -147,7 +166,9 @@ export const SkillsSelector = memo(function SkillsSelector({ selectedSkills, onT
                             <input
                                 ref={searchInputRef}
                                 value={searchTerm}
-                                onChange={(event) => setSearchTerm(event.target.value)}
+                                onChange={(event) =>
+                                    setSearchTerm(event.target.value)
+                                }
                                 placeholder="Search skills"
                                 className="flex-1 bg-transparent text-sm outline-none placeholder:text-gray-400"
                                 aria-label="Search skills"
@@ -164,13 +185,17 @@ export const SkillsSelector = memo(function SkillsSelector({ selectedSkills, onT
                             )}
                         </div>
 
-                        <div className="max-h-60 overflow-y-auto py-2">
+                        <div className="max-h-60 overflow-y-auto overscroll-y-none py-2">
                             {filteredSkills.length === 0 && (
-                                <p className="px-4 py-6 text-center text-xs text-gray-400">No matching skills.</p>
+                                <p className="px-4 py-6 text-center text-xs text-gray-400">
+                                    No matching skills.
+                                </p>
                             )}
                             {filteredSkills.map((skill) => {
-                                const isSelected = selectedSkills.includes(skill);
-                                const isSelectionBlocked = !isSelected && selectedCount >= MAX_SKILLS;
+                                const isSelected =
+                                    selectedSkills.includes(skill);
+                                const isSelectionBlocked =
+                                    !isSelected && selectedCount >= MAX_SKILLS;
 
                                 return (
                                     <button
@@ -178,16 +203,21 @@ export const SkillsSelector = memo(function SkillsSelector({ selectedSkills, onT
                                         type="button"
                                         onClick={() => handleSelectSkill(skill)}
                                         disabled={isSelectionBlocked}
-                                        className={`flex w-full items-center justify-between gap-3 px-4 py-2 text-sm transition-all ${isSelected
-                                            ? "bg-blue-50 text-[#0A2B6B]"
-                                            : isSelectionBlocked
+                                        className={`flex w-full items-center justify-between gap-3 px-4 py-2 text-sm transition-all ${
+                                            isSelected
+                                                ? "bg-blue-50 text-[#0A2B6B]"
+                                                : isSelectionBlocked
                                                 ? "cursor-not-allowed text-gray-300"
                                                 : "text-gray-700 hover:bg-gray-50"
-                                            }`}
+                                        }`}
                                     >
                                         <span className="flex items-center gap-2">
                                             <IoCheckmarkCircle
-                                                className={`h-4 w-4 ${isSelected ? "text-[#0050FF]" : "text-gray-300"}`}
+                                                className={`h-4 w-4 ${
+                                                    isSelected
+                                                        ? "text-[#0050FF]"
+                                                        : "text-gray-300"
+                                                }`}
                                             />
                                             {skill}
                                         </span>
@@ -205,11 +235,14 @@ export const SkillsSelector = memo(function SkillsSelector({ selectedSkills, onT
             </div>
 
             {selectedCount === 0 && (
-                <p className="text-xs text-gray-500 italic">You can select up to {MAX_SKILLS} skills.</p>
+                <p className="text-xs text-gray-500 italic">
+                    You can select up to {MAX_SKILLS} skills.
+                </p>
             )}
             {selectedCount >= MAX_SKILLS && (
                 <p className="flex items-center gap-1 text-xs font-medium text-[#0050FF]">
-                    <span>✓</span> You selected the maximum of {MAX_SKILLS} skills.
+                    <span>✓</span> You selected the maximum of {MAX_SKILLS}{" "}
+                    skills.
                 </p>
             )}
         </div>

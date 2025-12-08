@@ -2,24 +2,25 @@
 
 import { useEffect, useState } from "react";
 
-interface LoadingModalProps {
+interface BaseLoadingModalProps {
     isOpen: boolean;
     title?: string;
     description?: string;
-    showSpinner?: boolean;
 }
 
-export default function LoadingModal({
+export const BaseLoadingModal = ({
     isOpen,
     title = "Processing...",
     description = "Please wait a moment",
-    showSpinner = true,
-}: LoadingModalProps) {
+}: BaseLoadingModalProps) => {
     const [isVisible, setIsVisible] = useState(false);
 
     useEffect(() => {
         if (isOpen) {
             setIsVisible(true);
+        } else {
+            const timer = setTimeout(() => setIsVisible(false), 300);
+            return () => clearTimeout(timer);
         }
     }, [isOpen]);
 
@@ -27,62 +28,50 @@ export default function LoadingModal({
 
     return (
         <div
-            className={`fixed inset-0 z-50 flex items-center justify-center transition-all duration-300 ${isOpen
-                ? "bg-black/40 backdrop-blur-md"
-                : "bg-transparent backdrop-blur-0 pointer-events-none"
-                }`}
-            onClick={(e) => e.stopPropagation()}
+            className={`fixed inset-0 z-50 flex items-center justify-center transition-opacity duration-300 ${
+                isOpen ? "opacity-100" : "opacity-0"
+            }`}
         >
+            {/* Backdrop */}
+            <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
+
+            {/* Modal Content - Same size as BaseAlertModal: 320x300 */}
             <div
-                className={`relative w-[90%] max-w-md bg-white/95 backdrop-blur-xl rounded-3xl p-8 flex flex-col justify-center items-center shadow-2xl border border-white/20 transition-all duration-300 ${isOpen ? "scale-100 opacity-100" : "scale-95 opacity-0"
-                    }`}
-                style={{
-                    boxShadow: "0 20px 60px rgba(0, 80, 255, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.1)",
-                }}
+                className={`relative w-[320px] h-[300px] bg-[#F9F9FF] rounded-[8px] flex flex-col items-center justify-center shadow-[0px_4px_6px_rgba(225,228,230,0.15)] transform transition-all duration-300 ${
+                    isOpen
+                        ? "scale-100 translate-y-0"
+                        : "scale-95 translate-y-4"
+                }`}
             >
-                {/* Content */}
-                <div className="flex flex-col items-center justify-center text-center space-y-6">
-                    {/* Modern Spinner */}
-                    {showSpinner && (
-                        <div className="relative w-20 h-20">
-                            {/* Outer ring with gradient */}
-                            <div className="absolute inset-0 rounded-full border-4 border-transparent bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-blue-500/20 p-[2px]">
-                                <div className="w-full h-full rounded-full bg-white"></div>
-                            </div>
-                            {/* Spinning ring */}
-                            <div className="absolute inset-0 rounded-full border-4 border-transparent border-t-blue-600 border-r-purple-600 animate-spin"></div>
-                            {/* Inner pulsing dot */}
-                            <div className="absolute inset-0 flex items-center justify-center">
-                                <div className="w-3 h-3 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full animate-pulse"></div>
-                            </div>
-                        </div>
-                    )}
+                {/* Spinner - Bouncing Dots */}
+                <div className="flex items-center justify-center gap-1.5 mb-6">
+                    {[0, 1, 2].map((i) => (
+                        <div
+                            key={i}
+                            className="w-3 h-3 bg-basecard-blue rounded-full"
+                            style={{
+                                animation: "bounce 1.4s ease-in-out infinite",
+                                animationDelay: `${i * 0.16}s`,
+                            }}
+                        />
+                    ))}
+                </div>
 
-                    <div className="space-y-3">
-                        <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                            {title}
-                        </h2>
+                {/* Content Container */}
+                <div className="flex flex-col items-center gap-[12px] w-[261px]">
+                    {/* Title */}
+                    <h2 className="text-[17px] leading-[26px] font-semibold font-k2d text-center text-basecard-blue">
+                        {title}
+                    </h2>
 
-                        <p className="text-gray-600 text-sm leading-relaxed max-w-sm">
-                            {description}
-                        </p>
-                    </div>
-
-                    {/* Progress dots */}
-                    <div className="flex gap-2 pt-2">
-                        {[0, 1, 2].map((i) => (
-                            <div
-                                key={i}
-                                className="w-2 h-2 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full animate-pulse"
-                                style={{
-                                    animationDelay: `${i * 0.2}s`,
-                                    animationDuration: "1.5s",
-                                }}
-                            />
-                        ))}
-                    </div>
+                    {/* Description */}
+                    <p className="text-[14px] leading-[20px] font-normal font-k2d text-basecard-black text-center w-full">
+                        {description}
+                    </p>
                 </div>
             </div>
         </div>
     );
-}
+};
+
+export default BaseLoadingModal;

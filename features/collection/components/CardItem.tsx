@@ -1,7 +1,7 @@
 "use client";
 
-import { safeImageURI } from "@/unused/imageUtils";
 import { Card } from "@/lib/types";
+import { getIPFSUrl } from "@/lib/utils";
 import clsx from "clsx";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -26,7 +26,7 @@ const CardItem = React.memo(function CardItem({
     } satisfies React.CSSProperties;
 
     const handleCardClick = () => {
-        router.push(`/card/${card.user?.walletAddress || ""}`);
+        router.push(`/card/${card.id}`);
     };
 
     return (
@@ -47,17 +47,8 @@ const CardItem = React.memo(function CardItem({
                 style={{ aspectRatio: "5/3", width: "100%" }}
             >
                 <Image
-                    src={
-                        safeImageURI(
-                            card.imageUri,
-                            "/assets/default-profile.png"
-                        ) || "/assets/default-profile.png"
-                    }
-                    alt={
-                        card.nickname ||
-                        card.user?.walletAddress ||
-                        "Card image"
-                    }
+                    src={getIPFSUrl(card.imageUri)}
+                    alt={card.nickname || "Card image"}
                     fill={true}
                     priority={isActive}
                     style={{ objectFit: "cover" }}

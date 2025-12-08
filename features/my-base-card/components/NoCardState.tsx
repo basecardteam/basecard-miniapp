@@ -16,7 +16,9 @@ export const NoCardState = ({
                 <br />
                 and start building your story
             </p>
-            <BaseButton onClick={onNavigateToMint}>Mint Your Card</BaseButton>
+            <BaseButton onClick={onNavigateToMint} className="w-full max-w-xs">
+                Mint Your Card
+            </BaseButton>
         </div>
     </div>
 );

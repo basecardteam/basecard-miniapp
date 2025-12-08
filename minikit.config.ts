@@ -1,8 +1,4 @@
-export const ROOT_URL =
-    process.env.NEXT_PUBLIC_URL ||
-    (process.env.VERCEL_PROJECT_PRODUCTION_URL
-        ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-        : "http://localhost:3000");
+export const ROOT_URL = process.env.NEXT_PUBLIC_URL || "http://localhost:3000";
 
 const ACCOUNT_HEADER = process.env.FARCASTER_HEADER || "";
 const ACCOUNT_PAYLOAD = process.env.FARCASTER_PAYLOAD || "";

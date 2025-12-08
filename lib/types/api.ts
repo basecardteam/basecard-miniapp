@@ -29,13 +29,17 @@ export interface User {
 }
 
 export interface Card {
-    tokenId: number;
-    nickname: string;
-    role: string;
-    bio: string;
-    imageUri: string; // NFT Metadata URI (IPFS)
-    socials: Record<string, string>;
-    skills: string[]; // Not in DB but in spec
+    id: string;
+    userId: string;
+    tokenId: number | null;
+    txHash: string | null;
+    nickname: string | null;
+    role: string | null;
+    bio: string | null;
+    imageUri: string | null;
+    socials: Record<string, string> | null;
+    createdAt: string;
+    updatedAt: string;
 }
 
 export interface Quest {

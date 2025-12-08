@@ -2,15 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BsCreditCard } from "react-icons/bs";
-import { FaMoneyBillAlt, FaScroll, FaAddressCard } from "react-icons/fa";
-import { GoHomeFill } from "react-icons/go";
+import { IdCard, Home, ScrollText, Coins } from "lucide-react";
 
 const navItems = [
-    { href: "/mybasecard", label: "My Card", icon: FaAddressCard },
-    { href: "/", label: "Home", icon: GoHomeFill },
-    { href: "/quest", label: "Quest", icon: FaScroll },
-    { href: "/earn", label: "Earn", icon: FaMoneyBillAlt },
+    { href: "/mybasecard", label: "My Card", icon: IdCard },
+    { href: "/", label: "Home", icon: Home },
+    { href: "/quest", label: "Quest", icon: ScrollText },
+    { href: "/earn", label: "Earn", icon: Coins },
 ];
 
 export default function FooterNav() {
@@ -38,7 +36,7 @@ export default function FooterNav() {
                             className={`flex flex-col items-center p-2 text-xs transition-colors text-center flex-1 
                                 ${
                                     pathname === item.href
-                                        ? "text-blue-600 font-bold"
+                                        ? "text-basecard-blue font-bold"
                                         : "text-gray-500 hover:text-gray-800"
                                 }`}
                         >

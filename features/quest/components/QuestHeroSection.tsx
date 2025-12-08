@@ -31,7 +31,8 @@ export default function QuestHeroSection() {
             </div>
 
             {/* Mint Button */}
-            <BaseButton className="w-[302px] h-[45px] bg-[#303030] hover:bg-[#404040] rounded-[8.68px] font-semibold text-[17px] text-[#F5F5F5] mb-12 flex justify-center items-center gap-[8.71px]">
+            {/* Mint Button */}
+            <BaseButton className="w-[302px] mb-12">
                 Mint your BaseCard
             </BaseButton>
         </div>

@@ -45,9 +45,6 @@ export async function fetchCardByAddress(
 }
 
 export interface CreateBaseCardParams {
-    // user address
-    address: string;
-    // basecard mint arguments
     nickname: string;
     role: string;
     bio?: string;
@@ -56,10 +53,11 @@ export interface CreateBaseCardParams {
 }
 
 export async function createBaseCard(
+    address: string,
     params: CreateBaseCardParams
 ): Promise<CreateCardResponse> {
     const formData = new FormData();
-    formData.append("address", params.address);
+    formData.append("address", address);
     formData.append("nickname", params.nickname);
     formData.append("role", params.role);
     formData.append("bio", params.bio || "");
@@ -67,13 +65,10 @@ export async function createBaseCard(
     if (params.socials)
         formData.append("socials", JSON.stringify(params.socials));
 
-    const response = await fetch(
-        `${config.BACKEND_API_URL}/v1/basecards/${params.address}`,
-        {
-            method: "POST",
-            body: formData,
-        }
-    );
+    const response = await fetch(`${config.BACKEND_API_URL}/v1/basecards`, {
+        method: "POST",
+        body: formData,
+    });
 
     if (!response.ok) {
         const errorData = await response.json();

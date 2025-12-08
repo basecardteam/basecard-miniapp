@@ -1,0 +1,45 @@
+x-logging: &default-logging
+  driver: "json-file"
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  basecard-miniapp:
+    image: ghcr.io/basecardteam/basecard-miniapp:latest
+    container_name: basecard-miniapp
+    restart: always
+    env_file:
+      - .env.local
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    volumes:
+      - ./scripts:/app/scripts:ro
+    logging: *default-logging
+    networks:
+      - basecard-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    container_name: miniapp-tunnel
+    restart: always
+    command: tunnel run
+    environment:
+      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+    logging: *default-logging
+    networks:
+      - basecard-network
+    depends_on:
+      basecard-miniapp:
+        condition: service_healthy
+
+networks:
+  basecard-network:
+    driver: bridge

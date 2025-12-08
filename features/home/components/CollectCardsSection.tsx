@@ -4,8 +4,10 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { CiSearch } from "react-icons/ci";
 
 import { useMyBaseCard } from "@/hooks/useMyBaseCard";
-import { CollectionFilterTag } from "@/unused/collection";
-import { filterCollections } from "@/unused/utils";
+import {
+    CollectionFilterTag,
+    filterCollections,
+} from "@/lib/filterCollections";
 import { CollectionFilter } from "@/features/collection/components/CollectionFilter";
 import CardItem from "@/features/collection/components/CardItem";
 
@@ -363,10 +365,10 @@ export default function CollectCardsSection() {
                 <div className="px-5">
                     <div className="w-full h-[240px] rounded-2xl border border-dashed border-gray-300 bg-white flex flex-col items-center justify-center gap-2">
                         <div className="text-gray-500 font-k2d font-normal">
-                            표시할 카드가 없어요
+                            No cards found
                         </div>
                         <div className="text-gray-400 text-sm">
-                            필터를 변경하거나 다른 키워드를 검색해보세요
+                            Try changing filters or searching for other keywords
                         </div>
                     </div>
                 </div>
@@ -374,7 +376,7 @@ export default function CollectCardsSection() {
 
             {/* Stacked Cards Stage (fixed overlay below header) */}
             <div
-                className="relative h-[240px] overflow-y-auto overscroll-contain scrollbar-hide"
+                className="relative h-[240px] overflow-y-auto overscroll-y-none scrollbar-hide"
                 ref={innerScrollRef}
                 onScroll={handleInnerScroll}
                 style={{

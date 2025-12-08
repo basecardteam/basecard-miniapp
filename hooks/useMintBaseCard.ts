@@ -5,81 +5,38 @@ import {
     deleteBaseCard,
     CreateBaseCardParams,
 } from "@/lib/api/basecards";
-import { ensureCorrectNetwork } from "@/lib/network";
 import { baseCardAbi } from "@/lib/abi/abi";
-import { activeChain } from "@/lib/wagmi";
-import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
-import { decodeErrorResult } from "viem";
-import {
-    useChainId,
-    usePublicClient,
-    useSwitchChain,
-    useWriteContract,
-    useAccount,
-} from "wagmi";
-import { waitForTransactionReceipt } from "wagmi/actions";
+import { useWriteContract, useAccount } from "wagmi";
 import { BASECARD_CONTRACT_ADDRESS } from "@/lib/constants/contracts";
-import { REQUIRED_CHAIN_ID } from "@/lib/constants/chainId";
 import { logger } from "@/lib/common/logger";
 
-/**
- * BaseCard NFT 민팅을 위한 Hook
- */
 export function useMintBaseCard() {
-    const { address, isConnected } = useAccount();
-    const [mintError, setMintError] = useState<string | null>(null);
-    const [isPending, setIsPending] = useState(false);
-    const [isConfirming, setIsConfirming] = useState(false);
-    const [isGenerating, setIsGenerating] = useState(false); // Used for API call status
-    const [isSaving, setIsSaving] = useState(false); // Not used anymore but kept for compatibility if needed
-    const { switchChainAsync } = useSwitchChain();
+    const { address } = useAccount();
     const { writeContractAsync } = useWriteContract();
-    const publicClient = usePublicClient();
-    const chainId = useChainId();
-    const queryClient = useQueryClient();
+    const [isCreatingBaseCard, setIsCreatingBaseCard] = useState(false);
+    const [isSendingTransaction, setIsSendingTransaction] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
-    const isCorrectChain = chainId === REQUIRED_CHAIN_ID;
-    /**
-     * Ensure user is on the correct network
-     */
-    const ensureNetwork = useCallback(async () => {
-        await ensureCorrectNetwork(publicClient!, switchChainAsync!);
-    }, [publicClient, switchChainAsync]);
-
-    /**
-     * Complete minting flow
-     */
     const mintCard = useCallback(
         async (input: CreateBaseCardParams) => {
-            setMintError(null);
-            setIsPending(false);
-            setIsConfirming(false);
-            setIsGenerating(false);
-            setIsSaving(false);
+            setIsCreatingBaseCard(false);
+            setIsSendingTransaction(false);
+            setError(null);
 
             try {
-                // 1. Network Check
-                await ensureNetwork();
-
-                // 2. Create Card (Backend)
-                console.log("🎨 Creating card via Backend...");
-                setIsGenerating(true);
+                // 1. Backend API 호출: BaseCard 데이터 생성
+                logger.info("Step 1: Creating BaseCard via Backend API...");
+                setIsCreatingBaseCard(true);
 
                 const { card_data, social_keys, social_values } =
-                    await createBaseCard(input);
+                    await createBaseCard(address!, input);
 
-                setIsGenerating(false);
+                setIsCreatingBaseCard(false);
 
-                // 3. Final Network Check
-                await ensureNetwork();
-
-                // 4. Mint NFT
-                console.log("🎨 Minting NFT...");
-                setIsPending(true);
-
-                if (!writeContractAsync)
-                    throw new Error("Wallet not connected");
+                // 2. Contract 호출: NFT 민팅 트랜잭션 전송
+                logger.info("Step 2: Sending mint transaction...");
+                setIsSendingTransaction(true);
 
                 const hash = await writeContractAsync({
                     address: BASECARD_CONTRACT_ADDRESS,
@@ -98,76 +55,52 @@ export function useMintBaseCard() {
                 });
 
                 logger.info("✅ Transaction sent. Hash:", hash);
+                setIsSendingTransaction(false);
 
-                const explorerUrl = `https://sepolia.basescan.org/tx/${hash}`;
-                console.log("🔗 Explorer Link:", explorerUrl);
+                return {
+                    success: true,
+                    hash,
+                    imageUri: card_data.imageUri,
+                };
+            } catch (err) {
+                // Reset loading states
+                setIsCreatingBaseCard(false);
+                setIsSendingTransaction(false);
 
-                setIsPending(false);
-                setIsConfirming(false); // No longer waiting for confirmation
+                const rawMessage =
+                    err instanceof Error ? err.message : String(err);
 
-                // Invalidate queries to refresh data
-                queryClient.invalidateQueries({ queryKey: ["user"] });
-                queryClient.invalidateQueries({ queryKey: ["myBaseCard"] });
+                logger.debug(rawMessage);
 
-                return { success: true, hash };
-            } catch (error) {
-                console.error("❌ Mint error:", error);
-                setIsPending(false);
-                setIsConfirming(false);
-                setIsGenerating(false);
-                setIsSaving(false);
-
-                let errorMessage =
-                    error instanceof Error
-                        ? error.message
-                        : "Failed to mint BaseCard";
-
-                // Decode contract error if present
-                if (error instanceof Error) {
-                    const errorObj = error as any;
-                    const errorData =
-                        errorObj?.data ||
-                        errorObj?.cause?.data ||
-                        errorObj?.shortMessage?.match(
-                            /data="(0x[a-fA-F0-9]+)"/
-                        )?.[1];
-
-                    if (errorData?.startsWith("0x")) {
-                        try {
-                            const decoded = decodeErrorResult({
-                                abi: baseCardAbi,
-                                data: errorData,
-                            });
-                            if (decoded.errorName === "AlreadyMinted") {
-                                errorMessage = "Already minted";
-                            } else {
-                                errorMessage = `Contract error: ${decoded.errorName}`;
-                            }
-                        } catch {}
-                    }
+                // User rejected the transaction
+                if (rawMessage.includes("User rejected")) {
+                    deleteBaseCard(address!).catch(logger.warn);
+                    // Don't set error for user rejection - it's intentional
+                    return { success: false, error: "User rejected" };
                 }
 
-                // Cleanup DB if needed
-                if (errorMessage.includes("User rejected the request")) {
-                    deleteBaseCard(input.address).catch(console.warn);
+                // Already minted error
+                if (rawMessage.includes("AlreadyMinted")) {
+                    return { success: false, error: "Already minted" };
                 }
 
-                setMintError(errorMessage);
-                return { success: false, error: errorMessage };
+                // Other errors
+                logger.error("❌ Mint error:", err);
+                return {
+                    success: false,
+                    error: "Failed to mint. Please try again.",
+                };
             }
         },
-        [ensureNetwork, writeContractAsync, publicClient]
+        [address, writeContractAsync]
     );
 
     return {
         mintCard,
-        isPending,
-        isConfirming,
-        isGenerating,
-        error: mintError,
-        isCorrectChain,
-        chainId,
-        requiredChainId: REQUIRED_CHAIN_ID,
-        chainName: activeChain.name,
+        // Loading states
+        isCreatingBaseCard,
+        isSendingTransaction,
+        // Error
+        error,
     };
 }

@@ -29,7 +29,7 @@ export default function QuestContent() {
     ];
 
     return (
-        <div className="relative w-full min-h-full flex flex-col items-center overflow-y-auto pb-20 bg-[#0050ff]">
+        <div className="relative w-full min-h-full flex flex-col items-center overflow-y-auto overscroll-y-none pb-20 bg-[#0050ff]">
             {/* Content Container */}
             <div className="w-full flex flex-col items-center pt-10 px-6">
                 {/* Hero Section */}

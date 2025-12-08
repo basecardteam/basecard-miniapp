@@ -1,7 +1,9 @@
 import { useFetchCollections } from "@/hooks/useFetchCollections";
 import { useMyBaseCard } from "@/hooks/useMyBaseCard";
-import { CollectionFilterTag } from "@/unused/collection";
-import { filterCollections } from "@/unused/utils";
+import {
+    CollectionFilterTag,
+    filterCollections,
+} from "@/lib/filterCollections";
 import { useOpenUrl } from "@coinbase/onchainkit/minikit";
 import { useState } from "react";
 import { useAccount } from "wagmi";
