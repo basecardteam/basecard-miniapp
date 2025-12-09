@@ -39,6 +39,7 @@ export default function HeroSection({ onMintClick }: HeroSectionProps) {
                     alt="landing-page-card"
                     priority
                     className="object-contain z-50"
+                    style={{ width: "auto" }}
                 />
             </div>
 

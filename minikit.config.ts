@@ -17,7 +17,10 @@ export const minikitConfig = {
         signature: ACCOUNT_SIGNATURE,
     },
     baseBuilder: {
-        allowedAddresses: [ALLOWED_ADDRESSES_STRING],
+        allowedAddresses: [
+            "0xE0Ab3848E1D00DD970085F10923C45646DbA181D",
+            "0x1b8902178e313aEC2Dee0e2B707de71E3B85d632",
+        ],
     },
     miniapp: {
         version: "1",
@@ -31,7 +34,6 @@ export const minikitConfig = {
         splashImageUrl: `${ROOT_URL}/bc-icon.png`,
         splashBackgroundColor: "#ffffff",
         homeUrl: ROOT_URL,
-        webhookUrl: `${ROOT_URL}/api/webhook`,
         primaryCategory: "social",
         tags: ["builder", "networking", "sbt", "base", "identity"],
         heroImageUrl: `${ROOT_URL}/blue-hero.png`,

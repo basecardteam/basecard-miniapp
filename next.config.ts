@@ -98,6 +98,7 @@ const nextConfig: NextConfig = {
     allowedDevOrigins: [
         "*.ngrok-free.app",
         "*.vercel.app",
+        "basecard.loca.lt",
         "app-dev.basecard.org",
         "localhost",
     ],

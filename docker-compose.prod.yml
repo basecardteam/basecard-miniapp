@@ -10,21 +10,16 @@ services:
     container_name: basecard-miniapp
     restart: always
     env_file:
-      - .env.local
-    environment:
-      - NODE_ENV=production
-      - PORT=3000
-    volumes:
-      - ./scripts:/app/scripts:ro
+      - .env
     logging: *default-logging
     networks:
       - basecard-network
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:3000/"]
-      interval: 30s
-      timeout: 10s
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000/"]
+      interval: 10s
+      timeout: 5s
       retries: 3
-      start_period: 40s
+      start_period: 20s
 
   tunnel:
     image: cloudflare/cloudflared:latest
@@ -38,7 +33,7 @@ services:
       - basecard-network
     depends_on:
       basecard-miniapp:
-        condition: service_healthy
+        condition: service_started
 
 networks:
   basecard-network:
