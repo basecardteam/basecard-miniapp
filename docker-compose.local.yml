@@ -6,8 +6,8 @@ x-logging: &default-logging
 
 services:
   basecard-miniapp:
-    image: ghcr.io/basecardteam/basecard-miniapp:latest
-    container_name: basecard-miniapp
+    build: .
+    container_name: basecard-miniapp-local
     restart: always
     env_file:
       - .env
@@ -21,16 +21,16 @@ services:
       retries: 3
       start_period: 20s
 
-  tunnel:
-    image: cloudflare/cloudflared:latest
-    container_name: basecard-miniapp-tunnel
-    restart: always
-    command: tunnel run
-    environment:
-      - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
-    logging: *default-logging
-    networks:
-      - miniapp-network
+  # tunnel:
+  #   image: cloudflare/cloudflared:latest
+  #   container_name: miniapp-tunnel
+  #   restart: always
+  #   command: tunnel run
+  #   environment:
+  #     - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+  #   logging: *default-logging
+  #   networks:
+  #     - miniapp-network
 
 networks:
   miniapp-network:

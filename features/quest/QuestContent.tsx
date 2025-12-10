@@ -7,6 +7,7 @@ import QuestHeroSection from "@/features/quest/components/QuestHeroSection";
 import { useQuests } from "@/features/quest/hooks/useQuests";
 import { Quest } from "@/lib/types/api";
 import { logger } from "@/lib/common/logger";
+import ErrorModal from "@/components/modals/ErrorModal";
 import SuccessModal from "@/components/modals/SuccessModal";
 
 export default function QuestContent() {
@@ -17,6 +18,11 @@ export default function QuestContent() {
         rewarded: number;
         newTotalPoints: number;
     }>({ isOpen: false, rewarded: 0, newTotalPoints: 0 });
+    const [errorModalState, setErrorModalState] = useState<{
+        isOpen: boolean;
+        title: string;
+        description: string;
+    }>({ isOpen: false, title: "", description: "" });
 
     quests.forEach((quest) => {
         logger.debug("quest", quest.title, quest.status);
@@ -36,11 +42,14 @@ export default function QuestContent() {
                         });
                     }
                 } catch (err) {
-                    alert(
-                        err instanceof Error
-                            ? err.message
-                            : "Failed to claim quest"
-                    );
+                    setErrorModalState({
+                        isOpen: true,
+                        title: "Claim Failed",
+                        description:
+                            err instanceof Error
+                                ? err.message
+                                : "Failed to claim quest",
+                    });
                 }
                 return;
             }
@@ -70,9 +79,14 @@ export default function QuestContent() {
                     });
                 }
             } catch (err) {
-                alert(
-                    err instanceof Error ? err.message : "Failed to claim quest"
-                );
+                setErrorModalState({
+                    isOpen: true,
+                    title: "Claim Failed",
+                    description:
+                        err instanceof Error
+                            ? err.message
+                            : "Failed to claim quest",
+                });
             }
         },
         [claim, router]
@@ -131,6 +145,14 @@ export default function QuestContent() {
                 title="Quest Claimed!"
                 description={`You earned +${successModalState.rewarded} BC.\nTotal Balance: ${successModalState.newTotalPoints} BC`}
                 buttonText="Awesome!"
+            />
+            <ErrorModal
+                isOpen={errorModalState.isOpen}
+                onClose={() =>
+                    setErrorModalState((prev) => ({ ...prev, isOpen: false }))
+                }
+                title={errorModalState.title}
+                description={errorModalState.description}
             />
         </div>
     );
