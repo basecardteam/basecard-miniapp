@@ -8,7 +8,7 @@ import { farcasterMiniApp } from "@farcaster/miniapp-wagmi-connector";
 // Use custom env variable for network selection
 // NEXT_PUBLIC_USE_TESTNET=true -> Base Sepolia (testnet)
 // NEXT_PUBLIC_USE_TESTNET=false or undefined -> Base Mainnet (production)
-export const isTestnet = process.env.NEXT_PUBLIC_USE_TESTNET === "true";
+export const isTestnet = true;
 export function getConfig() {
     return createConfig({
         chains: isTestnet ? [baseSepolia] : [base],

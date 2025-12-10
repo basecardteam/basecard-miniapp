@@ -60,6 +60,10 @@ const nextConfig: NextConfig = {
                 protocol: "https",
                 hostname: "**",
             },
+            {
+                protocol: "https",
+                hostname: "ipfs.io",
+            },
         ],
         // SVG 이미지를 허용 (보안 위험이 있을 수 있으나 아이콘 표시 등을 위해 필요)
         dangerouslyAllowSVG: true,
@@ -99,7 +103,7 @@ const nextConfig: NextConfig = {
         "*.ngrok-free.app",
         "*.vercel.app",
         "basecard.loca.lt",
-        "app-dev.basecard.org",
+        "*.basecard.org",
         "localhost",
     ],
 

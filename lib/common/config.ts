@@ -7,6 +7,10 @@ const envSchema = z.object({
         .optional()
         .default("debug"),
     NEXT_PUBLIC_ENABLE_LAZY_LOAD_TEST: z.boolean().optional().default(false),
+    NEXT_PUBLIC_BASECARD_CONTRACT_ADDRESS: z
+        .string()
+        .startsWith("0x")
+        .default("0x0000000000000000000000000000000000000000"), // Default or specific address
 });
 
 const _env = envSchema.safeParse({
@@ -16,6 +20,8 @@ const _env = envSchema.safeParse({
         process.env.NEXT_PUBLIC_ENABLE_LAZY_LOAD_TEST === "true"
             ? true
             : undefined,
+    NEXT_PUBLIC_BASECARD_CONTRACT_ADDRESS:
+        process.env.NEXT_PUBLIC_BASECARD_CONTRACT_ADDRESS,
 });
 
 if (!_env.success) {
@@ -27,4 +33,5 @@ export const config = {
     BACKEND_API_URL: _env.data.NEXT_PUBLIC_BACKEND_API_URL,
     LOG_LEVEL: _env.data.NEXT_PUBLIC_LOG_LEVEL,
     ENABLE_LAZY_LOAD_TEST: _env.data.NEXT_PUBLIC_ENABLE_LAZY_LOAD_TEST,
+    BASECARD_CONTRACT_ADDRESS: _env.data.NEXT_PUBLIC_BASECARD_CONTRACT_ADDRESS,
 };

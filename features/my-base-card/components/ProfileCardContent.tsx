@@ -1,25 +1,25 @@
-import BackButton from "@/components/buttons/BackButton";
-import BaseButton from "@/components/buttons/BaseButton";
-import { BaseModal } from "@/components/modals/BaseModal";
-import { useUser } from "@/hooks/useUser";
+import Link from "next/link";
+import Image from "next/image";
+import { useMemo, useCallback, useState } from "react";
+import clsx from "clsx";
+import { FaGithub, FaGlobe, FaTwitter, FaLinkedin } from "react-icons/fa";
+import { IoShareOutline } from "react-icons/io5";
+
 import { Card } from "@/lib/types";
+import { BaseModal } from "@/components/modals/BaseModal";
 import MyCardBGImage from "@/public/assets/mybasecard-background.webp";
 import FacasterLogo from "@/public/logo/farcaster-logo.png";
-import clsx from "clsx";
-import Image from "next/image";
-import { useCallback, useMemo, useState } from "react";
-import { FaGithub, FaGlobe, FaTwitter, FaLinkedin } from "react-icons/fa";
-import { IoClose, IoShareOutline } from "react-icons/io5";
+import { useUser } from "@/hooks/useUser";
+import BackButton from "@/components/buttons/BackButton";
+import { resolveIpfsUrl } from "@/lib/ipfs";
 
-interface CardContentProps {
+interface ProfileCardContentProps {
     card: Card;
     openUrl: (url: string) => void;
     socials?: Record<string, string>;
     isSocialLoading?: boolean;
-    mode?: "viewer" | "profile";
+    onNavigateToCollection: () => void;
     title?: string;
-    onNavigateToCollection?: () => void;
-    onClose?: () => void;
 }
 
 type SocialEntry = {
@@ -50,16 +50,16 @@ const valueToUrl = (key: string, raw: string): string => {
     return `${prefix}${normalized}`;
 };
 
-export default function CardContent({
+export default function ProfileCardContent({
     card,
     openUrl,
     socials = {},
     isSocialLoading = false,
-    mode = "profile",
-    title = "My BaseCard",
     onNavigateToCollection,
-}: CardContentProps) {
+    title = "My BaseCard",
+}: ProfileCardContentProps) {
     const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+    const { data: user } = useUser();
 
     const socialEntries: SocialEntry[] = useMemo(
         () => [
@@ -102,7 +102,6 @@ export default function CardContent({
 
     // Use card.socials as fallback if socials prop is empty
     const effectiveSocials = useMemo(() => {
-        // If socials prop has values, use it; otherwise fallback to card.socials
         if (socials && Object.keys(socials).length > 0) {
             return socials;
         }
@@ -120,44 +119,40 @@ export default function CardContent({
         [openUrl]
     );
 
-    const { data: user } = useUser();
-
-    // Figma Design based Layout - Adapted to be responsive but keeping relative positioning logic
     return (
         <div className="w-full flex flex-col items-center">
-            {/* Header Title for Profile Mode */}
-            {mode === "profile" && (
-                <div className="flex w-full items-center h-12 gap-x-2 mb-4 px-4">
-                    <BackButton className="relative top-0 left-0" />
-                    <div className="font-k2d font-bold text-black text-3xl tracking-tighter leading-none">
-                        {title}
-                    </div>
+            {/* Header Title */}
+            <div className="flex w-full items-center h-12 gap-x-2 mb-4 px-4">
+                <BackButton className="relative top-0 left-0" />
+                <div className="font-k2d font-bold text-black text-3xl tracking-tighter leading-none">
+                    {title}
                 </div>
-            )}
+            </div>
 
-            {/* Card Container - Responsive with max dimensions */}
-            <div
-                className={clsx(
-                    "relative w-full flex-1 max-w-[360px] max-h-[520px] rounded-[12px] mx-auto my-auto shadow-2xl",
-                    mode === "viewer" ? "bg-transparent" : "bg-basecard-blue"
-                )}
-            >
-                {/* Background Image - Only for viewer mode or if we want texture in profile too. 
-                    The design shows a clean blue card. Let's keep the image for viewer, 
-                    and maybe just solid color for profile to match 'clean' look or reuse image if needed. 
-                    The user said "bg is basecard-white" for the page, "draw it like this" for the card.
-                    The card in image has a gradient/pattern. Let's use the image for consistency or just the color.
-                    For now, I'll assume solid basecard-blue for profile mode as per previous requests for 'blue'.
-                */}
+            <div className="relative w-full flex-1 max-w-[360px] max-h-[520px] rounded-[12px] mx-auto my-auto overflow-hidden shadow-2xl bg-basecard-blue">
+                {/* Background Image */}
+                <div className="absolute inset-0 z-0">
+                    <Image
+                        src={MyCardBGImage}
+                        alt="BaseCard Background"
+                        fill
+                        style={{
+                            objectFit: "cover",
+                            objectPosition: "center",
+                        }}
+                        priority
+                        unoptimized
+                    />
+                </div>
 
                 {/* Content Wrapper */}
-                <div className="relative w-full h-full flex flex-col items-center">
-                    {/* Profile Image - positioned relatively or absolutely based on design ratio */}
+                <div className="relative z-10 w-full h-full flex flex-col items-center">
+                    {/* Profile Image */}
                     <div className="mt-[40px] w-[64px] h-[64px] rounded-xl overflow-hidden shadow-lg border-2 border-white/20 flex-none bg-black/20">
                         <Image
                             src={
                                 user?.profileImage
-                                    ? user.profileImage
+                                    ? resolveIpfsUrl(user.profileImage)
                                     : "/assets/default-profile.png"
                             }
                             alt={card.nickname || "User"}
@@ -167,10 +162,9 @@ export default function CardContent({
                             priority
                         />
                     </div>
-
-                    {/* Nickname: Top 109px */}
-                    <div className="absolute top-[109px] w-full flex justify-center items-center gap-2">
-                        <h2 className="font-k2d font-bold text-[30px] leading-[44px] text-white tracking-tight drop-shadow-md truncate max-w-[200px]">
+                    {/* Nickname */}
+                    <div className="mt-[20px] w-full flex justify-center items-center gap-2">
+                        <h2 className="font-k2d font-bold text-[30px] leading-normal text-white tracking-tight drop-shadow-md truncate max-w-[200px] py-1">
                             {card.nickname || "Unknown"}
                         </h2>
                         <button
@@ -180,16 +174,14 @@ export default function CardContent({
                             <IoShareOutline size={24} />
                         </button>
                     </div>
-
                     {/* Role */}
-                    <div className="mt-[-5px] w-full text-center px-4">
-                        <p className="font-pretendard font-light text-[23px] leading-[44px] text-white tracking-tight truncate">
+                    <div className="mt-[4px] w-full text-center px-4">
+                        <p className="font-pretendard font-light text-[18px] text-white/90 tracking-tight truncate">
                             {card.role || "Builder"}
                         </p>
                     </div>
-
                     {/* Social Icons */}
-                    <div className="mt-[5px] flex items-center gap-[14px]">
+                    <div className="mt-[20px] flex items-center gap-[14px]">
                         {socialEntries.map(({ key, icon, label }) => {
                             const rawValue = effectiveSocials?.[key] ?? "";
                             const value = rawValue.trim();
@@ -218,39 +210,37 @@ export default function CardContent({
                             );
                         })}
                     </div>
-
                     {/* Bio (Description) */}
                     <div
-                        className="mt-[20px] w-[calc(100%-24px)] max-w-[330px] min-h-[70px] rounded-[8px] border border-[#3E7CFF]/50 flex items-center justify-center px-4 py-3"
+                        className="mt-[24px] mb-4 w-[calc(100%-48px)] max-w-[330px] min-h-[70px] rounded-[8px] border border-[#3E7CFF]/50 flex items-center justify-center px-4 py-3"
                         style={{ background: "rgba(255, 255, 255, 0.15)" }}
                     >
                         <p className="font-k2d font-medium text-[14px] leading-[20px] text-center text-white break-words">
-                            {card.bio || "Hi, I'm a based builder"}
+                            {card.bio || "Hi, I'm a base builder"}
                         </p>
                     </div>
-
-                    {/* Edit Profile Button: Bottom */}
-                    {mode === "profile" && onNavigateToCollection && (
-                        <button
-                            onClick={onNavigateToCollection}
-                            className="absolute bottom-0 left-0 w-full h-[50px] bg-white rounded-b-[12px] flex items-center justify-center gap-2 hover:bg-white/90 transition-colors"
-                        >
-                            <span className="font-pretendard font-normal text-[16px] text-basecard-blue">
-                                Edit Profile
-                            </span>
-                        </button>
-                    )}
+                    {/* Spacer to push button to bottom or just fill space */}
+                    <div className="flex-1" />
+                    {/* Edit Profile Button */}
+                    <button
+                        onClick={onNavigateToCollection}
+                        className="w-full h-[60px] bg-[#0455FF] flex items-center justify-center gap-2 hover:bg-[#0344CC] transition-colors mt-auto"
+                    >
+                        <span className="font-pretendard font-normal text-[16px] text-white">
+                            Edit Profile
+                        </span>
+                    </button>
                 </div>
-            </div>
 
-            {/* Share Modal (TODO) */}
-            <BaseModal
-                isOpen={isShareModalOpen}
-                onClose={() => setIsShareModalOpen(false)}
-                title="Share Feature"
-                description="Share functionality is coming soon!"
-                buttonText="Close"
-            />
+                {/* Share Modal */}
+                <BaseModal
+                    isOpen={isShareModalOpen}
+                    onClose={() => setIsShareModalOpen(false)}
+                    title="Share Feature"
+                    description="Share functionality is coming soon!"
+                    buttonText="Close"
+                />
+            </div>
         </div>
     );
 }

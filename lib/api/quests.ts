@@ -1,8 +1,9 @@
 import { config } from "@/lib/common/config";
-import { ApiResponse, Quest } from "@/lib/types/api";
+import { ApiResponse, Quest, VerifyQuestResponse } from "@/lib/types/api";
+import { logger } from "../common/logger";
 
 /**
- * Fetch all active quests
+ * Fetch all quests (without user status)
  */
 export async function fetchQuests(): Promise<Quest[]> {
     const response = await fetch(`${config.BACKEND_API_URL}/v1/quests`, {
@@ -21,6 +22,73 @@ export async function fetchQuests(): Promise<Quest[]> {
     if (!data.success || !data.result) {
         throw new Error(data.error || "Failed to fetch quests");
     }
+
+    return data.result;
+}
+
+/**
+ * Fetch user's quests with completion status from userQuests table
+ */
+export async function fetchUserQuests(address: string): Promise<Quest[]> {
+    const response = await fetch(
+        `${config.BACKEND_API_URL}/v1/user-quests/user/${address}`,
+        {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+            },
+        }
+    );
+
+    if (!response.ok) {
+        throw new Error("Failed to fetch user quests");
+    }
+
+    const data: ApiResponse<Quest[]> = await response.json();
+
+    if (!data.success || !data.result) {
+        throw new Error(data.error || "Failed to fetch user quests");
+    }
+
+    return data.result;
+}
+
+/**
+ * Claim a quest reward after on-chain verification
+ */
+export async function claimQuest(
+    address: string,
+    questId: string
+): Promise<VerifyQuestResponse> {
+    const response = await fetch(
+        `${config.BACKEND_API_URL}/v1/user-quests/claim`,
+        {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ address, questId }),
+        }
+    );
+
+    if (!response.ok) {
+        let errorMessage = "Failed to claim quest";
+        try {
+            const errorData = await response.json();
+            errorMessage = errorData.message || errorData.error || errorMessage;
+        } catch {
+            // Ignore JSON parse error and use default message
+        }
+        throw new Error(errorMessage);
+    }
+
+    const data: ApiResponse<VerifyQuestResponse> = await response.json();
+
+    if (!data.success || !data.result) {
+        throw new Error(data.error || "Failed to claim quest");
+    }
+
+    logger.debug("Claimed quest: ", data.result);
 
     return data.result;
 }

@@ -14,11 +14,16 @@ export function useMyBaseCard() {
 
     return useQuery<Card | null, Error>({
         queryKey: ["myBaseCard", address],
-        queryFn: () => {
-            logger.debug("Fetching myBaseCard data", { address });
-            return fetchCardByAddress(address!);
+        queryFn: async () => {
+            if (!address) {
+                return null;
+            }
+            logger.debug("Fetching myBaseCard data");
+            const card = await fetchCardByAddress(address);
+            // React Query doesn't allow undefined, ensure we return null
+            return card ?? null;
         },
-        enabled: isConnected,
+        enabled: isConnected && !!address,
         staleTime: 1000 * 30, // 30 seconds
         refetchInterval: 1000 * 30, // 30 seconds
         retry: 1,

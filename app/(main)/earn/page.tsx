@@ -7,5 +7,9 @@ export const metadata: Metadata = {
 };
 
 export default function EarnPage() {
-    return <EarnScreen />;
+    return (
+        <div className="font-k2d">
+            <EarnScreen />
+        </div>
+    );
 }

@@ -7,13 +7,17 @@ import { useAccount } from "wagmi";
 export function useUser() {
     const { address, isConnected } = useAccount();
 
-    const query = useQuery<User, Error>({
+    const query = useQuery<User | null, Error>({
         queryKey: ["user", address],
-        queryFn: () => {
+        queryFn: async () => {
+            if (!address) {
+                return null;
+            }
             logger.debug("Fetching user data", { address });
-            return fetchUser(address!);
+            const user = await fetchUser(address);
+            return user ?? null;
         },
-        enabled: isConnected,
+        enabled: isConnected && !!address,
         staleTime: 1000 * 60 * 5, // 5 minutes
         retry: 1,
     });

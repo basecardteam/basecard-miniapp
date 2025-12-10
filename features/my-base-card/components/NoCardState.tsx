@@ -6,7 +6,7 @@ export const NoCardState = ({
 }: {
     onNavigateToMint: () => void;
 }) => (
-    <div className="flex-1 h-full flex flex-col items-center justify-center bg-gradient-to-b from-[#0050FF] to-[#0080FF] px-6 py-8">
+    <div className="flex-1 h-full flex flex-col items-center justify-center">
         <div className="flex flex-col items-center text-center gap-6">
             <h1 className="text-5xl sm:text-6xl font-k2d font-bold text-white drop-shadow-lg tracking-tight leading-tight">
                 No Card Found
