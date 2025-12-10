@@ -16,6 +16,23 @@ LOG_DIR="/home/basecard/logs"
 # ============================================================
 # 1. 필수 패키지 설치
 # ============================================================
+log_info "📦 NVM 및 Node.js v22 LTS 설치..."
+if ! command -v node &> /dev/null; then
+    # NVM 설치
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
+    
+    # NVM 환경 로드
+    export NVM_DIR="$HOME/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    
+    # Node.js v22 LTS 설치
+    nvm install 22
+    nvm use 22
+    nvm alias default 22
+    
+    log_info "✅ Node.js $(node --version) 설치 완료"
+fi
+
 log_info "📦 Bun 설치..."
 if ! command -v bun &> /dev/null; then
     curl -fsSL https://bun.sh/install | bash
@@ -24,8 +41,8 @@ fi
 
 log_info "📦 PM2 설치..."
 if ! command -v pm2 &> /dev/null; then
-    # bun으로 전역 설치 (npm이 없는 환경 대응)
-    bun add -g pm2
+    # npm으로 설치 (node 있으므로)
+    npm install -g pm2
 fi
 
 # ============================================================
