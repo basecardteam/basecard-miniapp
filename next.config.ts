@@ -77,7 +77,14 @@ const nextConfig: NextConfig = {
     // 리다이렉트 설정
     // -------------------------------------------------------------------------
     async redirects() {
-        return [];
+        return [
+            {
+                source: "/.well-known/farcaster.json",
+                destination:
+                    "https://api.farcaster.xyz/miniapps/hosted-manifest/019b0890-19d9-520c-2afe-e51219a6f88d",
+                permanent: false, // 307 Temporary Redirect
+            },
+        ];
     },
 
     // -------------------------------------------------------------------------

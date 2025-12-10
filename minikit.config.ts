@@ -44,3 +44,35 @@ export const minikitConfig = {
         buttonTitle: "Open BaseCard",
     },
 } as const;
+
+// {
+//   "frame": {
+//     "name": "BaseCard",
+//     "version": "1",
+//     "iconUrl": "https://miniapp.basecard.org/icon.png",
+//     "homeUrl": "https://miniapp.basecard.org",
+//     "imageUrl": "https://miniapp.basecard.org/image.png",
+//     "buttonTitle": "Open My BaseCard",
+//     "splashImageUrl": "https://miniapp.basecard.org/splash.png",
+//     "splashBackgroundColor": "#F0F0F0",
+//     "subtitle": "Builder Identity on Base",
+//     "description": "Stop repeating your pitch. Mint your verified, onchain builder profile card (SBT). Search for talent and connect directly",
+//     "screenshotUrls": [
+//       "https://miniapp.basecard.org/screenshot-portrait.png"
+//     ],
+//     "primaryCategory": "social",
+//     "tags": [
+//       "builder",
+//       "networking",
+//       "sbt",
+//       "base",
+//       "social"
+//     ],
+//     "heroImageUrl": "https://miniapp.basecard.org/hero.png"
+//   },
+//   "accountAssociation": {
+//     "header": "",
+//     "payload": "",
+//     "signature": ""
+//   }
+// }
