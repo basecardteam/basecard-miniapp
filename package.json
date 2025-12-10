@@ -6,7 +6,8 @@
         "dev": "next dev",
         "build": "next build",
         "start": "next start",
-        "lint": "next lint"
+        "lint": "next lint",
+        "run-docker-local": "docker compose -f docker-compose.local.yml up --build"
     },
     "dependencies": {
         "@base-org/account": "^2.5.0",

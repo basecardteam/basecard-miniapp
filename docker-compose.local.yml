@@ -8,13 +8,6 @@ services:
   basecard-miniapp:
     build:
       context: .
-      args:
-        NEXT_PUBLIC_BACKEND_API_URL: ${NEXT_PUBLIC_BACKEND_API_URL}
-        NEXT_PUBLIC_URL: ${NEXT_PUBLIC_URL}
-        NEXT_PUBLIC_PROJECT_NAME: ${NEXT_PUBLIC_PROJECT_NAME}
-        NEXT_PUBLIC_ONCHAINKIT_API_KEY: ${NEXT_PUBLIC_ONCHAINKIT_API_KEY}
-        NEXT_PUBLIC_CDP_CLIENT_API_KEY: ${NEXT_PUBLIC_CDP_CLIENT_API_KEY}
-        NEXT_PUBLIC_CDP_CLIENT_API_KEY_SECRET: ${NEXT_PUBLIC_CDP_CLIENT_API_KEY_SECRET}
     container_name: basecard-miniapp-local
     restart: always
     env_file:
@@ -23,7 +16,8 @@ services:
     networks:
       - miniapp-network
     healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000/"]
+      test:
+        ["CMD", "wget", "-q", "--spider", "http://localhost:3000/api/health"]
       interval: 10s
       timeout: 5s
       retries: 3
