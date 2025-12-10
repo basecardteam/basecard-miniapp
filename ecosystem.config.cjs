@@ -4,7 +4,7 @@ module.exports = {
             name: "basecard-miniapp",
             script: "bun",
             args: "start",
-            cwd: "/home/jeongseup/basecard-miniapp",
+            cwd: "/home/basecard/src/basecard-miniapp",
             instances: 1,
             autorestart: true,
             watch: false,
@@ -14,8 +14,8 @@ module.exports = {
                 PORT: 3001, // backend가 3000 사용 중이면 3001
             },
             // 로그 설정
-            error_file: "/home/jeongseup/logs/miniapp-error.log",
-            out_file: "/home/jeongseup/logs/miniapp-out.log",
+            error_file: "/home/basecard/logs/miniapp-error.log",
+            out_file: "/home/basecard/logs/miniapp-out.log",
             log_date_format: "YYYY-MM-DD HH:mm:ss Z",
             // graceful restart
             kill_timeout: 5000,
