@@ -11,7 +11,7 @@ module.exports = {
             max_memory_restart: "512M",
             env: {
                 NODE_ENV: "production",
-                PORT: 3001, // backend가 3000 사용 중이면 3001
+                PORT: 3000, // backend가 3000 사용 중이면 3001
             },
             // 로그 설정
             error_file: "/home/basecard/logs/miniapp-error.log",
