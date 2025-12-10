@@ -90,7 +90,7 @@ healthcheck() {
     
     local max_attempts=30
     local attempt=1
-    local port=${PORT:-3001}
+    local port=${PORT:-3000}
     
     while [ $attempt -le $max_attempts ]; do
         if curl -s "http://localhost:$port/api/health" > /dev/null 2>&1; then
