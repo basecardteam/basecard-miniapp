@@ -23,6 +23,15 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 
 # Build the application
+# Declare ARGs for build-time environment variables
+# These must be passed via --build-arg in docker build
+ARG NEXT_PUBLIC_BACKEND_API_URL
+ARG NEXT_PUBLIC_URL
+ARG NEXT_PUBLIC_PROJECT_NAME
+ARG NEXT_PUBLIC_ONCHAINKIT_API_KEY
+ARG NEXT_PUBLIC_CDP_CLIENT_API_KEY
+ARG NEXT_PUBLIC_CDP_CLIENT_API_KEY_SECRET
+
 RUN npm install -g bun && bun run build
 
 # Production image
