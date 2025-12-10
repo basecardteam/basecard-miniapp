@@ -24,7 +24,8 @@ fi
 
 log_info "📦 PM2 설치..."
 if ! command -v pm2 &> /dev/null; then
-    npm install -g pm2
+    # bun으로 전역 설치 (npm이 없는 환경 대응)
+    bun add -g pm2
 fi
 
 # ============================================================
