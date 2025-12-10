@@ -399,9 +399,6 @@ export default function MintContent() {
                 </Suspense>
             )}
 
-            {/* TODO: Success Modal - Removed, implement with BaseModal if needed */}
-            {/* TODO: Warning Modal - Removed, use ErrorModal for warnings */}
-
             {/* Success Modal */}
             {showSuccessModal && (
                 <Suspense fallback={null}>

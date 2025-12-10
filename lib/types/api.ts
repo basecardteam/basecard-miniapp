@@ -43,10 +43,12 @@ export interface Card {
 }
 
 export interface Quest {
+    id: string;
     title: string;
     description: string | null;
     rewardAmount: number;
     actionType: string;
+    status?: "pending" | "claimable" | "completed";
 }
 
 export interface VerifyQuestResponse {

@@ -1,29 +1,20 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { config } from "@/lib/common/config";
 
 interface ContractConfig {
     contractAddress: string;
     chainId: number;
 }
 
-const FALLBACK_CONTRACT_ADDRESS =
-    process.env.NEXT_PUBLIC_BASECARD_CONTRACT_ADDRESS ?? "";
-const FALLBACK_CHAIN_ID = 84532; // Base Sepolia
-
 /**
  * Fetches contract configuration from the backend API.
  * Falls back to environment variables if the API call fails.
  */
-async function fetchContractConfig(): Promise<ContractConfig> {
-    const response = await fetch(`${config.BACKEND_API_URL}/v1/config`);
+import { fetchAppConfig, AppConfigResult } from "@/lib/api/config";
 
-    if (!response.ok) {
-        throw new Error("Failed to fetch contract config");
-    }
-
-    return response.json();
+async function fetchContractConfig(): Promise<AppConfigResult> {
+    return fetchAppConfig();
 }
 
 /**
@@ -40,8 +31,10 @@ export function useContractConfig() {
     });
 
     // Use API data or fallback to env vars
-    const contractAddress = data?.contractAddress || FALLBACK_CONTRACT_ADDRESS;
-    const chainId = data?.chainId || FALLBACK_CHAIN_ID;
+    const contractAddress =
+        data?.contractAddress ||
+        process.env.NEXT_PUBLIC_BASECARD_CONTRACT_ADDRESS;
+    const chainId = data?.chainId || process.env.NEXT_PUBLIC_BASECARD_CHAIN_ID;
 
     return {
         contractAddress,

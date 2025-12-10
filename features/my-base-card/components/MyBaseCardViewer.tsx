@@ -1,10 +1,11 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useBaseCardSocials } from "@/hooks/useBaseCardDetail";
+import { useERC721Token } from "@/hooks/useERC721Token";
 import { useMyBaseCard } from "@/hooks/useMyBaseCard";
 import { useOpenUrl } from "@coinbase/onchainkit/minikit";
 import CardContent from "./CardContent";
+import { useMemo } from "react";
 
 interface MyCardViewerProps {
     title?: string;
@@ -14,13 +15,19 @@ export default function MyBaseCardViewer({ title }: MyCardViewerProps) {
     const router = useRouter();
     const openUrl = useOpenUrl();
     const { data: fetchedCard, isLoading } = useMyBaseCard();
-    const { socials, isLoading: isSocialLoading } = useBaseCardSocials(
-        fetchedCard?.tokenId ?? null,
-        {
-            keys: ["x", "farcaster", "github", "linkedin", "website"],
-            enabled: fetchedCard?.tokenId !== undefined,
-        }
-    );
+
+    // New Hook Usage
+    const { metadata, isLoading: isTokenLoading } = useERC721Token();
+
+    const socials = useMemo(() => {
+        if (!metadata?.socials) return {};
+        return metadata.socials.reduce((acc, curr) => {
+            acc[curr.key] = curr.value;
+            return acc;
+        }, {} as Record<string, string>);
+    }, [metadata]);
+
+    const isSocialLoading = isTokenLoading;
     const rootHeight = {
         minHeight: "calc(100dvh - var(--header-h, 60px))",
     };

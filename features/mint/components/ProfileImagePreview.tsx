@@ -2,8 +2,9 @@
 
 import FALLBACK_PROFILE_IMAGE from "@/public/assets/empty_pfp.png";
 import Image, { StaticImageData } from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { CiEdit } from "react-icons/ci";
+import { resolveIpfsUrl } from "@/lib/ipfs";
 
 interface ProfileImagePreviewProps {
     profileImageFile: File | null;
@@ -20,39 +21,37 @@ const ProfileImagePreview = ({
     handleFileChange,
     handleImageClick,
 }: ProfileImagePreviewProps) => {
-    // // 1. 이미지 URL 결정 (로컬 파일 > 기본 URL > 폴백 이미지)
-    // const profileImageUrl = profileImageFile
-    //     ? URL.createObjectURL(profileImageFile)
-    //     : defaultProfileUrl || FALLBACK_PROFILE_IMAGE;
-    // 2. 메모리 누수 방지를 위한 Cleanup (useEffect를 Mint 컴포넌트에서 처리)
-    const [previewUrl, setPreviewUrl] = useState<string | StaticImageData | null>(
-        defaultProfileUrl || FALLBACK_PROFILE_IMAGE
-    );
+    // 1. File 객체에 대한 Object URL 관리 (Memory Leak 방지)
+    const [objectUrl, setObjectUrl] = useState<string | null>(null);
 
-    // 💡 Local URL 생성 및 해제 로직을 Preview 컴포넌트 내부에서 처리
     useEffect(() => {
-        if (profileImageFile) {
-            // 1. 새 파일이 있으면 Blob URL 생성
-            const url = URL.createObjectURL(profileImageFile);
-            setPreviewUrl(url);
-
-            // Cleanup: 컴포넌트 언마운트 또는 파일 변경 시 이전 URL 해제 (메모리 누수 방지)
-            return () => {
-                URL.revokeObjectURL(url);
-            };
-        } else {
-            // 2. 파일이 없으면 기본/폴백 URL 사용
-            // defaultProfileUrl이 string일 경우 trim()으로 보이지 않는 문자 제거
-            const cleanUrl = typeof defaultProfileUrl === 'string'
-                ? defaultProfileUrl.trim()
-                : defaultProfileUrl;
-
-            setPreviewUrl(cleanUrl || FALLBACK_PROFILE_IMAGE);
+        if (!profileImageFile) {
+            setObjectUrl(null);
+            return;
         }
-    }, [profileImageFile, defaultProfileUrl]);
 
-    if (!previewUrl) return null; // 로딩 중이거나 URL이 결정되지 않았을 때 임시 처리
-    // console.log('previewUrl', previewUrl)
+        const url = URL.createObjectURL(profileImageFile);
+        setObjectUrl(url);
+
+        return () => URL.revokeObjectURL(url);
+    }, [profileImageFile]);
+
+    // 2. 최종 표시할 이미지 URL 결정 (Memoization)
+    const previewUrl = useMemo(() => {
+        // A. 사용자가 새로 업로드한 파일이 있으면 최우선 사용
+        if (objectUrl) return objectUrl;
+
+        // B. 기존 프로필 URL이 있으면 사용 (IPFS 처리 포함)
+        if (typeof defaultProfileUrl === "string") {
+            const resolved = resolveIpfsUrl(defaultProfileUrl);
+            return resolved || FALLBACK_PROFILE_IMAGE;
+        }
+
+        // C. StaticImageData 또는 null인 경우
+        return defaultProfileUrl || FALLBACK_PROFILE_IMAGE;
+    }, [objectUrl, defaultProfileUrl]);
+
+    if (!previewUrl) return null;
 
     return (
         <div className="w-full space-y-3">

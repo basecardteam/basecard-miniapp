@@ -1,18 +1,17 @@
 import { config } from "@/lib/common/config";
 import { ApiResponse, Card, CreateCardResponse } from "@/lib/types/api";
+import { logger } from "../common/logger";
 
 /**
  * Fetch card data by wallet address
- * Returns null if card not found (404) instead of throwing error
+ * Uses GET /v1/basecards/address/:address endpoint
+ * Returns null if card not found instead of throwing error
  */
 export async function fetchCardByAddress(
     address: string
 ): Promise<Card | null> {
-    // spec.md does not explicitly list GET /cards/:address, but we assume filtering by address is supported
-    // or we use the list endpoint and filter.
-    // Let's try GET /v1/cards?address={address}
     const response = await fetch(
-        `${config.BACKEND_API_URL}/v1/basecards?address=${address}`
+        `${config.BACKEND_API_URL}/v1/basecards/address/${address}`
     );
 
     if (!response.ok) {
@@ -22,26 +21,17 @@ export async function fetchCardByAddress(
         throw new Error("Failed to fetch card");
     }
 
-    const data: ApiResponse<Card[]> = await response.json();
+    const data: ApiResponse<Card | null> = await response.json();
 
-    if (!data.success || !data.result) {
-        // If success is false, it might mean error, but if result is null/empty list, it means not found?
-        // If the API returns a list, we check if it's empty.
-        if (
-            data.result &&
-            Array.isArray(data.result) &&
-            data.result.length === 0
-        ) {
-            return null;
-        }
+    // Standard API response: { success: true, result: Card | null, error: null }
+    if (!data.success) {
         throw new Error(data.error || "Failed to fetch card");
     }
 
-    // Assuming the API returns a list of cards filtered by address, we take the first one.
-    // If the API returns a single object (if we used a different endpoint), we would need to adjust.
-    // Based on spec "Get All Cards" returns a list.
-    const cards = data.result;
-    return cards.length > 0 ? cards[0] : null;
+    logger.debug("Fetched basecard: ", data.result);
+
+    // Return null if no card found, otherwise return the card
+    return data.result;
 }
 
 export interface CreateBaseCardParams {

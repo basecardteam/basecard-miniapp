@@ -7,13 +7,15 @@ import {
 } from "@/lib/api/basecards";
 import { baseCardAbi } from "@/lib/abi/abi";
 import { useCallback, useState } from "react";
-import { useWriteContract, useAccount } from "wagmi";
-import { BASECARD_CONTRACT_ADDRESS } from "@/lib/constants/contracts";
+import { useContractConfig } from "@/hooks/useContractConfig";
+import { useWriteContract, useAccount, usePublicClient } from "wagmi";
 import { logger } from "@/lib/common/logger";
 
 export function useMintBaseCard() {
     const { address } = useAccount();
     const { writeContractAsync } = useWriteContract();
+    const { contractAddress } = useContractConfig();
+    const publicClient = usePublicClient();
     const [isCreatingBaseCard, setIsCreatingBaseCard] = useState(false);
     const [isSendingTransaction, setIsSendingTransaction] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -38,21 +40,34 @@ export function useMintBaseCard() {
                 logger.info("Step 2: Sending mint transaction...");
                 setIsSendingTransaction(true);
 
-                const hash = await writeContractAsync({
-                    address: BASECARD_CONTRACT_ADDRESS,
+                if (!publicClient) {
+                    throw new Error("Wallet not connected");
+                }
+
+                if (!contractAddress) {
+                    throw new Error("Contract address not found");
+                }
+
+                const { request } = await publicClient.simulateContract({
+                    address: contractAddress as `0x${string}`,
                     abi: baseCardAbi,
                     functionName: "mintBaseCard",
+                    account: address,
                     args: [
-                        {
-                            imageURI: card_data.imageUri,
-                            nickname: card_data.nickname,
-                            role: card_data.role,
-                            bio: card_data.bio || "",
-                        },
+                        // Encode CardData struct as tuple: [imageURI, nickname, role, bio]
+                        [
+                            card_data.imageUri,
+                            card_data.nickname,
+                            card_data.role,
+                            card_data.bio || "",
+                        ],
                         social_keys,
                         social_values,
                     ],
                 });
+                logger.info("✅ Simulation successful", request);
+
+                const hash = await writeContractAsync(request);
 
                 logger.info("✅ Transaction sent. Hash:", hash);
                 setIsSendingTransaction(false);
@@ -66,7 +81,6 @@ export function useMintBaseCard() {
                 // Reset loading states
                 setIsCreatingBaseCard(false);
                 setIsSendingTransaction(false);
-
                 const rawMessage =
                     err instanceof Error ? err.message : String(err);
 
@@ -92,7 +106,7 @@ export function useMintBaseCard() {
                 };
             }
         },
-        [address, writeContractAsync]
+        [address, writeContractAsync, publicClient, contractAddress]
     );
 
     return {

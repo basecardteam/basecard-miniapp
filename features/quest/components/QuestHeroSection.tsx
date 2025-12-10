@@ -1,5 +1,4 @@
 import QuestCardImage from "./QuestCardImage";
-import BaseButton from "@/components/buttons/BaseButton";
 
 export default function QuestHeroSection() {
     return (
@@ -29,12 +28,6 @@ export default function QuestHeroSection() {
                     <span>Use your BC points to earn USDC</span>
                 </div>
             </div>
-
-            {/* Mint Button */}
-            {/* Mint Button */}
-            <BaseButton className="w-[302px] mb-12">
-                Mint your BaseCard
-            </BaseButton>
         </div>
     );
 }
