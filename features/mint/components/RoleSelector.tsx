@@ -37,14 +37,14 @@ export const RoleSelector = memo(function RoleSelector({
     onRoleChange,
 }: RoleSelectorProps) {
     return (
-        <div className="w-full space-y-3">
+        <div className="w-full space-y-1">
             <label
                 htmlFor="role"
-                className="text-lg font-semibold text-basecard-black"
+                className="text-base font-semibold text-basecard-black"
             >
-                Your Role <span className="text-red-500">*</span>
+                Your Role<span className="text-red-500">*</span>
             </label>
-            <div className="grid grid-cols-1 gap-3">
+            <div className="grid grid-cols-1 gap-1">
                 {ROLES.map((roleOption) => {
                     const isSelected = selectedRole === roleOption;
                     return (
@@ -58,15 +58,13 @@ export const RoleSelector = memo(function RoleSelector({
                                     : "text-basecard-black border-gray-200 hover:border-basecard-blue/50 hover:shadow-md  active:scale-[0.99]"
                             }`}
                         >
-                            {/* 선택된 경우 배경 효과 */}
                             {isSelected && (
                                 <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent pointer-events-none" />
                             )}
 
                             <div className="flex items-start gap-2 relative z-10">
-                                {/* 아이콘 */}
                                 <div
-                                    className={`flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 ${
+                                    className={`flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-300 ${
                                         isSelected
                                             ? "bg-white/20 text-white"
                                             : "bg-basecard-white text-basecard-gray group-hover:bg-basecard-blue/10 group-hover:text-basecard-blue"
@@ -79,7 +77,7 @@ export const RoleSelector = memo(function RoleSelector({
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center justify-between gap-2 mb-1">
                                         <h3
-                                            className={`text-md font-semibold transition-colors ${
+                                            className={`text-sm font-semibold transition-colors ${
                                                 isSelected
                                                     ? "text-white"
                                                     : "text-basecard-black"

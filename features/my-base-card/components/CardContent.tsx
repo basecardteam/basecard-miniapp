@@ -1,15 +1,13 @@
 import BackButton from "@/components/buttons/BackButton";
-import BaseButton from "@/components/buttons/BaseButton";
 import { BaseModal } from "@/components/modals/BaseModal";
 import { useUser } from "@/hooks/useUser";
 import { Card } from "@/lib/types";
-import MyCardBGImage from "@/public/assets/mybasecard-background.webp";
 import FacasterLogo from "@/public/logo/farcaster-logo.png";
 import clsx from "clsx";
 import Image from "next/image";
 import { useCallback, useMemo, useState } from "react";
-import { FaGithub, FaGlobe, FaTwitter, FaLinkedin } from "react-icons/fa";
-import { IoClose, IoShareOutline } from "react-icons/io5";
+import { FaGithub, FaGlobe, FaLinkedin, FaTwitter } from "react-icons/fa";
+import { IoShareOutline } from "react-icons/io5";
 
 interface CardContentProps {
     card: Card;

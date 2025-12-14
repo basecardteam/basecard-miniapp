@@ -20,7 +20,7 @@ export default function MyCardSection() {
     const [showShareFloating, setShowShareFloating] = useState(false);
 
     const handleMyCardClick = () => {
-        router.push("/mybasecard");
+        router.push("/my-base-card");
     };
 
     const handleShareClick = () => {

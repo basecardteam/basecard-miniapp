@@ -1,18 +1,17 @@
-import { useState, useMemo } from "react";
+import { BaseModal } from "@/components/modals/BaseModal";
 import { useERC721Token } from "@/hooks/useERC721Token";
-import { useOpenUrl } from "@coinbase/onchainkit/minikit";
-import { useRouter } from "next/navigation";
-import { AiOutlineLoading } from "react-icons/ai";
-import {
-    IoSparklesOutline,
-    IoDocumentTextOutline,
-    IoGridOutline,
-} from "react-icons/io5";
-import ProfileCardContent from "./ProfileCardContent";
-import { NoCardState } from "./NoCardState";
 import { useMyBaseCard } from "@/hooks/useMyBaseCard";
 import clsx from "clsx";
-import { BaseModal } from "@/components/modals/BaseModal";
+import { useRouter } from "next/navigation";
+import { useMemo, useState } from "react";
+import { AiOutlineLoading } from "react-icons/ai";
+import {
+    IoDocumentTextOutline,
+    IoGridOutline,
+    IoSparklesOutline,
+} from "react-icons/io5";
+import { NoCardState } from "./NoCardState";
+import ProfileCardContent from "./ProfileCardContent";
 
 const LoadingState = () => (
     <div className="flex-1 h-full flex items-center justify-center bg-gradient-to-b from-[#0050FF] to-[#0080FF]">
@@ -24,13 +23,9 @@ const LoadingState = () => (
     </div>
 );
 
-interface MyCardProfileProps {
-    title?: string;
-}
 
-export default function MyBaseCardProfile({ title }: MyCardProfileProps) {
+export default function MyBaseCardProfile() {
     const router = useRouter();
-    const openUrl = useOpenUrl();
     const [activeTab, setActiveTab] = useState<"earn" | "personal">("earn");
     const [isTodoModalOpen, setIsTodoModalOpen] = useState(false);
 
@@ -85,38 +80,37 @@ export default function MyBaseCardProfile({ title }: MyCardProfileProps) {
     }
 
     return (
-        <div className="w-full flex flex-col items-center justify-start overflow-y-auto relative py-2 gap-6">
+        <div className="w-full flex flex-col items-center justify-start overflow-y-auto relative gap-y-5">
             {/* Card Section */}
             <ProfileCardContent
                 card={cardData}
-                openUrl={openUrl}
                 socials={socials}
                 isSocialLoading={isSocialLoading}
-                onNavigateToCollection={handleNavigateToCollection}
-                title={title}
             />
 
             {/* Action Buttons Row */}
-            <div className="w-full max-w-[360px] flex justify-between gap-2">
+            <div className="w-full flex justify-between gap-2 px-5">
                 <ActionButton
                     icon={<IoSparklesOutline size={24} />}
                     label="BaseName"
-                    onClick={() => setIsTodoModalOpen(true)}
+                    onClick={() => {}}
+                    comingSoon
                 />
                 <ActionButton
-                    icon={<IoDocumentTextOutline size={22} />}
+                    icon={<IoDocumentTextOutline size={24} />}
                     label="Resume"
-                    onClick={() => setIsTodoModalOpen(true)}
+                    onClick={() => {}}
+                    comingSoon
                 />
                 <ActionButton
-                    icon={<IoGridOutline size={22} />}
+                    icon={<IoGridOutline size={24} />}
                     label="Collection"
                     onClick={handleNavigateToCollection}
                 />
             </div>
 
             {/* Proof of Work Section */}
-            <div className="w-full max-w-[360px]">
+            <div className="w-full px-5">
                 <div className="flex justify-between items-end mb-4">
                     <h3 className="text-[24px] leading-tight font-semibold font-k2d text-black">
                         Proof of Work
@@ -172,20 +166,33 @@ function ActionButton({
     icon,
     label,
     onClick,
+    comingSoon = false,
 }: {
     icon: React.ReactNode;
     label: string;
     onClick: () => void;
+    comingSoon?: boolean;
 }) {
     return (
         <button
             onClick={onClick}
-            className="flex-1 h-[80px] bg-basecard-blue rounded-[14px] flex flex-col items-center justify-center gap-1.5 text-white hover:bg-basecard-blue/90 transition-colors shadow-md active:scale-95"
+            className="relative flex-1 h-20 bg-[#007AFF] rounded-lg flex flex-col items-center justify-center
+                gap-1.5 text-white hover:bg-basecard-blue transition-colors shadow-md active:scale-95 overflow-hidden"
         >
             {icon}
             <span className="font-k2d font-medium text-[13px] leading-none">
                 {label}
             </span>
+            {comingSoon && (
+                <div
+                    className="absolute inset-0 flex items-center justify-center rounded-lg"
+                    style={{
+                        background: "linear-gradient(360deg, rgba(204,228,255,0.85) 0%, rgba(119,184,255,0.85) 100%)",
+                    }}
+                >
+                    <span className="font-bold text-sm text-[#0050FF]">Coming<br/>Soon!</span>
+                </div>
+            )}
         </button>
     );
 }

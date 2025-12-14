@@ -1,14 +1,14 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import { useRouter } from "next/navigation";
-import QuestItem from "@/features/quest/components/QuestItem";
-import QuestHeroSection from "@/features/quest/components/QuestHeroSection";
-import { useQuests } from "@/features/quest/hooks/useQuests";
-import { Quest } from "@/lib/types/api";
-import { logger } from "@/lib/common/logger";
 import SuccessModal from "@/components/modals/SuccessModal";
 import { useToast } from "@/components/ui/Toast";
+import QuestHeroSection from "@/features/quest/components/QuestHeroSection";
+import QuestItem from "@/features/quest/components/QuestItem";
+import { useQuests } from "@/features/quest/hooks/useQuests";
+import { logger } from "@/lib/common/logger";
+import { Quest } from "@/lib/types/api";
+import { useRouter } from "next/navigation";
+import { useCallback, useState } from "react";
 
 export default function QuestContent() {
     const router = useRouter();
@@ -55,7 +55,7 @@ export default function QuestContent() {
                 quest.actionType === "LINK_SOCIAL" ||
                 quest.actionType === "LINK_BASENAME"
             ) {
-                router.push("/mybasecard"); // Assumption: Profile editing is at /mybasecard
+                router.push("/my-base-card");
                 return;
             }
 

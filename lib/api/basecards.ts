@@ -96,6 +96,59 @@ export async function updateCardTokenId(
     }
 }
 
+export interface UpdateBaseCardParams {
+    nickname?: string;
+    role?: string;
+    bio?: string;
+    socials?: Record<string, string>;
+    profileImageFile?: File;
+}
+
+export async function updateBaseCard(
+    cardId: string,
+    params: UpdateBaseCardParams
+): Promise<Card> {
+    const formData = new FormData();
+
+    if (params.nickname) formData.append("nickname", params.nickname);
+    if (params.role) formData.append("role", params.role);
+    if (params.bio !== undefined) formData.append("bio", params.bio);
+    if (params.socials) formData.append("socials", JSON.stringify(params.socials));
+    if (params.profileImageFile) formData.append("profileImageFile", params.profileImageFile);
+
+    // Debug: log what's being sent
+    logger.debug("Update card request - cardId:", cardId);
+    logger.debug("Update card request - params:", params);
+    logger.debug("Update card request - formData entries:", Object.fromEntries(formData.entries()));
+
+    const response = await fetch(`${config.BACKEND_API_URL}/v1/basecards/${cardId}`, {
+        method: "PATCH",
+        body: formData,
+    });
+
+    if (!response.ok) {
+        let errorMessage = `Failed to update card (status: ${response.status})`;
+        try {
+            const errorData = await response.json();
+            logger.error("Update card error response:", errorData);
+            errorMessage = errorData.message || errorData.error || errorMessage;
+        } catch {
+            const textBody = await response.text().catch(() => "");
+            logger.error("Failed to parse error response:", textBody);
+        }
+        throw new Error(errorMessage);
+    }
+
+    const data: ApiResponse<Card> = await response.json();
+    logger.debug("Update card response:", data);
+
+    if (!data.success) {
+        throw new Error(data.error || "Failed to update card");
+    }
+
+    return data.result as Card;
+}
+
 export async function deleteBaseCard(address: string): Promise<void> {
     const response = await fetch(
         `${config.BACKEND_API_URL}/v1/basecards/${address}`,

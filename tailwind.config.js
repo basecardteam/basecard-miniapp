@@ -12,7 +12,7 @@ module.exports = {
     theme: {
         extend: {
             fontFamily: {
-                sans: ["var(--font-sans)", "system-ui", "sans-serif"],
+                sans: ["var(--font-k2d)", "system-ui", "sans-serif"],
                 k2d: ["var(--font-k2d)", "system-ui", "sans-serif"],
             },
             colors: {
