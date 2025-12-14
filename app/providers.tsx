@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import FrameProvider from "@/components/providers/FrameProvider";
+import { ToastContainer } from "@/components/ui/Toast";
 
 const WagmiProvider = dynamic(
     () => import("@/components/providers/WagmiProvider"),
@@ -22,7 +23,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
         <WagmiProvider>
             <FrameProvider>
                 <ErudaProvider />
-                {children}
+                <div className="max-w-[600px] mx-auto relative">
+                    {children}
+                </div>
+                <ToastContainer />
             </FrameProvider>
         </WagmiProvider>
     );

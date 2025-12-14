@@ -8,7 +8,7 @@ import { farcasterMiniApp } from "@farcaster/miniapp-wagmi-connector";
 // Use custom env variable for network selection
 // NEXT_PUBLIC_USE_TESTNET=true -> Base Sepolia (testnet)
 // NEXT_PUBLIC_USE_TESTNET=false or undefined -> Base Mainnet (production)
-export const isTestnet = true;
+export const isTestnet = process.env.NEXT_PUBLIC_USE_TESTNET === "true";
 export function getConfig() {
     return createConfig({
         chains: isTestnet ? [baseSepolia] : [base],
@@ -23,10 +23,17 @@ export function getConfig() {
                 preference: "smartWalletOnly",
                 version: "4",
             }),
-            metaMask(), // Add additional connectors
+            metaMask(),
         ],
         storage: createStorage({
-            storage: cookieStorage,
+            storage:
+                typeof window !== "undefined"
+                    ? window.localStorage
+                    : {
+                          getItem: () => null,
+                          setItem: () => {},
+                          removeItem: () => {},
+                      },
         }),
         ssr: true,
         transports: {
