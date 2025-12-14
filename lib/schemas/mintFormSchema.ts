@@ -1,4 +1,4 @@
-import { MAX_SKILLS, MAX_WEBSITES } from "@/lib/constants/mint";
+import { MAX_SKILLS, MAX_WEBSITES, ROLES } from "@/lib/constants/mint";
 import { z } from "zod";
 
 /**
@@ -6,7 +6,7 @@ import { z } from "zod";
  */
 export const mintFormSchema = z.object({
     name: z.string().min(1, "Name is required"),
-    role: z.enum(["Developer", "Designer", "Marketer"], {
+    role: z.enum(ROLES, {
         message: "Role is required",
     }),
     bio: z.string().optional(),

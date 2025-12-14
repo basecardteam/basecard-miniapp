@@ -3,7 +3,7 @@
 import type { Role } from "@/lib/constants/mint";
 import { ROLES } from "@/lib/constants/mint";
 import { memo } from "react";
-import { FaBullhorn, FaCode, FaPalette } from "react-icons/fa";
+import { FaBullhorn, FaCode, FaHandshake, FaPalette, FaRocket, FaTasks } from "react-icons/fa";
 import { IoCheckmarkCircle } from "react-icons/io5";
 
 interface RoleSelectorProps {
@@ -15,12 +15,18 @@ const ROLE_DESCRIPTIONS: Record<Role, string> = {
     Developer: "Build amazing applications and smart contracts",
     Designer: "Create beautiful and user-friendly interfaces",
     Marketer: "Promote and grow communities and products",
+    Founder: "Lead and build innovative projects from the ground up",
+    BD: "Drive partnerships and expand business opportunities",
+    PM: "Manage products and coordinate teams to deliver value",
 };
 
 const ROLE_ICONS: Record<Role, React.ReactNode> = {
-    Developer: <FaCode className="w-5 h-5" />,
-    Designer: <FaPalette className="w-5 h-5" />,
-    Marketer: <FaBullhorn className="w-5 h-5" />,
+    Developer: <FaCode className="w-4 h-4" />,
+    Designer: <FaPalette className="w-4 h-4" />,
+    Marketer: <FaBullhorn className="w-4 h-4" />,
+    Founder: <FaRocket className="w-4 h-4" />,
+    BD: <FaHandshake className="w-4 h-4" />,
+    PM: <FaTasks className="w-4 h-4" />,
 };
 
 /**
@@ -46,10 +52,10 @@ export const RoleSelector = memo(function RoleSelector({
                             key={roleOption}
                             type="button"
                             onClick={() => onRoleChange(roleOption)}
-                            className={`group relative p-4 rounded-2xl border-2 transition-all duration-300 text-left overflow-hidden ${
+                            className={`group relative p-3 rounded-2xl bg-white border-2 transition-all duration-300 transform ${
                                 isSelected
-                                    ? "bg-gradient-to-br from-basecard-blue to-[#4A90E2] text-white border-transparent shadow-lg shadow-basecard-blue/30 transform scale-[1.02]"
-                                    : "bg-white text-basecard-black border-gray-200 hover:border-basecard-blue/50 hover:shadow-md hover:bg-basecard-white active:scale-[0.98]"
+                                    ? "bg-gradient-to-br from-basecard-blue to-[#4A90E2] text-white border-transparent scale-[1.01]"
+                                    : "text-basecard-black border-gray-200 hover:border-basecard-blue/50 hover:shadow-md  active:scale-[0.99]"
                             }`}
                         >
                             {/* 선택된 경우 배경 효과 */}
@@ -57,10 +63,10 @@ export const RoleSelector = memo(function RoleSelector({
                                 <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent pointer-events-none" />
                             )}
 
-                            <div className="flex items-start gap-4 relative z-10">
+                            <div className="flex items-start gap-2 relative z-10">
                                 {/* 아이콘 */}
                                 <div
-                                    className={`flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-300 ${
+                                    className={`flex-shrink-0 w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-300 ${
                                         isSelected
                                             ? "bg-white/20 text-white"
                                             : "bg-basecard-white text-basecard-gray group-hover:bg-basecard-blue/10 group-hover:text-basecard-blue"
@@ -73,7 +79,7 @@ export const RoleSelector = memo(function RoleSelector({
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center justify-between gap-2 mb-1">
                                         <h3
-                                            className={`text-lg font-bold transition-colors ${
+                                            className={`text-md font-semibold transition-colors ${
                                                 isSelected
                                                     ? "text-white"
                                                     : "text-basecard-black"
@@ -86,7 +92,7 @@ export const RoleSelector = memo(function RoleSelector({
                                         )}
                                     </div>
                                     <p
-                                        className={`text-sm leading-relaxed transition-colors ${
+                                        className={`text-xs transition-colors text-left ${
                                             isSelected
                                                 ? "text-white/90"
                                                 : "text-basecard-gray"
@@ -96,11 +102,6 @@ export const RoleSelector = memo(function RoleSelector({
                                     </p>
                                 </div>
                             </div>
-
-                            {/* 호버 효과 */}
-                            {!isSelected && (
-                                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-br from-basecard-blue/5 to-transparent pointer-events-none" />
-                            )}
                         </button>
                     );
                 })}

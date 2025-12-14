@@ -7,6 +7,15 @@
         border-color: var(--border);
     }
 
+    img {
+        -webkit-user-drag: none;
+        -khtml-user-drag: none;
+        -moz-user-drag: none;
+        -o-user-drag: none;
+        user-drag: none;
+        pointer-events: none;
+    }
+
     body {
         background-color: var(--background);
         color: var(--foreground);

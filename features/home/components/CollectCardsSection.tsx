@@ -18,9 +18,9 @@ export default function CollectCardsSection() {
     const deferredSearchTerm = searchInput;
 
     const { data: myCard, isPending: isPendingMyCard, isError } = useMyBaseCard();
-    // const cards = useMemo(() => (myCard ? [myCard] : []), [myCard]);
+    const cards = useMemo(() => (myCard ? [myCard] : []), [myCard]);
     const isPending = false;
-    const cards = mockCards;
+    // const cards = mockCards;
 
     const { filteredCards, tags } = useMemo(
         () => filterCollections(cards, selectedTag, deferredSearchTerm),

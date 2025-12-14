@@ -1,12 +1,7 @@
 "use client";
 
 import BackButton from "@/components/buttons/BackButton";
-import { MintButton } from "@/features/mint/components/MintButton"; // Reuse Mint Button style? Or custom
-import { MintErrorMessages } from "@/features/mint/components/MintErrorMessages";
-import ProfileImagePreview from "@/features/mint/components/ProfileImagePreview";
-import { RoleSelector } from "@/features/mint/components/RoleSelector";
-import { SocialsInput } from "@/features/mint/components/SocialsInput";
-import { WebsitesInput } from "@/features/mint/components/WebsitesInput";
+// Reuse Mint Button style? Or custom
 import { WalletConnectionRequired } from "@/components/WalletConnectionRequired";
 import {
     MiniAppContext,
@@ -14,7 +9,10 @@ import {
 } from "@/components/providers/FrameProvider";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useEditProfileForm } from "./hooks/useEditProfileForm";
+import ProfileImagePreview from "@/features/mint/components/ProfileImagePreview";
+import { RoleSelector } from "@/features/mint/components/RoleSelector";
+import { SocialsInput } from "@/features/mint/components/SocialsInput";
+import { WebsitesInput } from "@/features/mint/components/WebsitesInput";
 import { useMyBaseCard } from "@/hooks/useMyBaseCard";
 import { useUser } from "@/hooks/useUser";
 import { MAX_WEBSITES } from "@/lib/constants/mint";
@@ -24,6 +22,7 @@ import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { Suspense, useCallback, useEffect, useState } from "react";
 import { useAccount } from "wagmi";
+import { useEditProfileForm } from "./hooks/useEditProfileForm";
 
 const BaseModal = dynamic(
     () =>

@@ -1,10 +1,12 @@
-import { ButtonHTMLAttributes, forwardRef } from "react";
+import { cn } from "@/lib/utils";
 import { cva, type VariantProps } from "class-variance-authority";
 import { Loader2 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { ButtonHTMLAttributes, forwardRef } from "react";
 
 const buttonVariants = cva(
-    "inline-flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-semibold ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 font-k2d",
+    `inline-flex items-center justify-center whitespace-nowrap rounded-xl text-sm font-semibold font-k2d
+       ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2
+       disabled:pointer-events-none disabled:opacity-50 `,
     {
         variants: {
             variant: {
@@ -48,7 +50,6 @@ const BaseButton = forwardRef<HTMLButtonElement, BaseButtonProps>(
             className,
             variant,
             size,
-            asChild = false,
             isLoading,
             leftIcon,
             rightIcon,

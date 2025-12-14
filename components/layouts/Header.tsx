@@ -2,9 +2,9 @@
 
 import BaseCardLogoTypo from "@/public/baseCardTypo.png";
 
+import { useFrameContext } from "@/components/providers/FrameProvider";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useFrameContext } from "@/components/providers/FrameProvider";
 import BrowserWalletConnect from "./BrowserWalletConnect";
 import ConnectedUserDisplay from "./ConnectedUserDisplay";
 

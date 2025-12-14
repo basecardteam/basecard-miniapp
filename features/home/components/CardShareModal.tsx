@@ -1,11 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import ShareModal from "@/components/modals/ShareModal";
+import { useFrameContext } from "@/components/providers/FrameProvider";
 import { generateCardShareQRCode } from "@/lib/qrCodeGenerator";
 import { Card } from "@/lib/types";
-import { getIPFSUrl } from "@/lib/utils";
 import BCLogo from "@/public/bc-icon.png";
-import ShareModal from "@/components/modals/ShareModal";
+import { MiniAppContext } from "@farcaster/miniapp-core/dist/context";
+import { useCallback, useEffect, useState } from "react";
 
 interface CardShareModalProps {
     isVisible: boolean;
@@ -24,7 +25,8 @@ export const CardShareModal: React.FC<CardShareModalProps> = ({
 }) => {
     const [qrCodeDataURL, setQrCodeDataURL] = useState<string>("");
     const [isLoading, setIsLoading] = useState(false);
-
+    const frameContext = useFrameContext();
+    const user = (frameContext?.context as MiniAppContext)?.user;
     /** Generate QR code when modal opens */
     const generateQRCode = useCallback(async () => {
         if (!card || !isVisible) return;
@@ -59,8 +61,7 @@ export const CardShareModal: React.FC<CardShareModalProps> = ({
             isOpen={isVisible}
             onClose={onClose}
             title="Share My Card"
-            profileImageUrl={getIPFSUrl(card?.imageUri || undefined)}
-            profileImageAlt={`${card?.nickname}'s profile`}
+            profileImageUrl={user?.pfpUrl??undefined}
             name={card?.nickname || undefined}
             subtitle={card?.role || undefined}
             qrCodeDataURL={qrCodeDataURL}

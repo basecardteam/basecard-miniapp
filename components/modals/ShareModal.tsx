@@ -1,233 +1,186 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { IoClose } from "react-icons/io5";
 import Image from "next/image";
-import BaseButton from "@/components/buttons/BaseButton";
-import { shareToFarcaster } from "@/lib/farcaster/share";
+import { useEffect } from "react";
+import { IoQrCode } from "react-icons/io5";
 
 interface ShareModalProps {
     isOpen: boolean;
     onClose: () => void;
-    // Content props
     title?: string;
     profileImageUrl?: string;
-    profileImageAlt?: string;
     name?: string;
     subtitle?: string;
-    // QR Code props
     qrCodeDataURL?: string;
     isLoadingQR?: boolean;
     qrErrorMessage?: string;
-    // Logo
     logoSrc?: string;
-    // Share props
-    shareUrl?: string; // URL to share (e.g., card page URL)
-    shareText?: string; // Default share message
-    // Button
-    buttonText?: string;
-    onShareComplete?: (success: boolean) => void;
 }
 
 /**
- * Reusable Share Modal component with QR code display and Farcaster share.
- * Uses Farcaster SDK composeCast when in Mini App, falls back to Warpcast intent URL.
+ * Share Modal with QR code display
  */
 export const ShareModal: React.FC<ShareModalProps> = ({
     isOpen,
     onClose,
     title = "Share My Card",
     profileImageUrl,
-    profileImageAlt = "Profile",
     name,
     subtitle,
     qrCodeDataURL,
     isLoadingQR = false,
     qrErrorMessage = "Failed to generate QR code",
     logoSrc,
-    shareUrl,
-    shareText = "I just minted my Basecard! Collect this and check all about myself 🎉",
-    buttonText = "Share on Farcaster",
-    onShareComplete,
 }) => {
-    const [isVisible, setIsVisible] = useState(false);
-    const [isSharing, setIsSharing] = useState(false);
-
     useEffect(() => {
         if (isOpen) {
-            setIsVisible(true);
+            document.body.style.overflow = "hidden";
         } else {
-            const timer = setTimeout(() => setIsVisible(false), 300);
-            return () => clearTimeout(timer);
+            document.body.style.overflow = "unset";
         }
+        return () => {
+            document.body.style.overflow = "unset";
+        };
     }, [isOpen]);
-
-    /**
-     * Share to Farcaster using SDK (Mini App) or Warpcast intent (browser fallback)
-     */
-    const handleShareToFarcaster = useCallback(async () => {
-        setIsSharing(true);
-
-        try {
-            const result = await shareToFarcaster({
-                text: shareText,
-                embedUrl: shareUrl,
-            });
-
-            if (onShareComplete) {
-                onShareComplete(result.success);
-            }
-        } catch (error) {
-            console.error("Share failed:", error);
-            if (onShareComplete) {
-                onShareComplete(false);
-            }
-        } finally {
-            setIsSharing(false);
-        }
-    }, [shareText, shareUrl, onShareComplete]);
-
-    if (!isOpen && !isVisible) return null;
-
-    const handleModalClick = (e: React.MouseEvent) => {
-        e.stopPropagation();
-    };
 
     return (
         <div
-            className={`fixed inset-0 z-50 flex items-center justify-center transition-opacity duration-300 ${
-                isOpen ? "opacity-100" : "opacity-0"
-            }`}
+            className={`fixed inset-0 z-[999] flex items-center justify-center backdrop-blur p-5
+                transition-all duration-300
+                ${isOpen ? "opacity-100" : "opacity-0 pointer-events-none"}`}
         >
             {/* Backdrop */}
             <div
-                className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+                className="absolute inset-0 bg-black/60"
                 onClick={onClose}
             />
 
-            {/* Modal Content */}
+            {/* Modal */}
             <div
-                className={`relative w-[320px] bg-[#F9F9FF] rounded-[12px] flex flex-col items-center shadow-[0px_4px_6px_rgba(225,228,230,0.15)] transform transition-all duration-300 overflow-hidden ${
-                    isOpen
-                        ? "scale-100 translate-y-0"
-                        : "scale-95 translate-y-4"
-                }`}
-                onClick={handleModalClick}
+                className={`
+                    relative w-full max-w-[400px] overflow-hidden rounded-3xl
+                    bg-gradient-to-b from-white to-gray-50 shadow-2xl
+                    transform transition-all duration-300 ease-out
+                    ${isOpen ? "scale-100 translate-y-0" : "scale-90 translate-y-8"}
+                `}
+                onClick={(e) => e.stopPropagation()}
             >
-                {/* Close Button */}
-                <button
-                    onClick={onClose}
-                    className="absolute top-[16px] right-[16px] w-[24px] h-[24px] flex items-center justify-center text-[#B0B0B0] hover:text-[#808080] transition-colors z-10"
-                >
-                    <IoClose size={24} />
-                </button>
-
+                <div
+                    className="absolute top-0 left-0 right-0 h-32 pointer-events-none
+                        bg-gradient-to-br from-blue-500/15 via-blue-400/10 to-cyan-500/10"
+                />
                 {/* Header */}
-                <div className="mt-[16px] mb-[16px]">
-                    <h2 className="text-[17px] leading-[26px] font-semibold font-k2d text-center text-[#0050FF]">
+                <div className="relative pt-6 pb-4 px-6 w-full">
+                    <h2 className="text-lg font-bold text-gray-900 text-center">
                         {title}
                     </h2>
                 </div>
 
-                {/* Profile Section */}
-                {profileImageUrl && (
-                    <div className="flex flex-col items-center justify-center mb-[12px]">
-                        <div className="w-[80px] h-[80px] rounded-lg overflow-hidden shadow-lg">
-                            <Image
-                                src={profileImageUrl}
-                                alt={profileImageAlt}
-                                width={80}
-                                height={80}
-                                className="w-full h-full object-cover"
-                            />
-                        </div>
-
-                        {/* Name and subtitle with optional logo */}
-                        <div className="text-center mt-[12px] text-[#0050FF]">
-                            <div className="flex gap-x-2 justify-center items-center">
-                                {logoSrc && (
+                {/* Profile Card */}
+                {(profileImageUrl || name) && (
+                    <div
+                        className="relative mx-4 p-4 rounded-xl
+                            bg-gradient-to-br from-blue-700 to-blue-500"
+                    >
+                        <div className="relative flex items-center gap-3">
+                            {profileImageUrl && (
+                                <div
+                                    className="relative w-14 h-14 rounded-xl overflow-hidden
+                                        ring-2 ring-white/30 shadow-lg"
+                                >
                                     <Image
-                                        src={logoSrc}
-                                        alt="logo"
-                                        width={24}
-                                        height={24}
-                                        className="w-6 h-6"
+                                        src={profileImageUrl}
+                                        alt="profile"
+                                        fill
+                                        className="object-cover"
                                     />
-                                )}
-                                {name && (
-                                    <div className="text-[16px] font-bold font-k2d">
-                                        {name}
-                                    </div>
+                                </div>
+                            )}
+                            <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2">
+                                    {logoSrc && (
+                                        <Image
+                                            src={logoSrc}
+                                            alt="logo"
+                                            width={18}
+                                            height={18}
+                                            className="w-[18px] h-[18px]"
+                                        />
+                                    )}
+                                    {name && (
+                                        <span className="text-white font-bold text-base truncate">
+                                            {name}
+                                        </span>
+                                    )}
+                                </div>
+                                {subtitle && (
+                                    <p className="text-white/80 text-sm mt-0.5 truncate">
+                                        {subtitle}
+                                    </p>
                                 )}
                             </div>
-                            {subtitle && (
-                                <p className="text-[12px] font-semibold font-k2d mt-[2px]">
-                                    {subtitle}
-                                </p>
-                            )}
                         </div>
                     </div>
                 )}
 
-                {/* Divider */}
-                <div className="w-[280px] h-[1px] bg-gray-200 my-[8px]" />
-
                 {/* QR Code Section */}
-                <div className="flex flex-col items-center justify-center py-[12px]">
-                    {isLoadingQR ? (
-                        <div className="w-[180px] h-[180px] flex items-center justify-center">
-                            <svg
-                                className="animate-spin h-10 w-10 text-[#0050FF]"
-                                xmlns="http://www.w3.org/2000/svg"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                            >
-                                <circle
-                                    className="opacity-25"
-                                    cx="12"
-                                    cy="12"
-                                    r="10"
-                                    stroke="currentColor"
-                                    strokeWidth="4"
-                                />
-                                <path
-                                    className="opacity-75"
-                                    fill="currentColor"
-                                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                                />
-                            </svg>
+                <div className="px-4 pt-5">
+                    <div
+                        className="relative p-4 rounded-xl bg-white
+                            shadow-inner shadow-black/40 border border-gray-100"
+                    >
+                        {/* QR Label */}
+                        <div className="flex items-center justify-center gap-1.5 mb-3">
+                            <IoQrCode className="w-4 h-4 text-gray-400" />
+                            <span className="text-xs font-medium text-gray-400 uppercase tracking-wider">
+                                Scan to collect
+                            </span>
                         </div>
-                    ) : qrCodeDataURL ? (
-                        <img
-                            src={qrCodeDataURL}
-                            alt="QR Code"
-                            className="w-[180px] h-[180px] p-2"
-                        />
-                    ) : (
-                        <div className="w-[180px] h-[180px] flex items-center justify-center text-red-500 border border-red-300 rounded-lg text-sm">
-                            {qrErrorMessage}
+
+                        {/* QR Code */}
+                        <div className="flex items-center justify-center">
+                            {isLoadingQR ? (
+                                <div className="w-[160px] h-[160px] flex items-center justify-center">
+                                    <div className="relative w-12 h-12">
+                                        <div className="absolute inset-0 rounded-full border-4 border-gray-200" />
+                                        <div
+                                            className="absolute inset-0 rounded-full border-4
+                                                border-blue-500 border-t-transparent animate-spin"
+                                        />
+                                    </div>
+                                </div>
+                            ) : qrCodeDataURL ? (
+                                <div className="relative p-2 rounded-xl bg-white">
+                                    <img
+                                        src={qrCodeDataURL}
+                                        alt="QR Code"
+                                        className="w-[160px] h-[160px]"
+                                    />
+                                </div>
+                            ) : (
+                                <div
+                                    className="w-[160px] h-[160px] rounded-xl bg-red-50
+                                        flex flex-col items-center justify-center gap-2 text-red-400"
+                                >
+                                    <IoQrCode className="w-8 h-8" />
+                                    <span className="text-xs text-center px-4">
+                                        {qrErrorMessage}
+                                    </span>
+                                </div>
+                            )}
                         </div>
-                    )}
+                    </div>
                 </div>
 
-                {/* Share Button */}
-                <div className="w-full px-[10px] pb-[16px]">
-                    <BaseButton
-                        onClick={handleShareToFarcaster}
-                        disabled={isSharing}
-                        className="w-full h-[41px] bg-[#7C3AED] hover:bg-[#6D28D9] text-white rounded-[8px] text-[16px] font-semibold font-k2d p-0 flex items-center justify-center gap-2 disabled:opacity-50"
+                {/* Close Button */}
+                <div className="px-4 pb-4">
+                    <button
+                        onClick={onClose}
+                        className="w-full text-sm font-medium text-gray-500
+                            hover:text-gray-700 transition-colors"
                     >
-                        <svg
-                            width="20"
-                            height="20"
-                            viewBox="0 0 24 24"
-                            fill="currentColor"
-                            xmlns="http://www.w3.org/2000/svg"
-                        >
-                            <path d="M18.24 0.24H5.76C2.57 0.24 0 2.81 0 6v12c0 3.19 2.57 5.76 5.76 5.76h12.48c3.19 0 5.76-2.57 5.76-5.76V6c0-3.19-2.57-5.76-5.76-5.76zM19.52 18c0 .83-.67 1.5-1.5 1.5H5.98c-.83 0-1.5-.67-1.5-1.5V6c0-.83.67-1.5 1.5-1.5h12.04c.83 0 1.5.67 1.5 1.5v12z" />
-                        </svg>
-                        {buttonText}
-                    </BaseButton>
+                        Close
+                    </button>
                 </div>
             </div>
         </div>

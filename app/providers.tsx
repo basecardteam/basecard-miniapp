@@ -3,6 +3,7 @@
 import dynamic from "next/dynamic";
 import FrameProvider from "@/components/providers/FrameProvider";
 import { ToastContainer } from "@/components/ui/Toast";
+import { ModalContainer } from "@/components/modals/BaseModal";
 
 const WagmiProvider = dynamic(
     () => import("@/components/providers/WagmiProvider"),
@@ -27,6 +28,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
                     {children}
                 </div>
                 <ToastContainer />
+                <ModalContainer />
             </FrameProvider>
         </WagmiProvider>
     );
