@@ -3,13 +3,12 @@
 import { useMemo, useState } from "react";
 import { CiSearch } from "react-icons/ci";
 
+import { CollectionFilter } from "@/features/collection/components/CollectionFilter";
 import { useMyBaseCard } from "@/hooks/useMyBaseCard";
 import {
     CollectionFilterTag,
     filterCollections,
 } from "@/lib/filterCollections";
-import { CollectionFilter } from "@/features/collection/components/CollectionFilter";
-import { mockCards } from "@/lib/mocks/cards";
 import IOSCardList from "./IOSCardList";
 
 export default function CollectCardsSection() {
@@ -30,37 +29,33 @@ export default function CollectCardsSection() {
     const isEmpty = !isPending && !isError && filteredCards.length === 0;
 
     return (
-        <div className="bg-white pt-6 select-none">
+        <div className="bg-white pt-5">
             {/* Header + Search + Filter */}
-            <div className="px-5">
-                <h2 className="text-3xl sm:text-4xl font-k2d font-bold text-black mb-2 tracking-tight">
+            <div className="text-3xl py-3 px-5 sm:text-4xl font-k2d font-bold text-black mb-2 tracking-tight">
                     Collect cards
-                </h2>
-                <div className="mb-3">
-                    <div className="relative">
-                        <input
-                            type="text"
-                            placeholder="designer, dev, marketer, ..."
-                            value={searchInput}
-                            onChange={(e) => setSearchInput(e.target.value)}
-                            className="w-full h-12 px-4 pr-12 bg-white border-2 border-gray-200 rounded-xl text-black placeholder-gray-400 focus:border-[#0050FF] focus:outline-none transition-colors text-base font-k2d font-normal"
-                        />
-                        <button
-                            onClick={() =>
-                                setSearchInput((value) => value.trim())
-                            }
-                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-[#0050FF] transition-colors"
-                        >
-                            <CiSearch size={24} />
-                        </button>
-                    </div>
-                </div>
-                <CollectionFilter
-                    tags={tags}
-                    selectedTag={selectedTag}
-                    onTagChange={setSelectedTag}
-                />
             </div>
+            <div className="mb-3 relative mx-5 flex justify-center items-center ">
+                <input
+                    type="text"
+                    placeholder="designer, dev, marketer, ..."
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
+                    className={`w-full h-10 px-4 pr-10 bg-white border-2 border-gray-200 rounded-xl text-black placeholder-gray-400 
+                        focus:border-[#0050FF] focus:outline-none transition-colors text-base font-k2d font-normal
+                    `}
+                />
+                <div 
+                    onClick={() => setSearchInput((value) => value.trim())}
+                    className="absolute right-3 text-gray-400 hover:text-[#0050FF] transition-colors"
+                >
+                    <CiSearch size={24} />
+                </div>
+            </div>
+            <CollectionFilter
+                tags={tags}
+                selectedTag={selectedTag}
+                onTagChange={setSelectedTag}
+            />
 
             {/* States: Loading / Error / Empty */}
             {isPending && (
@@ -83,7 +78,7 @@ export default function CollectCardsSection() {
             )}
 
             {!isPending && !isError && isEmpty && (
-                <div className="px-5">
+                <div className="px-5 my-5">
                     <div className="w-full h-[240px] rounded-2xl border border-dashed border-gray-300 bg-white flex flex-col items-center justify-center gap-2">
                         <div className="text-gray-500 font-k2d font-normal">
                             No cards found

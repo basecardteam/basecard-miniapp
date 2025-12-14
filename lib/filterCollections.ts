@@ -5,14 +5,18 @@ export type CollectionFilterTag =
     | "Developer"
     | "Designer"
     | "Marketer"
-    | "Dev"
-    | "MKT";
+    | "Founder"
+    | "BD"
+    | "PM";
 
 export const COLLECTION_FILTER_TAGS: CollectionFilterTag[] = [
     "All",
     "Developer",
     "Designer",
     "Marketer",
+    "Founder",
+    "BD",
+    "PM",
 ];
 
 interface FilterResult {

@@ -68,7 +68,6 @@ export const CardShareModal: React.FC<CardShareModalProps> = ({
             isLoadingQR={isLoading}
             qrErrorMessage="QR 코드 생성 실패"
             logoSrc={BCLogo.src}
-            buttonText="Close"
         />
     );
 };
