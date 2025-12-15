@@ -1,13 +1,12 @@
 "use client";
 
-import { Coins, Home, IdCard, ScrollText } from "lucide-react";
+import { Coins, Home, IdCard } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const navItems = [
     { href: "/my-base-card", label: "My Card", icon: IdCard },
     { href: "/", label: "Home", icon: Home },
-    { href: "/quest", label: "Quest", icon: ScrollText },
     { href: "/earn", label: "Earn", icon: Coins },
 ];
 

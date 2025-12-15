@@ -1,9 +1,15 @@
 import { BaseModal } from "@/components/modals/BaseModal";
+import SuccessModal from "@/components/modals/SuccessModal";
+import { useToast } from "@/components/ui/Toast";
+import QuestItem from "@/features/quest/components/QuestItem";
+import { useQuests } from "@/features/quest/hooks/useQuests";
 import { useERC721Token } from "@/hooks/useERC721Token";
 import { useMyBaseCard } from "@/hooks/useMyBaseCard";
+import { Quest } from "@/lib/types/api";
 import clsx from "clsx";
+import { ChevronDown, ChevronUp, Gift } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { AiOutlineLoading } from "react-icons/ai";
 import {
     IoDocumentTextOutline,
@@ -26,13 +32,33 @@ const LoadingState = () => (
 
 export default function MyBaseCardProfile() {
     const router = useRouter();
+    const { showToast } = useToast();
     const [activeTab, setActiveTab] = useState<"earn" | "personal">("earn");
     const [isTodoModalOpen, setIsTodoModalOpen] = useState(false);
+    const [isQuestExpanded, setIsQuestExpanded] = useState(false);
+    const [successModalState, setSuccessModalState] = useState<{
+        isOpen: boolean;
+        rewarded: number;
+        newTotalPoints: number;
+    }>({ isOpen: false, rewarded: 0, newTotalPoints: 0 });
 
     const { data: cardData, isLoading: isPending, error } = useMyBaseCard();
 
     // Use useERC721Token for on-chain data including socials
     const { metadata, isLoading: isTokenLoading } = useERC721Token();
+
+    // Quest data
+    const { quests, claimingQuest, claim } = useQuests();
+
+    const claimableQuests = useMemo(() => {
+        return quests.filter(
+            (q) => q.status === "claimable" || q.status === "pending"
+        );
+    }, [quests]);
+
+    const claimableCount = useMemo(() => {
+        return quests.filter((q) => q.status === "claimable").length;
+    }, [quests]);
 
     const socials = useMemo(() => {
         if (!metadata?.socials) return {};
@@ -48,9 +74,65 @@ export default function MyBaseCardProfile() {
         router.push("/edit-profile");
     };
 
-    const handleNavigateToMint = () => {
-        router.push("/mint");
+    const handleClaim = useCallback(
+        async (quest: Quest) => {
+            if (quest.status === "claimable") {
+                try {
+                    const result = await claim(quest);
+                    if (result && result.verified) {
+                        setSuccessModalState({
+                            isOpen: true,
+                            rewarded: result.rewarded,
+                            newTotalPoints: result.newTotalPoints,
+                        });
+                    }
+                } catch (err) {
+                    showToast(
+                        err instanceof Error ? err.message : "Failed to claim quest",
+                        "error"
+                    );
+                }
+                return;
+            }
+
+            if (quest.actionType === "MINT" && quest.status === "pending") {
+                router.push("/mint");
+                return;
+            }
+
+            if (
+                quest.actionType === "LINK_SOCIAL" ||
+                quest.actionType === "LINK_BASENAME"
+            ) {
+                router.push("/edit-profile");
+                return;
+            }
+
+            try {
+                const result = await claim(quest);
+                if (result) {
+                    setSuccessModalState({
+                        isOpen: true,
+                        rewarded: result.rewarded,
+                        newTotalPoints: result.newTotalPoints,
+                    });
+                }
+            } catch (err) {
+                showToast(
+                    err instanceof Error ? err.message : "Failed to claim quest",
+                    "error"
+                );
+            }
+        },
+        [claim, router, showToast]
+    );
+
+    const getButtonName = (quest: Quest) => {
+        if (quest.status === "completed") return "Claimed";
+        if (quest.status === "claimable") return "Claim!";
+        return quest.actionType;
     };
+
 
     const rootHeight = {
         minHeight:
@@ -74,13 +156,56 @@ export default function MyBaseCardProfile() {
                 className="w-full flex flex-col items-center justify-start overflow-y-auto relative px-4 py-6 pb-24 gap-6 bg-basecard-blue"
                 style={rootHeight}
             >
-                <NoCardState onNavigateToMint={handleNavigateToMint} />
+                <NoCardState />
             </div>
         );
     }
 
     return (
-        <div className="w-full flex flex-col items-center justify-start overflow-y-auto relative gap-y-5">
+        <div className="w-full flex flex-col items-center justify-start overflow-y-auto relative gap-y-5 pb-8">
+            {/* Claimable Quest Banner */}
+            {claimableQuests.length > 0 && (
+                <div className="w-full px-5 pt-3">
+                    <button
+                        onClick={() => setIsQuestExpanded(!isQuestExpanded)}
+                        className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-xl shadow-lg"
+                    >
+                        <div className="flex items-center gap-3">
+                            <Gift className="w-6 h-6 text-white" />
+                            <span className="text-white font-bold font-k2d">
+                                {claimableCount > 0
+                                    ? `${claimableCount} Reward${claimableCount > 1 ? "s" : ""} Available!`
+                                    : `${claimableQuests.length} Quest${claimableQuests.length > 1 ? "s" : ""} Remaining`}
+                            </span>
+                        </div>
+                        {isQuestExpanded ? (
+                            <ChevronUp className="w-5 h-5 text-white" />
+                        ) : (
+                            <ChevronDown className="w-5 h-5 text-white" />
+                        )}
+                    </button>
+
+                    {/* Expandable Quest List */}
+                    {isQuestExpanded && (
+                        <div className="mt-4 flex flex-col gap-3">
+                            {claimableQuests.map((quest, index) => (
+                                <QuestItem
+                                    key={index}
+                                    title={quest.title}
+                                    content={quest.description || ""}
+                                    buttonName={getButtonName(quest)}
+                                    point={quest.rewardAmount}
+                                    isCompleted={quest.status === "completed"}
+                                    isClaimable={quest.status === "claimable"}
+                                    isClaiming={claimingQuest === quest.actionType}
+                                    onClaim={() => handleClaim(quest)}
+                                />
+                            ))}
+                        </div>
+                    )}
+                </div>
+            )}
+
             {/* Card Section */}
             <ProfileCardContent
                 card={cardData}
@@ -157,6 +282,17 @@ export default function MyBaseCardProfile() {
                 title="Coming Soon"
                 description="TODO please wait"
                 buttonText="Close"
+            />
+
+            {/* Quest Success Modal */}
+            <SuccessModal
+                isOpen={successModalState.isOpen}
+                onClose={() =>
+                    setSuccessModalState((prev) => ({ ...prev, isOpen: false }))
+                }
+                title="Quest Claimed!"
+                description={`You earned +${successModalState.rewarded} BC.\nTotal Balance: ${successModalState.newTotalPoints} BC`}
+                buttonText="Awesome!"
             />
         </div>
     );

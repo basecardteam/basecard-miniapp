@@ -121,7 +121,7 @@ export default function ProfileCardContent({
 
     return (
         <div className="w-full flex flex-col items-center px-5">
-            <div className="relative w-full rounded-xl overflow-hidden shadow-2xl bg-basecard-blue mt-5"
+            <div className="relative w-full rounded-xl overflow-hidden shadow-2xl bg-basecard-blue"
                 style={{
                     backgroundImage:"url(assets/mybasecard-background.webp)",
                     backgroundSize:"cover",
