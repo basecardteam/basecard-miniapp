@@ -58,6 +58,12 @@ export default function MyBaseCardProfile() {
         return quests.filter((q) => q.status === "claimable").length;
     }, [quests]);
 
+    const claimableAmount = useMemo(() => {
+        return quests
+            .filter((q) => q.status === "claimable")
+            .reduce((sum, q) => sum + q.rewardAmount, 0);
+    }, [quests]);
+
     const socials = useMemo(() => {
         if (!metadata?.socials) return {};
         return metadata.socials.reduce((acc, curr) => {
@@ -160,30 +166,38 @@ export default function MyBaseCardProfile() {
     }
 
     return (
-        <div className="w-full flex flex-col items-center justify-start overflow-y-auto relative gap-y-5 pb-8">
+        <div className="w-full flex flex-col items-center justify-start overflow-y-auto relative gap-y-3 pb-8">
             {/* Quest Banner */}
             {quests.length > 0 && (
-                <div className="w-full px-5 pt-3">
+                <div className="w-full px-4 pt-2">
                     <button
                         onClick={() => setIsQuestSheetOpen(true)}
-                        className="w-full flex items-center justify-between px-3 py-2.5 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-xl shadow-md active:scale-[0.98] transition-transform"
+                        className={clsx(
+                            "w-full flex items-center justify-between px-3 py-1.5 rounded-lg",
+                            "active:scale-[0.98] transition-transform",
+                            claimableCount > 0
+                                ? "bg-[#007AFF] text-white"
+                                : "bg-[#007AFF]/10 border border-[#007AFF]/20"
+                        )}
                     >
-                        <div className="flex items-center gap-2.5">
-                            <div className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center">
-                                <Gift className="w-4 h-4 text-white" />
-                            </div>
-                            <div className="text-left">
-                                <span className="text-white font-semibold text-sm font-k2d block">
-                                    {claimableCount > 0
-                                        ? `${claimableCount} Reward${claimableCount > 1 ? "s" : ""} Available!`
-                                        : `${incompleteCount} Quest${incompleteCount > 1 ? "s" : ""} Remaining`}
-                                </span>
-                                <span className="text-white/70 text-[11px]">
-                                    Tap to view quests
-                                </span>
-                            </div>
+                        <div className="flex items-center gap-2">
+                            <Gift className={clsx(
+                                "w-4 h-4",
+                                claimableCount > 0 ? "text-white" : "text-[#007AFF]"
+                            )} />
+                            <span className={clsx(
+                                "font-semibold text-xs font-k2d",
+                                claimableCount > 0 ? "text-white" : "text-[#007AFF]"
+                            )}>
+                                {claimableCount > 0
+                                    ? `Claim +${claimableAmount} BC`
+                                    : `${incompleteCount} Quest${incompleteCount > 1 ? "s" : ""}`}
+                            </span>
                         </div>
-                        <ChevronRight className="w-4 h-4 text-white" />
+                        <ChevronRight className={clsx(
+                            "w-3.5 h-3.5",
+                            claimableCount > 0 ? "text-white" : "text-[#007AFF]"
+                        )} />
                     </button>
                 </div>
             )}

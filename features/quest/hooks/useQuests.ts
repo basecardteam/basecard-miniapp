@@ -1,9 +1,9 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
-import { useAccount } from "wagmi";
-import { fetchQuests, fetchUserQuests, claimQuest } from "@/lib/api/quests";
-import { Quest, VerifyQuestResponse } from "@/lib/types/api";
 import { useERC721Token } from "@/hooks/useERC721Token";
+import { claimQuest, fetchQuests, fetchUserQuests } from "@/lib/api/quests";
+import { Quest, VerifyQuestResponse } from "@/lib/types/api";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useCallback, useMemo, useState } from "react";
+import { useAccount } from "wagmi";
 
 export function useQuests() {
     const { address, isConnected } = useAccount();

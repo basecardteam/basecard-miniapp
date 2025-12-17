@@ -24,8 +24,6 @@ export default function QuestItem({
     isClaiming = false,
     onClaim,
 }: QuestItemProps) {
-    const canClaim = !isCompleted && !isClaiming;
-
     return (
         <div
             className={cn(
@@ -88,40 +86,31 @@ export default function QuestItem({
                         +{point} BC
                     </span>
                 </div>
+            ) : isClaimable ? (
+                /* Claimable: Single big claim button */
+                <button
+                    onClick={onClaim}
+                    disabled={isClaiming}
+                    className="w-full flex justify-center items-center h-9 rounded-md text-sm font-semibold bg-blue-600 text-white active:bg-blue-700 transition-colors"
+                >
+                    {isClaiming ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : (
+                        <span>Claim +{point} BC</span>
+                    )}
+                </button>
             ) : (
-                /* Button Group */
+                /* Pending: Action button + disabled reward */
                 <div className="flex flex-row items-center gap-2 w-full mt-0.5">
-                    {/* Left Button (Action/Claim) */}
                     <button
-                        onClick={canClaim ? onClaim : undefined}
-                        disabled={isClaiming}
-                        className={cn(
-                            "flex-1 flex justify-center items-center h-8 px-2 rounded-md text-sm font-medium transition-colors",
-                            isClaimable
-                                ? "bg-yellow-400 text-gray-900 active:bg-yellow-500"
-                                : "bg-white border border-gray-300 text-gray-700 active:bg-gray-50"
-                        )}
+                        onClick={onClaim}
+                        className="flex-1 flex justify-center items-center h-8 px-2 rounded-md text-sm font-medium bg-white border border-gray-300 text-gray-700 active:bg-gray-50 transition-colors"
                     >
-                        {isClaiming ? (
-                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                        ) : (
-                            <span>{buttonName}</span>
-                        )}
+                        <span>{buttonName}</span>
                     </button>
-
-                    {/* Right Button (Reward) */}
-                    <button
-                        onClick={isClaimable ? onClaim : undefined}
-                        disabled={isClaiming || !isClaimable}
-                        className={cn(
-                            "flex-1 flex justify-center items-center h-8 px-2 rounded-md text-sm font-medium",
-                            isClaimable
-                                ? "bg-blue-600 text-white active:bg-blue-700"
-                                : "bg-blue-600/70 text-white/80 cursor-not-allowed"
-                        )}
-                    >
-                        <span>+ {point} BC</span>
-                    </button>
+                    <div className="flex-1 flex justify-center items-center h-8 px-2 rounded-md text-sm font-medium bg-gray-100 text-gray-400">
+                        <span>+{point} BC</span>
+                    </div>
                 </div>
             )}
         </div>
