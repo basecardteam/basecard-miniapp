@@ -110,7 +110,7 @@ export default function EditProfileContent() {
     }, [newWebsite, handleAddWebsite]);
 
     const { errors } = formState;
-
+222
     if (!address) {
         return (
             <WalletConnectionRequired
@@ -136,7 +136,7 @@ export default function EditProfileContent() {
             if (data.farcaster) socials.farcaster = data.farcaster;
             if (data.linkedin) socials.linkedin = data.linkedin;
 
-            await updateBaseCard(cardData.id, {
+            await updateBaseCard(address, {
                 nickname: data.name,
                 role: data.role,
                 bio: data.bio,

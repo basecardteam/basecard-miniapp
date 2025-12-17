@@ -1,13 +1,13 @@
 import { BaseModal } from "@/components/modals/BaseModal";
+import QuestBottomSheet from "@/components/modals/QuestBottomSheet";
 import SuccessModal from "@/components/modals/SuccessModal";
 import { useToast } from "@/components/ui/Toast";
-import QuestItem from "@/features/quest/components/QuestItem";
 import { useQuests } from "@/features/quest/hooks/useQuests";
 import { useERC721Token } from "@/hooks/useERC721Token";
 import { useMyBaseCard } from "@/hooks/useMyBaseCard";
 import { Quest } from "@/lib/types/api";
 import clsx from "clsx";
-import { ChevronDown, ChevronUp, Gift } from "lucide-react";
+import { ChevronRight, Gift } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
 import { AiOutlineLoading } from "react-icons/ai";
@@ -35,7 +35,7 @@ export default function MyBaseCardProfile() {
     const { showToast } = useToast();
     const [activeTab, setActiveTab] = useState<"earn" | "personal">("earn");
     const [isTodoModalOpen, setIsTodoModalOpen] = useState(false);
-    const [isQuestExpanded, setIsQuestExpanded] = useState(false);
+    const [isQuestSheetOpen, setIsQuestSheetOpen] = useState(false);
     const [successModalState, setSuccessModalState] = useState<{
         isOpen: boolean;
         rewarded: number;
@@ -50,10 +50,8 @@ export default function MyBaseCardProfile() {
     // Quest data
     const { quests, claimingQuest, claim } = useQuests();
 
-    const claimableQuests = useMemo(() => {
-        return quests.filter(
-            (q) => q.status === "claimable" || q.status === "pending"
-        );
+    const incompleteCount = useMemo(() => {
+        return quests.filter((q) => q.status !== "completed").length;
     }, [quests]);
 
     const claimableCount = useMemo(() => {
@@ -163,46 +161,30 @@ export default function MyBaseCardProfile() {
 
     return (
         <div className="w-full flex flex-col items-center justify-start overflow-y-auto relative gap-y-5 pb-8">
-            {/* Claimable Quest Banner */}
-            {claimableQuests.length > 0 && (
+            {/* Quest Banner */}
+            {quests.length > 0 && (
                 <div className="w-full px-5 pt-3">
                     <button
-                        onClick={() => setIsQuestExpanded(!isQuestExpanded)}
-                        className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-xl shadow-lg"
+                        onClick={() => setIsQuestSheetOpen(true)}
+                        className="w-full flex items-center justify-between px-3 py-2.5 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-xl shadow-md active:scale-[0.98] transition-transform"
                     >
-                        <div className="flex items-center gap-3">
-                            <Gift className="w-6 h-6 text-white" />
-                            <span className="text-white font-bold font-k2d">
-                                {claimableCount > 0
-                                    ? `${claimableCount} Reward${claimableCount > 1 ? "s" : ""} Available!`
-                                    : `${claimableQuests.length} Quest${claimableQuests.length > 1 ? "s" : ""} Remaining`}
-                            </span>
+                        <div className="flex items-center gap-2.5">
+                            <div className="w-7 h-7 rounded-full bg-white/20 flex items-center justify-center">
+                                <Gift className="w-4 h-4 text-white" />
+                            </div>
+                            <div className="text-left">
+                                <span className="text-white font-semibold text-sm font-k2d block">
+                                    {claimableCount > 0
+                                        ? `${claimableCount} Reward${claimableCount > 1 ? "s" : ""} Available!`
+                                        : `${incompleteCount} Quest${incompleteCount > 1 ? "s" : ""} Remaining`}
+                                </span>
+                                <span className="text-white/70 text-[11px]">
+                                    Tap to view quests
+                                </span>
+                            </div>
                         </div>
-                        {isQuestExpanded ? (
-                            <ChevronUp className="w-5 h-5 text-white" />
-                        ) : (
-                            <ChevronDown className="w-5 h-5 text-white" />
-                        )}
+                        <ChevronRight className="w-4 h-4 text-white" />
                     </button>
-
-                    {/* Expandable Quest List */}
-                    {isQuestExpanded && (
-                        <div className="mt-4 flex flex-col gap-3">
-                            {claimableQuests.map((quest, index) => (
-                                <QuestItem
-                                    key={index}
-                                    title={quest.title}
-                                    content={quest.description || ""}
-                                    buttonName={getButtonName(quest)}
-                                    point={quest.rewardAmount}
-                                    isCompleted={quest.status === "completed"}
-                                    isClaimable={quest.status === "claimable"}
-                                    isClaiming={claimingQuest === quest.actionType}
-                                    onClaim={() => handleClaim(quest)}
-                                />
-                            ))}
-                        </div>
-                    )}
                 </div>
             )}
 
@@ -293,6 +275,16 @@ export default function MyBaseCardProfile() {
                 title="Quest Claimed!"
                 description={`You earned +${successModalState.rewarded} BC.\nTotal Balance: ${successModalState.newTotalPoints} BC`}
                 buttonText="Awesome!"
+            />
+
+            {/* Quest Bottom Sheet */}
+            <QuestBottomSheet
+                isOpen={isQuestSheetOpen}
+                onClose={() => setIsQuestSheetOpen(false)}
+                quests={quests}
+                claimingQuest={claimingQuest}
+                onClaim={handleClaim}
+                getButtonName={getButtonName}
             />
         </div>
     );
