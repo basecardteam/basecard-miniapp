@@ -5,6 +5,8 @@ import { useToast } from "@/components/ui/Toast";
 import { useQuests } from "@/features/quest/hooks/useQuests";
 import { useERC721Token } from "@/hooks/useERC721Token";
 import { useMyBaseCard } from "@/hooks/useMyBaseCard";
+import { shareToFarcaster } from "@/lib/farcaster/share";
+import { resolveIpfsUrl } from "@/lib/ipfs";
 import { Quest } from "@/lib/types/api";
 import clsx from "clsx";
 import { ChevronRight, Gift } from "lucide-react";
@@ -28,7 +30,6 @@ const LoadingState = () => (
         />
     </div>
 );
-
 
 export default function MyBaseCardProfile() {
     const router = useRouter();
@@ -78,65 +79,73 @@ export default function MyBaseCardProfile() {
         router.push("/edit-profile");
     };
 
-    const handleClaim = useCallback(
-        async (quest: Quest) => {
-            if (quest.status === "claimable") {
-                try {
-                    const result = await claim(quest);
-                    if (result && result.verified) {
-                        setSuccessModalState({
-                            isOpen: true,
-                            rewarded: result.rewarded,
-                            newTotalPoints: result.newTotalPoints,
-                        });
-                    }
-                } catch (err) {
-                    showToast(
-                        err instanceof Error ? err.message : "Failed to claim quest",
-                        "error"
-                    );
-                }
-                return;
-            }
-
-            if (quest.actionType === "MINT" && quest.status === "pending") {
-                router.push("/mint");
-                return;
-            }
-
-            if (
-                quest.actionType === "LINK_SOCIAL" ||
-                quest.actionType === "LINK_BASENAME"
-            ) {
-                router.push("/edit-profile");
-                return;
-            }
-
+    const handleClaim = useCallback(async (quest: Quest) => {
+        if (quest.status === "claimable") {
             try {
                 const result = await claim(quest);
-                if (result) {
+                if (result && result.verified) {
                     setSuccessModalState({
                         isOpen: true,
-                        rewarded: result.rewarded,
-                        newTotalPoints: result.newTotalPoints,
+                        rewarded: result.rewarded ?? 0,
+                        newTotalPoints: result.newTotalPoints ?? 0,
                     });
                 }
             } catch (err) {
                 showToast(
-                    err instanceof Error ? err.message : "Failed to claim quest",
+                    err instanceof Error
+                        ? err.message
+                        : "Failed to claim quest",
                     "error"
                 );
             }
-        },
-        [claim, router, showToast]
-    );
+            return;
+        }
+
+        if (quest.actionType === "SHARE") {
+            await shareToFarcaster({
+                text: "I just minted my BaseCard! Check it out 🎉",
+                embedUrl: resolveIpfsUrl(cardData?.imageUri),
+            });
+            return;
+        }
+
+        if (quest.actionType === "MINT" && quest.status === "pending") {
+            router.push("/mint");
+            return;
+        }
+
+        if (
+            quest.actionType === "LINK_SOCIAL" ||
+                quest.actionType === "LINK_BASENAME"
+        ) {
+            router.push("/edit-profile");
+            return;
+        }
+
+        try {
+            const result = await claim(quest);
+            if (result) {
+                setSuccessModalState({
+                    isOpen: true,
+                    rewarded: result.rewarded ?? 0,
+                    newTotalPoints: result.newTotalPoints ?? 0,
+                });
+            }
+        } catch (err) {
+            showToast(
+                err instanceof Error
+                    ? err.message
+                    : "Failed to claim quest",
+                "error"
+            );
+        }
+    }, [claim, router, showToast, cardData?.imageUri]);
 
     const getButtonName = (quest: Quest) => {
         if (quest.status === "completed") return "Claimed";
         if (quest.status === "claimable") return "Claim!";
         return quest.actionType;
     };
-
 
     const rootHeight = {
         minHeight:
@@ -329,10 +338,15 @@ function ActionButton({
                 <div
                     className="absolute inset-0 flex items-center justify-center rounded-lg"
                     style={{
-                        background: "linear-gradient(360deg, rgba(204,228,255,0.85) 0%, rgba(119,184,255,0.85) 100%)",
+                        background:
+                            "linear-gradient(360deg, rgba(204,228,255,0.85) 0%, rgba(119,184,255,0.85) 100%)",
                     }}
                 >
-                    <span className="font-bold text-sm text-[#0050FF]">Coming<br/>Soon!</span>
+                    <span className="font-bold text-sm text-[#0050FF]">
+                        Coming
+                        <br />
+                        Soon!
+                    </span>
                 </div>
             )}
         </button>

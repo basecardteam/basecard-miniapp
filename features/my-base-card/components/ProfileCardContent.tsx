@@ -8,8 +8,8 @@ import { BaseModal } from "@/components/modals/BaseModal";
 import { useUser } from "@/hooks/useUser";
 import { resolveIpfsUrl } from "@/lib/ipfs";
 import { Card } from "@/lib/types";
+import { sdk } from "@farcaster/miniapp-sdk";
 import FacasterLogo from "@/public/logo/farcaster-logo.png";
-import { useOpenUrl } from "@coinbase/onchainkit/minikit";
 import { useRouter } from "next/navigation";
 
 interface ProfileCardContentProps {
@@ -52,14 +52,14 @@ export default function ProfileCardContent({
     socials = {},
     isSocialLoading = false,
 }: ProfileCardContentProps) {
-    const openUrl = useOpenUrl();
+    const openUrl = sdk.actions.openUrl;
     const [isShareModalOpen, setIsShareModalOpen] = useState(false);
     const { data: user } = useUser();
     const router = useRouter();
 
     const handleNavigateToCollection = useCallback(() => {
         router.push("/edit-profile");
-    },[router]);
+    }, [router]);
 
     const socialEntries: SocialEntry[] = useMemo(
         () => [
@@ -121,12 +121,13 @@ export default function ProfileCardContent({
 
     return (
         <div className="w-full flex flex-col items-center px-5">
-            <div className="relative w-full rounded-xl overflow-hidden shadow-2xl bg-basecard-blue"
+            <div
+                className="relative w-full rounded-xl overflow-hidden shadow-2xl bg-basecard-blue"
                 style={{
-                    backgroundImage:"url(assets/mybasecard-background.webp)",
-                    backgroundSize:"cover",
-                    backgroundPosition:"center",
-                    backgroundRepeat:"no-repeat",
+                    backgroundImage: "url(assets/mybasecard-background.webp)",
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                    backgroundRepeat: "no-repeat",
                 }}
             >
                 {/* Edit Button - Top Right */}
@@ -186,9 +187,11 @@ export default function ProfileCardContent({
                                     }}
                                     disabled={!hasUrl || isSocialLoading}
                                     className={`w-10 h-10 rounded-full flex items-center justify-center border transition-all
-                                        ${hasUrl ? "bg-[#0455FF] border-[#3E7CFF] hover:opacity-90 cursor-pointer"
-                                    : "bg-gray-800/50 border-gray-600 opacity-50 cursor-not-allowed"
-                                }`}
+                                        ${
+                                            hasUrl
+                                                ? "bg-[#0455FF] border-[#3E7CFF] hover:opacity-90 cursor-pointer"
+                                                : "bg-gray-800/50 border-gray-600 opacity-50 cursor-not-allowed"
+                                        }`}
                                     aria-label={label}
                                 >
                                     {icon}

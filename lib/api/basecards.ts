@@ -105,26 +105,34 @@ export interface UpdateBaseCardParams {
 }
 
 export async function updateBaseCard(
-    cardId: string,
+    address: string,
     params: UpdateBaseCardParams
-): Promise<Card> {
+): Promise<CreateCardResponse> {
     const formData = new FormData();
 
     if (params.nickname) formData.append("nickname", params.nickname);
     if (params.role) formData.append("role", params.role);
     if (params.bio !== undefined) formData.append("bio", params.bio);
-    if (params.socials) formData.append("socials", JSON.stringify(params.socials));
-    if (params.profileImageFile) formData.append("profileImageFile", params.profileImageFile);
+    if (params.socials)
+        formData.append("socials", JSON.stringify(params.socials));
+    if (params.profileImageFile)
+        formData.append("profileImageFile", params.profileImageFile);
 
     // Debug: log what's being sent
-    logger.debug("Update card request - cardId:", cardId);
+    logger.debug("Update card request - address:", address);
     logger.debug("Update card request - params:", params);
-    logger.debug("Update card request - formData entries:", Object.fromEntries(formData.entries()));
+    logger.debug(
+        "Update card request - formData entries:",
+        Object.fromEntries(formData.entries())
+    );
 
-    const response = await fetch(`${config.BACKEND_API_URL}/v1/basecards/${cardId}`, {
-        method: "PATCH",
-        body: formData,
-    });
+    const response = await fetch(
+        `${config.BACKEND_API_URL}/v1/basecards/${address}`,
+        {
+            method: "PATCH",
+            body: formData,
+        }
+    );
 
     if (!response.ok) {
         let errorMessage = `Failed to update card (status: ${response.status})`;
@@ -139,14 +147,38 @@ export async function updateBaseCard(
         throw new Error(errorMessage);
     }
 
-    const data: ApiResponse<Card> = await response.json();
+    // Response format: { success: true, result: { card_data, social_keys, social_values } }
+    const data: ApiResponse<CreateCardResponse> = await response.json();
     logger.debug("Update card response:", data);
 
-    if (!data.success) {
+    if (!data.success || !data.result) {
         throw new Error(data.error || "Failed to update card");
     }
 
-    return data.result as Card;
+    return data.result;
+}
+
+export async function rollbackUpdate(
+    address: string,
+    uploadedFiles: { s3Key: string; ipfsId: string }
+): Promise<void> {
+    const response = await fetch(
+        `${config.BACKEND_API_URL}/v1/basecards/${address}/rollback`,
+        {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(uploadedFiles),
+        }
+    );
+
+    if (!response.ok) {
+        // Rollback failure is critical but we can only log it here
+        const textBody = await response.text().catch(() => "");
+        logger.error("Failed to rollback:", textBody);
+        // We don't throw error here to avoid masking the original error that caused rollback
+    }
 }
 
 export async function deleteBaseCard(address: string): Promise<void> {

@@ -56,9 +56,13 @@ export async function fetchUserQuests(address: string): Promise<Quest[]> {
 /**
  * Claim a quest reward after on-chain verification
  */
+/**
+ * Claim a quest reward after on-chain verification
+ */
 export async function claimQuest(
     address: string,
-    questId: string
+    questId: string,
+    fid?: number
 ): Promise<VerifyQuestResponse> {
     const response = await fetch(
         `${config.BACKEND_API_URL}/v1/user-quests/claim`,
@@ -67,7 +71,7 @@ export async function claimQuest(
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({ address, questId }),
+            body: JSON.stringify({ address, questId, fid }),
         }
     );
 
@@ -89,6 +93,37 @@ export async function claimQuest(
     }
 
     logger.debug("Claimed quest: ", data.result);
+
+    return data.result;
+}
+
+/**
+ * Request manual verification for a quest
+ */
+export async function verifyQuest(
+    address: string,
+    fid?: number
+): Promise<VerifyQuestResponse> {
+    const response = await fetch(
+        `${config.BACKEND_API_URL}/v1/user-quests/verify`,
+        {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ address, fid }),
+        }
+    );
+
+    if (!response.ok) {
+        throw new Error("Failed to verify quest");
+    }
+
+    const data: ApiResponse<VerifyQuestResponse> = await response.json();
+
+    if (!data.success || !data.result) {
+        throw new Error(data.error || "Failed to verify quest");
+    }
 
     return data.result;
 }

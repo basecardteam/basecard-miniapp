@@ -3,8 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useERC721Token } from "@/hooks/useERC721Token";
 import { useMyBaseCard } from "@/hooks/useMyBaseCard";
-import { useOpenUrl } from "@coinbase/onchainkit/minikit";
 import CardContent from "./CardContent";
+import { sdk } from "@farcaster/miniapp-sdk";
 import { useMemo } from "react";
 
 interface MyCardViewerProps {
@@ -13,7 +13,6 @@ interface MyCardViewerProps {
 
 export default function MyBaseCardViewer({ title }: MyCardViewerProps) {
     const router = useRouter();
-    const openUrl = useOpenUrl();
     const { data: fetchedCard, isLoading } = useMyBaseCard();
 
     // New Hook Usage
@@ -65,7 +64,7 @@ export default function MyBaseCardViewer({ title }: MyCardViewerProps) {
         >
             <CardContent
                 card={fetchedCard}
-                openUrl={openUrl}
+                openUrl={sdk.actions.openUrl}
                 socials={socials}
                 isSocialLoading={isSocialLoading}
                 mode="viewer"

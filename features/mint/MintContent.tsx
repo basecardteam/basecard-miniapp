@@ -9,14 +9,17 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/Toast";
-import { useMintBaseCard } from "@/hooks/useMintBaseCard";
+import { useMintBaseCardMutation } from "@/hooks/useMintBaseCardMutation";
 import { useMintForm } from "@/hooks/useMintForm";
 import { MAX_WEBSITES, type Role } from "@/lib/constants/mint";
 import { shareToFarcaster } from "@/lib/farcaster/share";
+import { resolveIpfsUrl } from "@/lib/ipfs";
 import { processProfileImage } from "@/lib/processProfileImage";
 import type { MintFormData } from "@/lib/schemas/mintFormSchema";
+import type { Card } from "@/lib/types/api";
 import { activeChain } from "@/lib/wagmi";
 import FALLBACK_PROFILE_IMAGE from "@/public/assets/empty_pfp.png";
+import { useQueryClient } from "@tanstack/react-query";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { Suspense, useCallback, useEffect, useState } from "react";
@@ -42,9 +45,11 @@ const LoadingModal = dynamic(
 export default function MintContent() {
     const frameContext = useFrameContext();
     const router = useRouter();
-    const { address, isConnected } = useAccount();
+    const { address } = useAccount();
     const { showToast } = useToast();
-    
+    const queryClient = useQueryClient();
+
+
     const username = (frameContext?.context as MiniAppContext)?.user?.username;
     const defaultProfileUrl =
         (frameContext?.context as MiniAppContext)?.user?.pfpUrl ||
@@ -72,13 +77,14 @@ export default function MintContent() {
     // Temporary field for new website input (not in schema)
     const [newWebsite, setNewWebsite] = useState("");
 
-    // NFT minting hook
+    // NFT minting mutation hook
     const {
-        mintCard,
+        mutateAsync: mintCard,
         isCreatingBaseCard,
         isSendingTransaction,
+        isMining,
         error: mintError,
-    } = useMintBaseCard();
+    } = useMintBaseCardMutation();
 
     // Success modal state
     const [successModal, setSuccessModal] = useState<{
@@ -129,19 +135,20 @@ export default function MintContent() {
                         imageUri: result.imageUri || "",
                         isExisting: result.isExisting || false,
                     });
-                } else if (result.error === "User rejected") {
-                    showToast("Transaction cancelled", "warning");
-                } else {
-                    showToast(result.error || "Failed to mint your card", "error");
                 }
             } catch (error) {
-                console.error("❌ Card minting error:", error);
-                showToast(
+                const errorMessage =
                     error instanceof Error
                         ? error.message
-                        : "An unexpected error occurred",
-                    "error"
-                );
+                        : "An unexpected error occurred";
+
+                // Handle "User rejected" specifically if it was thrown
+                if (errorMessage === "User rejected") {
+                    showToast("Transaction cancelled", "warning");
+                } else {
+                    console.error("❌ Card minting error:", error);
+                    showToast(errorMessage, "error");
+                }
             }
         },
         [defaultProfileUrl, mintCard, showToast]
@@ -323,13 +330,25 @@ export default function MintContent() {
                 </div>
 
                 {/* 에러 메시지 */}
-                {mintError && <MintErrorMessages mintError={mintError} />}
+                {/* Error handling is now done via Toast or logic inside submit, 
+                    but if we want to show persistent error from hook (e.g. simulation fail) */}
+                {mintError && (
+                    <MintErrorMessages
+                        mintError={
+                            mintError instanceof Error
+                                ? mintError.message
+                                : mintError
+                        }
+                    />
+                )}
 
                 {/* 민팅 버튼 */}
                 <BaseButton
                     type="submit"
                     onClick={handleSubmit}
-                    disabled={isCreatingBaseCard || isSendingTransaction}
+                    disabled={
+                        isCreatingBaseCard || isSendingTransaction || isMining
+                    }
                     className="w-full py-6 text-lg rounded-2xl shadow-xl mt-6"
                 >
                     Create My Card
@@ -369,11 +388,17 @@ export default function MintContent() {
                     router.push("/");
                 }}
                 onShare={async () => {
+                    const freshCardData = await queryClient.fetchQuery<Card | null>({
+                        queryKey: ["myBaseCard", address],
+                        staleTime: 0,
+                    });
+
                     await shareToFarcaster({
                         text: "I just minted my BaseCard! Check it out 🎉",
-                        embedUrl: successModal.imageUri,
+                        embedUrl: resolveIpfsUrl(
+                            freshCardData?.imageUri
+                        ),
                     });
-                    setSuccessModal((prev) => ({ ...prev, isOpen: false }));
                     router.push("/");
                 }}
             />
