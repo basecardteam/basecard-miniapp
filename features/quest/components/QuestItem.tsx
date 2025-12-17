@@ -10,7 +10,7 @@ interface QuestItemProps {
     isCompleted?: boolean;
     isClaimable?: boolean;
     isClaiming?: boolean;
-    onClaim?: () => void;
+    onAction?: () => void;
 }
 
 export default function QuestItem({
@@ -22,7 +22,7 @@ export default function QuestItem({
     isCompleted = false,
     isClaimable = false,
     isClaiming = false,
-    onClaim,
+    onAction,
 }: QuestItemProps) {
     return (
         <div
@@ -89,7 +89,9 @@ export default function QuestItem({
             ) : isClaimable ? (
                 /* Claimable: Single big claim button */
                 <button
-                    onClick={onClaim}
+                    onClick={() => {
+                        onAction?.();
+                    }}
                     disabled={isClaiming}
                     className="w-full flex justify-center items-center h-9 rounded-md text-sm font-semibold bg-blue-600 text-white active:bg-blue-700 transition-colors"
                 >
@@ -103,7 +105,9 @@ export default function QuestItem({
                 /* Pending: Action button + disabled reward */
                 <div className="flex flex-row items-center gap-2 w-full mt-0.5">
                     <button
-                        onClick={onClaim}
+                        onClick={() => {
+                            onAction?.();
+                        }}
                         className="flex-1 flex justify-center items-center h-8 px-2 rounded-md text-sm font-medium bg-white border border-gray-300 text-gray-700 active:bg-gray-50 transition-colors"
                     >
                         <span>{buttonName}</span>

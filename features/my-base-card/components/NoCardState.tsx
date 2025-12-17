@@ -110,7 +110,7 @@ export const NoCardState = () => {
                                 isCompleted={quest.status === "completed"}
                                 isClaimable={quest.status === "claimable"}
                                 isClaiming={claimingQuest === quest.actionType}
-                                onClaim={() => handleClaim(quest)}
+                                onAction={() => handleClaim(quest)}
                             />
                         ))
                     )}

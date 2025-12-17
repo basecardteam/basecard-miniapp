@@ -1,6 +1,7 @@
 import { BaseModal } from "@/components/modals/BaseModal";
 import QuestBottomSheet from "@/components/modals/QuestBottomSheet";
 import SuccessModal from "@/components/modals/SuccessModal";
+import { useFrameContext } from "@/components/providers/FrameProvider";
 import { useToast } from "@/components/ui/Toast";
 import { useQuests } from "@/features/quest/hooks/useQuests";
 import { useERC721Token } from "@/hooks/useERC721Token";
@@ -18,6 +19,7 @@ import {
     IoGridOutline,
     IoSparklesOutline,
 } from "react-icons/io5";
+import { useAccount } from "wagmi";
 import { NoCardState } from "./NoCardState";
 import ProfileCardContent from "./ProfileCardContent";
 
@@ -33,7 +35,9 @@ const LoadingState = () => (
 
 export default function MyBaseCardProfile() {
     const router = useRouter();
+    const { address } = useAccount();
     const { showToast } = useToast();
+    const frameContext = useFrameContext();
     const [activeTab, setActiveTab] = useState<"earn" | "personal">("earn");
     const [isTodoModalOpen, setIsTodoModalOpen] = useState(false);
     const [isQuestSheetOpen, setIsQuestSheetOpen] = useState(false);
@@ -43,7 +47,7 @@ export default function MyBaseCardProfile() {
         newTotalPoints: number;
     }>({ isOpen: false, rewarded: 0, newTotalPoints: 0 });
 
-    const { data: cardData, isLoading: isPending, error } = useMyBaseCard();
+    const { data: cardData, isLoading: isPending } = useMyBaseCard();
 
     // Use useERC721Token for on-chain data including socials
     const { metadata, isLoading: isTokenLoading } = useERC721Token();
@@ -101,11 +105,48 @@ export default function MyBaseCardProfile() {
             return;
         }
 
+        // Handle SHARE quest - share to Farcaster
         if (quest.actionType === "SHARE") {
+            const shareUrl = address
+                ? `${process.env.NEXT_PUBLIC_URL || "https://basecard.vercel.app"}/card/${address}`
+                : process.env.NEXT_PUBLIC_URL || "https://basecard.vercel.app";
+            const imageUrl = metadata?.image ? resolveIpfsUrl(metadata.image) : undefined;
             await shareToFarcaster({
-                text: "I just minted my BaseCard! Check it out 🎉",
-                embedUrl: resolveIpfsUrl(cardData?.imageUri),
+                text: "I just minted my Basecard! Collect this and check all about myself",
+                imageUrl,
+                embedUrl: shareUrl,
             });
+            return;
+        }
+
+        // Handle NOTIFICATION quest - request notification permission
+        if (quest.actionType === "NOTIFICATION") {
+            if (!frameContext?.requestNotificationPermission) {
+                showToast("Notification not supported", "error");
+                return;
+            }
+
+            try {
+                const result = await frameContext.requestNotificationPermission();
+                if (result.success && result.notificationDetails) {
+                    showToast("Notifications enabled!", "success");
+                    const claimResult = await claim(quest);
+                    if (claimResult && claimResult.verified) {
+                        setSuccessModalState({
+                            isOpen: true,
+                            rewarded: claimResult.rewarded ?? 0,
+                            newTotalPoints: claimResult.newTotalPoints ?? 0,
+                        });
+                    }
+                } else if (result.reason === "not_in_miniapp") {
+                    showToast("Please open in Base app", "warning");
+                }
+            } catch (err) {
+                showToast(
+                    err instanceof Error ? err.message : "Failed to enable notifications",
+                    "error"
+                );
+            }
             return;
         }
 
@@ -114,10 +155,8 @@ export default function MyBaseCardProfile() {
             return;
         }
 
-        if (
-            quest.actionType === "LINK_SOCIAL" ||
-                quest.actionType === "LINK_BASENAME"
-        ) {
+        // Link 관련 퀘스트는 EditProfile 페이지로 이동
+        if (quest.actionType.startsWith("LINK_")) {
             router.push("/edit-profile");
             return;
         }
@@ -139,12 +178,27 @@ export default function MyBaseCardProfile() {
                 "error"
             );
         }
-    }, [claim, router, showToast, cardData?.imageUri]);
+    }, [claim, router, showToast, address, frameContext, metadata]);
 
     const getButtonName = (quest: Quest) => {
         if (quest.status === "completed") return "Claimed";
         if (quest.status === "claimable") return "Claim!";
-        return quest.actionType;
+
+        // 친숙한 버튼 텍스트
+        const buttonLabels: Record<string, string> = {
+            MINT: "Mint",
+            SHARE: "Share",
+            FOLLOW: "Follow",
+            NOTIFICATION: "Enable",
+            LINK_BASENAME: "Link",
+            LINK_FARCASTER: "Link",
+            LINK_GITHUB: "Link",
+            LINK_LINKEDIN: "Link",
+            LINK_TWITTER: "Link",
+            LINK_WEBSITE: "Link",
+        };
+
+        return buttonLabels[quest.actionType] || quest.actionType;
     };
 
     const rootHeight = {
@@ -306,7 +360,7 @@ export default function MyBaseCardProfile() {
                 onClose={() => setIsQuestSheetOpen(false)}
                 quests={quests}
                 claimingQuest={claimingQuest}
-                onClaim={handleClaim}
+                onAction={handleClaim}
                 getButtonName={getButtonName}
             />
         </div>

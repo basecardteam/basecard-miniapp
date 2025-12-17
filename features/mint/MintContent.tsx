@@ -16,10 +16,8 @@ import { shareToFarcaster } from "@/lib/farcaster/share";
 import { resolveIpfsUrl } from "@/lib/ipfs";
 import { processProfileImage } from "@/lib/processProfileImage";
 import type { MintFormData } from "@/lib/schemas/mintFormSchema";
-import type { Card } from "@/lib/types/api";
 import { activeChain } from "@/lib/wagmi";
 import FALLBACK_PROFILE_IMAGE from "@/public/assets/empty_pfp.png";
-import { useQueryClient } from "@tanstack/react-query";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { Suspense, useCallback, useEffect, useState } from "react";
@@ -47,8 +45,6 @@ export default function MintContent() {
     const router = useRouter();
     const { address } = useAccount();
     const { showToast } = useToast();
-    const queryClient = useQueryClient();
-
 
     const username = (frameContext?.context as MiniAppContext)?.user?.username;
     const defaultProfileUrl =
@@ -388,16 +384,12 @@ export default function MintContent() {
                     router.push("/");
                 }}
                 onShare={async () => {
-                    const freshCardData = await queryClient.fetchQuery<Card | null>({
-                        queryKey: ["myBaseCard", address],
-                        staleTime: 0,
-                    });
-
+                    const shareUrl = `${process.env.NEXT_PUBLIC_URL || "https://basecard.vercel.app"}/card/${address}`;
+                    const imageUrl = successModal.imageUri ? resolveIpfsUrl(successModal.imageUri) : undefined;
                     await shareToFarcaster({
-                        text: "I just minted my BaseCard! Check it out 🎉",
-                        embedUrl: resolveIpfsUrl(
-                            freshCardData?.imageUri
-                        ),
+                        text: "I just minted my Basecard! Collect this and check all about myself",
+                        imageUrl,
+                        embedUrl: shareUrl,
                     });
                     router.push("/");
                 }}

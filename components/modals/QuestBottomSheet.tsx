@@ -10,7 +10,7 @@ interface QuestBottomSheetProps {
     onClose: () => void;
     quests: Quest[];
     claimingQuest: string | null;
-    onClaim: (quest: Quest) => void;
+    onAction: (quest: Quest) => void;
     getButtonName: (quest: Quest) => string;
 }
 
@@ -19,7 +19,7 @@ export default function QuestBottomSheet({
     onClose,
     quests,
     claimingQuest,
-    onClaim,
+    onAction,
     getButtonName,
 }: QuestBottomSheetProps) {
     const [isClosing, setIsClosing] = useState(false);
@@ -27,6 +27,7 @@ export default function QuestBottomSheet({
     const [isDragging, setIsDragging] = useState(false);
     const sheetRef = useRef<HTMLDivElement>(null);
     const startYRef = useRef(0);
+    const lastTouchTimeRef = useRef(0);
 
     const handleClose = useCallback(() => {
         setIsClosing(true);
@@ -37,7 +38,7 @@ export default function QuestBottomSheet({
         }, 300);
     }, [onClose]);
 
-    const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    const handleDragHandleTouchStart = useCallback((e: React.TouchEvent) => {
         startYRef.current = e.touches[0].clientY;
         setIsDragging(true);
     }, []);
@@ -54,7 +55,8 @@ export default function QuestBottomSheet({
         [isDragging]
     );
 
-    const handleTouchEnd = useCallback(() => {
+    const handleDragHandleTouchEnd = useCallback(() => {
+        lastTouchTimeRef.current = Date.now();
         setIsDragging(false);
         if (dragY > 150) {
             handleClose();
@@ -63,8 +65,17 @@ export default function QuestBottomSheet({
         }
     }, [dragY, handleClose]);
 
-    const handleBackdropClick = useCallback(() => {
-        handleClose();
+    const handleBackdropClick = useCallback((e: React.MouseEvent) => {
+        // Ignore ghost clicks that happen shortly after touch events
+        const timeSinceTouch = Date.now() - lastTouchTimeRef.current;
+        if (timeSinceTouch < 300) {
+            return;
+        }
+
+        // Only close if clicking directly on the backdrop, not bubbled events
+        if (e.target === e.currentTarget) {
+            handleClose();
+        }
     }, [handleClose]);
 
     // Don't render if not open and not closing
@@ -101,14 +112,21 @@ export default function QuestBottomSheet({
 
             {/* Backdrop */}
             <div
-                className="absolute inset-0 bg-black/50"
+                className="absolute inset-0 bg-black/50 z-0"
                 onClick={handleBackdropClick}
+                onTouchEnd={(e) => {
+                    // Only close if touch ends directly on backdrop
+                    if (e.target === e.currentTarget) {
+                        e.preventDefault();
+                        handleClose();
+                    }
+                }}
             />
 
             {/* Bottom Sheet */}
             <div
                 ref={sheetRef}
-                className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl"
+                className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl z-10"
                 style={{
                     maxHeight: "90vh",
                     transform: isDragging ? `translateY(${dragY}px)` : undefined,
@@ -120,12 +138,16 @@ export default function QuestBottomSheet({
                                 : "slideUp 300ms ease-out forwards",
                     transition: isDragging ? "none" : "transform 300ms ease-out",
                 }}
-                onTouchStart={handleTouchStart}
+                onClick={(e) => e.stopPropagation()}
+                onMouseDown={(e) => e.stopPropagation()}
                 onTouchMove={handleTouchMove}
-                onTouchEnd={handleTouchEnd}
             >
                 {/* Drag Handle */}
-                <div className="flex justify-center pt-2 pb-1 cursor-grab active:cursor-grabbing">
+                <div
+                    className="flex justify-center pt-2 pb-1 cursor-grab active:cursor-grabbing"
+                    onTouchStart={handleDragHandleTouchStart}
+                    onTouchEnd={handleDragHandleTouchEnd}
+                >
                     <div className="w-9 h-1 bg-gray-300 rounded-full" />
                 </div>
 
@@ -170,7 +192,9 @@ export default function QuestBottomSheet({
                                 isCompleted={quest.status === "completed"}
                                 isClaimable={quest.status === "claimable"}
                                 isClaiming={claimingQuest === quest.actionType}
-                                onClaim={() => onClaim(quest)}
+                                onAction={() => {
+                                    onAction(quest);
+                                }}
                             />
                         ))}
                     </div>
