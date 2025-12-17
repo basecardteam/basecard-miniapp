@@ -1,10 +1,10 @@
 "use client";
 
+import { resolveIpfsUrl } from "@/lib/ipfs";
 import FALLBACK_PROFILE_IMAGE from "@/public/assets/empty_pfp.png";
 import Image, { StaticImageData } from "next/image";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { CiEdit } from "react-icons/ci";
-import { resolveIpfsUrl } from "@/lib/ipfs";
 
 interface ProfileImagePreviewProps {
     profileImageFile: File | null;
@@ -55,7 +55,7 @@ const ProfileImagePreview = ({
 
     return (
         <div className="w-full space-y-3">
-            <label className="text-lg font-medium">Profile Image</label>
+            <label className="text-lg font-semibold">Profile Image</label>
             <div className="flex items-center gap-4 relative">
                 {/* 이미지 미리보기 및 편집 버튼 영역 */}
                 <div

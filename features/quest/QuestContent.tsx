@@ -1,28 +1,24 @@
 "use client";
 
-import { useCallback, useState } from "react";
-import { useRouter } from "next/navigation";
-import QuestItem from "@/features/quest/components/QuestItem";
-import QuestHeroSection from "@/features/quest/components/QuestHeroSection";
-import { useQuests } from "@/features/quest/hooks/useQuests";
-import { Quest } from "@/lib/types/api";
-import { logger } from "@/lib/common/logger";
-import ErrorModal from "@/components/modals/ErrorModal";
 import SuccessModal from "@/components/modals/SuccessModal";
+import { useToast } from "@/components/ui/Toast";
+import QuestHeroSection from "@/features/quest/components/QuestHeroSection";
+import QuestItem from "@/features/quest/components/QuestItem";
+import { useQuests } from "@/features/quest/hooks/useQuests";
+import { logger } from "@/lib/common/logger";
+import { Quest } from "@/lib/types/api";
+import { useRouter } from "next/navigation";
+import { useCallback, useState } from "react";
 
 export default function QuestContent() {
     const router = useRouter();
     const { quests, isLoading, error, claimingQuest, claim } = useQuests();
+    const { showToast } = useToast();
     const [successModalState, setSuccessModalState] = useState<{
         isOpen: boolean;
         rewarded: number;
         newTotalPoints: number;
     }>({ isOpen: false, rewarded: 0, newTotalPoints: 0 });
-    const [errorModalState, setErrorModalState] = useState<{
-        isOpen: boolean;
-        title: string;
-        description: string;
-    }>({ isOpen: false, title: "", description: "" });
 
     quests.forEach((quest) => {
         logger.debug("quest", quest.title, quest.status);
@@ -42,14 +38,10 @@ export default function QuestContent() {
                         });
                     }
                 } catch (err) {
-                    setErrorModalState({
-                        isOpen: true,
-                        title: "Claim Failed",
-                        description:
-                            err instanceof Error
-                                ? err.message
-                                : "Failed to claim quest",
-                    });
+                    showToast(
+                        err instanceof Error ? err.message : "Failed to claim quest",
+                        "error"
+                    );
                 }
                 return;
             }
@@ -63,7 +55,7 @@ export default function QuestContent() {
                 quest.actionType === "LINK_SOCIAL" ||
                 quest.actionType === "LINK_BASENAME"
             ) {
-                router.push("/mybasecard"); // Assumption: Profile editing is at /mybasecard
+                router.push("/my-base-card");
                 return;
             }
 
@@ -79,17 +71,13 @@ export default function QuestContent() {
                     });
                 }
             } catch (err) {
-                setErrorModalState({
-                    isOpen: true,
-                    title: "Claim Failed",
-                    description:
-                        err instanceof Error
-                            ? err.message
-                            : "Failed to claim quest",
-                });
+                showToast(
+                    err instanceof Error ? err.message : "Failed to claim quest",
+                    "error"
+                );
             }
         },
-        [claim, router]
+        [claim, router, showToast]
     );
 
     const getButtonName = (quest: Quest) => {
@@ -145,14 +133,6 @@ export default function QuestContent() {
                 title="Quest Claimed!"
                 description={`You earned +${successModalState.rewarded} BC.\nTotal Balance: ${successModalState.newTotalPoints} BC`}
                 buttonText="Awesome!"
-            />
-            <ErrorModal
-                isOpen={errorModalState.isOpen}
-                onClose={() =>
-                    setErrorModalState((prev) => ({ ...prev, isOpen: false }))
-                }
-                title={errorModalState.title}
-                description={errorModalState.description}
             />
         </div>
     );

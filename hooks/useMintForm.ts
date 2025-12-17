@@ -51,7 +51,7 @@ export function useMintForm(initialData?: Partial<MintFormData>) {
                 console.error("Failed to parse saved form data", e);
             }
         }
-    }, [reset]); // mount 시 1회 실행
+    }, [reset, form]); // mount 시 1회 실행
 
     // Save data on change
     useEffect(() => {

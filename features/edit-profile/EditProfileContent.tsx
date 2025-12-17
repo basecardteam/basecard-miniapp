@@ -1,29 +1,29 @@
 "use client";
 
 import BackButton from "@/components/buttons/BackButton";
-import { MintButton } from "@/features/mint/components/MintButton"; // Reuse Mint Button style? Or custom
-import { MintErrorMessages } from "@/features/mint/components/MintErrorMessages";
-import ProfileImagePreview from "@/features/mint/components/ProfileImagePreview";
-import { RoleSelector } from "@/features/mint/components/RoleSelector";
-import { SocialsInput } from "@/features/mint/components/SocialsInput";
-import { WebsitesInput } from "@/features/mint/components/WebsitesInput";
+// Reuse Mint Button style? Or custom
 import { WalletConnectionRequired } from "@/components/WalletConnectionRequired";
+import BaseButton from "@/components/buttons/BaseButton";
 import {
     MiniAppContext,
     useFrameContext,
 } from "@/components/providers/FrameProvider";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useEditProfileForm } from "./hooks/useEditProfileForm";
+import ProfileImagePreview from "@/features/mint/components/ProfileImagePreview";
+import { RoleSelector } from "@/features/mint/components/RoleSelector";
+import { SocialsInput } from "@/features/mint/components/SocialsInput";
+import { WebsitesInput } from "@/features/mint/components/WebsitesInput";
 import { useMyBaseCard } from "@/hooks/useMyBaseCard";
 import { useUser } from "@/hooks/useUser";
-import { MAX_WEBSITES } from "@/lib/constants/mint";
+import { updateBaseCard } from "@/lib/api/basecards";
 import type { MintFormData } from "@/lib/schemas/mintFormSchema";
 import FALLBACK_PROFILE_IMAGE from "@/public/assets/empty_pfp.png";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { Suspense, useCallback, useEffect, useState } from "react";
 import { useAccount } from "wagmi";
+import { useEditProfileForm } from "./hooks/useEditProfileForm";
 
 const BaseModal = dynamic(
     () =>
@@ -95,48 +95,19 @@ export default function EditProfileContent() {
 
     const [newWebsite, setNewWebsite] = useState("");
     const [showSuccessModal, setShowSuccessModal] = useState(false);
-    const [urlError, setUrlError] = useState<string | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submitError, setSubmitError] = useState<string | null>(null);
 
-    // Reuse website logic
-    const handleAddWebsiteWithValidation = useCallback(() => {
+    // WebsitesInput에서 실시간 검증하므로 여기서는 단순히 추가만
+    const handleAddWebsiteSimple = useCallback(() => {
         const urlToAdd = newWebsite.trim();
-        if (!urlToAdd) {
-            setUrlError("Please enter a website URL");
-            return;
-        }
-
-        let isValidUrl = false;
-        try {
-            new URL(urlToAdd);
-            isValidUrl = true;
-        } catch {
-            setUrlError("Please enter a valid URL (e.g., https://example.com)");
-            return;
-        }
-
-        const currentWebsites = form.getValues("websites");
-        if (currentWebsites.includes(urlToAdd)) {
-            setUrlError("This website is already in your list");
-            return;
-        }
-
-        if (currentWebsites.length >= MAX_WEBSITES) {
-            setUrlError(`Maximum ${MAX_WEBSITES} websites allowed`);
-            return;
-        }
+        if (!urlToAdd) return;
 
         const success = handleAddWebsite(urlToAdd);
         if (success) {
             setNewWebsite("");
-            setUrlError(null);
         }
-    }, [newWebsite, handleAddWebsite, form]);
-
-    useEffect(() => {
-        if (urlError && newWebsite.trim()) {
-            setUrlError(null);
-        }
-    }, [newWebsite, urlError]);
+    }, [newWebsite, handleAddWebsite]);
 
     const { errors } = formState;
 
@@ -149,11 +120,39 @@ export default function EditProfileContent() {
         );
     }
 
-    const onSubmit = (data: MintFormData) => {
-        console.log("Saving data:", data);
-        // Here we would call the update API.
-        // For now, toggle success modal.
-        setShowSuccessModal(true);
+    const onSubmit = async (data: MintFormData) => {
+        if (!cardData?.id) {
+            setSubmitError("Card not found");
+            return;
+        }
+
+        setIsSubmitting(true);
+        setSubmitError(null);
+
+        try {
+            const socials: Record<string, string> = {};
+            if (data.github) socials.github = data.github;
+            if (data.twitter) socials.twitter = data.twitter;
+            if (data.farcaster) socials.farcaster = data.farcaster;
+            if (data.linkedin) socials.linkedin = data.linkedin;
+
+            await updateBaseCard(cardData.id, {
+                nickname: data.name,
+                role: data.role,
+                bio: data.bio,
+                socials: Object.keys(socials).length > 0 ? socials : undefined,
+                profileImageFile: data.profileImageFile || undefined,
+            });
+
+            setShowSuccessModal(true);
+        } catch (error) {
+            console.error("Failed to update profile:", error instanceof Error ? error.message : error);
+            setSubmitError(
+                error instanceof Error ? error.message : "Failed to update profile"
+            );
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     const handleSubmit = formHandleSubmit(onSubmit);
@@ -161,28 +160,20 @@ export default function EditProfileContent() {
     if (isCardLoading) {
         return (
             <div className="flex items-center justify-center h-screen">
-                Loading...
             </div>
         );
     }
 
     return (
-        <main className="bg-white text-basecard-black scroll-container scrollbar-hide overscroll-y-none">
-            <div className="relative">
+        <main className="bg-white text-basecard-black scroll-container scrollbar-hide overscroll-y-none pb-20">
+            <div className="relative flex items-center h-14">
                 <BackButton />
-            </div>
-
-            {/* Custom Header for Edit Profile */}
-            <div className="flex flex-col items-center justify-center mt-2 mb-8">
-                <h1 className="text-[24px] font-bold font-k2d">Edit Profile</h1>
-                <p className="text-gray-500 text-sm">
-                    Update your BaseCard details
-                </p>
+                <h1 className="text-lg font-medium ml-12">Edit Profile</h1>
             </div>
 
             <form
                 onSubmit={handleSubmit}
-                className="flex flex-col justify-center items-start px-5 py-4 gap-y-6"
+                className="flex flex-col justify-center items-start px-5 gap-y-6"
             >
                 {/* Profile Image - using activeProfileUrl which prefers card image */}
                 <ProfileImagePreview
@@ -194,26 +185,26 @@ export default function EditProfileContent() {
                 />
 
                 {/* Name */}
-                <div className="w-full space-y-2">
+                <div className="w-full space-y-1">
                     <Label
                         htmlFor="name"
-                        className="text-lg font-semibold text-basecard-black"
+                        className="text-base font-semibold text-basecard-black"
                     >
-                        Your Name <span className="text-red-500">*</span>
+                        Your Name<span className="text-red-500">*</span>
                     </Label>
                     <Input
                         id="name"
                         type="text"
                         {...register("name")}
                         placeholder="Enter your name"
-                        className={`h-12 text-base rounded-xl border-2 transition-all duration-300 ${
+                        className={`h-12 text-sm rounded-xl border-2 transition-all duration-300 placeholder:text-sm placeholder:text-basecard-gray ${
                             errors.name
                                 ? "border-red-500 focus:border-red-600 focus:ring-red-500/20"
                                 : "border-gray-200 focus:border-basecard-blue focus:ring-basecard-blue/20 hover:border-gray-300"
                         }`}
                     />
                     {errors.name && (
-                        <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+                        <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
                             <span>⚠</span> {errors.name.message}
                         </p>
                     )}
@@ -245,9 +236,8 @@ export default function EditProfileContent() {
                     websites={websites}
                     newWebsite={newWebsite}
                     onNewWebsiteChange={setNewWebsite}
-                    onAddWebsite={handleAddWebsiteWithValidation}
+                    onAddWebsite={handleAddWebsiteSimple}
                     onRemoveWebsite={handleRemoveWebsite}
-                    urlError={urlError}
                 />
 
                 {/* Bio */}
@@ -261,10 +251,10 @@ export default function EditProfileContent() {
                     <textarea
                         id="bio"
                         {...register("bio")}
-                        className={`w-full p-4 text-base rounded-xl border-2 transition-all duration-300 resize-none placeholder:text-sm placeholder:text-gray-400 ${
+                        className={`w-full p-3 bg-white text-base rounded-xl border-2 placeholder:text-sm placeholder:text-gray-400 ${
                             errors.bio
                                 ? "border-red-500 focus:border-red-600 focus:ring-red-500/20"
-                                : "border-gray-200 focus:border-basecard-blue focus:ring-basecard-blue/20 hover:border-gray-300"
+                                : ""
                         }`}
                         rows={4}
                         placeholder="Tell us about yourself..."
@@ -276,13 +266,20 @@ export default function EditProfileContent() {
                     )}
                 </div>
 
-                {/* Submit Button - Custom text */}
-                <button
+                {/* Error Message */}
+                {submitError && (
+                    <p className="text-red-500 text-sm text-center w-full">
+                        {submitError}
+                    </p>
+                )}
+
+                <BaseButton
                     type="submit"
-                    className="w-full h-[56px] bg-basecard-blue rounded-[16px] flex items-center justify-center gap-2 text-white font-k2d font-bold text-lg hover:bg-blue-600 transition-colors shadow-lg active:scale-[0.98]"
+                    disabled={isSubmitting}
+                    className="py-5 text-lg rounded-lg shadow-xl fixed bottom-5 left-0 right-0 mx-5"
                 >
-                    Save Changes
-                </button>
+                    {isSubmitting ? "Saving..." : "Save"}
+                </BaseButton>
             </form>
 
             {/* Success Modal */}
@@ -295,7 +292,7 @@ export default function EditProfileContent() {
                             router.push("/my-base-card");
                         }}
                         title="Profile Updated"
-                        description="Your profile changes have been saved successfully (Dummy)."
+                        description="Your profile changes have been saved successfully."
                         buttonText="Okay"
                         variant="success"
                     />

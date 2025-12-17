@@ -2,16 +2,20 @@ import { CollectionFilterTag } from "@/lib/filterCollections";
 
 export const COLLECTION_TAGS: CollectionFilterTag[] = [
     "All",
+    "Developer",
     "Designer",
-    "Dev",
-    "MKT",
+    "Marketer",
+    "Founder",
+    "BD",
+    "PM",
 ];
 
 export const TAG_ROLE_MAP: Record<CollectionFilterTag, string | null> = {
     All: null,
-    Designer: "Designer",
     Developer: "Developer",
+    Designer: "Designer",
     Marketer: "Marketer",
-    Dev: "Developer",
-    MKT: "Marketer",
+    Founder: "Founder",
+    BD: "BD",
+    PM: "PM",
 };

@@ -3,7 +3,7 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MAX_WEBSITES } from "@/lib/constants/mint";
-import { memo, useEffect, useState } from "react";
+import { memo, useState } from "react";
 import { FaLink, FaPlus } from "react-icons/fa";
 import { IoClose } from "react-icons/io5";
 
@@ -28,21 +28,45 @@ export const WebsitesInput = memo(function WebsitesInput({
     urlError,
 }: WebsitesInputProps) {
     const isMaxReached = websites.length >= MAX_WEBSITES;
-    const [localError, setLocalError] = useState<string | null>(null);
+    const [localError, setLocalError] = useState<string | null>(urlError ?? null);
+    const [isValid, setIsValid] = useState(false);
 
-    // URL 에러 상태 관리 - 입력하면 사라지도록
-    useEffect(() => {
-        if (urlError) {
-            setLocalError(urlError);
+    // URL 유효성 검사 함수
+    const validateUrl = (url: string): boolean => {
+        if (!url.trim()) return false;
+        try {
+            const parsed = new URL(url);
+            return parsed.protocol === "http:" || parsed.protocol === "https:";
+        } catch {
+            return false;
         }
-    }, [urlError]);
+    };
 
-    // 입력 시 에러 메시지 사라지도록
+    // 입력 시 실시간 검증
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value;
         onNewWebsiteChange(value);
-        if (localError && value.trim()) {
+
+        if (!value.trim()) {
             setLocalError(null);
+            setIsValid(false);
+            return;
+        }
+
+        // 중복 체크
+        if (websites.includes(value.trim())) {
+            setLocalError("This URL is already added");
+            setIsValid(false);
+            return;
+        }
+
+        // URL 형식 검증
+        if (validateUrl(value)) {
+            setLocalError(null);
+            setIsValid(true);
+        } else {
+            setLocalError("Please enter a valid URL (https://...)");
+            setIsValid(false);
         }
     };
 
@@ -73,17 +97,17 @@ export const WebsitesInput = memo(function WebsitesInput({
                         onKeyDown={(e) => {
                             if (e.key === "Enter") {
                                 e.preventDefault();
-                                if (!isMaxReached && newWebsite.trim() && !localError) {
+                                if (!isMaxReached && isValid) {
                                     onAddWebsite();
                                 }
                             }
                         }}
-                        className={`pl-12 pr-4 h-12 text-base rounded-xl border-2 transition-all duration-300 ${localError
-                            ? "border-red-500 focus:border-red-600 focus:ring-red-500/20"
-                            : isMaxReached
-                                ? "border-gray-200 bg-gray-50 cursor-not-allowed"
-                                : "border-gray-200 focus:border-[#0050FF] focus:ring-[#0050FF]/20 hover:border-gray-300"
-                            }`}
+                        className={`pl-10 h-10 text-base rounded-xl border-2 transition-all duration-300  placeholder:text-sm
+                            ${localError ? "border-red-500 focus:border-red-600 focus:ring-red-500/20"
+            : isMaxReached
+                ? "border-gray-200 bg-gray-50 cursor-not-allowed"
+                : "border-gray-200 focus:border-[#0050FF] focus:ring-[#0050FF]/20 hover:border-gray-300"
+        }`}
                         placeholder="https://your-site.com"
                         disabled={isMaxReached}
                     />
@@ -91,13 +115,11 @@ export const WebsitesInput = memo(function WebsitesInput({
                 <button
                     type="button"
                     onClick={onAddWebsite}
-                    disabled={!newWebsite.trim() || isMaxReached || !!localError}
-                    className={`w-12 h-12 flex items-center justify-center rounded-xl font-medium text-white transition-all duration-300 flex-shrink-0 ${!newWebsite.trim() || isMaxReached || !!localError
-                        ? "bg-gray-300 cursor-not-allowed"
-                        : "bg-gradient-to-r from-[#0050FF] to-[#4A90E2] hover:from-[#0066FF] hover:to-[#5AA0F2] shadow-md hover:shadow-lg active:scale-95"
-                        }`}
+                    disabled={!isValid || isMaxReached}
+                    className={`w-10 h-10 flex items-center justify-center rounded-xl text-white transition-all
+            ${!isValid || isMaxReached ? "bg-gray-300" : "bg-[#0050FF] active:scale-95"}`}
                 >
-                    <FaPlus size={16} />
+                    <FaPlus size={14} />
                 </button>
             </div>
 
@@ -109,27 +131,17 @@ export const WebsitesInput = memo(function WebsitesInput({
             )}
 
             {/* 현재 웹사이트 목록 */}
-            {websites.length > 0 && (
-                <div className="flex flex-wrap gap-2 p-3 bg-gray-50 rounded-xl border border-gray-200">
-                    {websites.map((url) => (
-                        <div
-                            key={url}
-                            className="group flex items-center gap-2 px-3 py-2 bg-white rounded-lg border border-gray-200 hover:border-[#0050FF]/50 transition-all duration-300 shadow-sm"
-                        >
-                            <FaLink className="w-3 h-3 text-gray-400 flex-shrink-0" />
-                            <span className="text-sm text-gray-700 font-medium max-w-[200px] truncate">{url}</span>
-                            <button
-                                type="button"
-                                className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex-shrink-0"
-                                onClick={() => onRemoveWebsite(url)}
-                                aria-label={`Remove ${url}`}
-                            >
-                                <IoClose className="w-4 h-4 text-red-500 hover:text-red-600 transition-colors" />
-                            </button>
+            <div className="space-y-1">
+                {websites.map((url) => (
+                    <div key={url} className="flex items-center justify-between px-4 py-3 bg-white rounded-xl border border-gray-200">
+                        <div className="flex items-center gap-3 min-w-0">
+                            <FaLink className="w-4 h-4 text-[#0050FF] flex-shrink-0" />
+                            <span className="text-sm text-gray-700 truncate">{url}</span>
                         </div>
-                    ))}
-                </div>
-            )}
+                        <IoClose onClick={() => onRemoveWebsite(url)} className="w-5 h-5 text-gray-400" />
+                    </div>
+                ))}
+            </div>
 
             {/* 안내 텍스트 */}
             {websites.length === 0 && !localError && (

@@ -36,8 +36,8 @@ const CardItem = React.memo(function CardItem({
                 "group relative cursor-pointer flex w-full mx-auto px-5 rounded-2xl",
                 "transition-all duration-700 ease-out will-change-transform will-change-opacity",
                 isActive
-                    ? "scale-[1.10] drop-shadow-2xl shadow-black/25"
-                    : "scale-100 drop-shadow-md shadow-black/10"
+                    ? "drop-shadow-2xl shadow-black/25"
+                    : "drop-shadow-md shadow-black/10"
             )}
             style={{ ...style, ...cardStyle }}
             onClick={handleCardClick}
@@ -52,7 +52,7 @@ const CardItem = React.memo(function CardItem({
                     fill={true}
                     priority={isActive}
                     style={{ objectFit: "cover" }}
-                    className="object-cover aspect-[5/3] transition-transform duration-500 ease-out group-hover:scale-[1.05]"
+                    className="object-cover aspect-[5/3] transition-transform duration-500 ease-out "
                     unoptimized={card.imageUri?.startsWith("data:") || false}
                     onError={(e) => {
                         e.currentTarget.src = "/assets/default-profile.png";

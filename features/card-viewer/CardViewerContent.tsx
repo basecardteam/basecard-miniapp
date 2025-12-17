@@ -2,14 +2,10 @@
 
 import MyBaseCardScreen from "@/features/my-base-card/MyBaseCardScreen";
 
-interface CardViewerScreenProps {
-    address: string;
-}
-
-export default function CardViewerContent({ address }: CardViewerScreenProps) {
+export default function CardViewerContent() {
     return (
         <div className="relative">
-            <MyBaseCardScreen mode="viewer" title="" />
+            <MyBaseCardScreen mode="viewer" />
         </div>
     );
 }

@@ -16,7 +16,7 @@ export default function MyBaseCardContent({
         return <MyBaseCardViewer title={title} />;
     }
 
-    return <MyBaseCardProfile title={title} />;
+    return <MyBaseCardProfile />;
 }
 
 export { MyBaseCardProfile, MyBaseCardViewer };

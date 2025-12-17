@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
 import ConfirmationModal from "@/components/modals/ConfirmationModal";
-import ErrorModal from "@/components/modals/ErrorModal";
 import LoadingModal from "@/components/modals/LoadingModal";
+import { useToast } from "@/components/ui/Toast";
 import { useMyBaseCard } from "@/hooks/useMyBaseCard";
 import { createCollection } from "@/lib/api/collections";
 
@@ -19,10 +19,10 @@ export default function CardCollectionAdder({
 }: CardCollectionAdderProps) {
     const router = useRouter();
     const { data: myCard, isLoading: isCardLoading } = useMyBaseCard();
+    const { showToast } = useToast();
 
     const [isReadyToConfirm, setIsReadyToConfirm] = useState(false); // 확인 팝업 상태
     const [isProcessing, setIsProcessing] = useState(false); // API 처리 로딩 상태
-    const [error, setError] = useState<string | null>(null);
 
     // -------------------------------------------------------------
     // 1. 수집 로직 (팝업에서 '확인' 시 실행)
@@ -37,7 +37,6 @@ export default function CardCollectionAdder({
         }
 
         setIsProcessing(true);
-        setError(null);
 
         try {
             // TODO: createCollection params structure needs to be verified
@@ -53,12 +52,13 @@ export default function CardCollectionAdder({
             setIsProcessing(false);
 
             if (err.message.includes("Collection already exists")) {
-                setError("이미 수집한 카드입니다.");
+                showToast("이미 수집한 카드입니다.", "error");
             } else {
-                setError(err.message || "카드 수집에 실패했습니다.");
+                showToast(err.message || "카드 수집에 실패했습니다.", "error");
             }
+            router.replace("/");
         }
-    }, [myCard?.id, collectedCardId, router]);
+    }, [myCard?.id, collectedCardId, router, showToast]);
 
     // -------------------------------------------------------------
     // 2. 초기 로드 및 확인 로직 (useEffect)
@@ -107,11 +107,6 @@ export default function CardCollectionAdder({
         router.replace("/");
     }, [router]);
 
-    const handleCloseError = useCallback(() => {
-        setError(null);
-        router.replace("/");
-    }, [router]);
-
     // -------------------------------------------------------------
     // 4. 모달 렌더링
     // -------------------------------------------------------------
@@ -140,14 +135,6 @@ export default function CardCollectionAdder({
                 title="카드 수집 확인"
                 description={`이 카드를 내 컬렉션에 추가하시겠습니까? (Card ID: ${collectedCardId})`}
                 confirmText="수집하기"
-            />
-
-            {/* C. 에러 모달 */}
-            <ErrorModal
-                isOpen={!!error}
-                onClose={handleCloseError}
-                title="수집 오류"
-                description={error || "알 수 없는 오류가 발생했습니다."}
             />
         </>
     );

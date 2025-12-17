@@ -1,18 +1,23 @@
-import { useState, useMemo } from "react";
+import { BaseModal } from "@/components/modals/BaseModal";
+import SuccessModal from "@/components/modals/SuccessModal";
+import { useToast } from "@/components/ui/Toast";
+import QuestItem from "@/features/quest/components/QuestItem";
+import { useQuests } from "@/features/quest/hooks/useQuests";
 import { useERC721Token } from "@/hooks/useERC721Token";
-import { useOpenUrl } from "@coinbase/onchainkit/minikit";
+import { useMyBaseCard } from "@/hooks/useMyBaseCard";
+import { Quest } from "@/lib/types/api";
+import clsx from "clsx";
+import { ChevronDown, ChevronUp, Gift } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useCallback, useMemo, useState } from "react";
 import { AiOutlineLoading } from "react-icons/ai";
 import {
-    IoSparklesOutline,
     IoDocumentTextOutline,
     IoGridOutline,
+    IoSparklesOutline,
 } from "react-icons/io5";
-import ProfileCardContent from "./ProfileCardContent";
 import { NoCardState } from "./NoCardState";
-import { useMyBaseCard } from "@/hooks/useMyBaseCard";
-import clsx from "clsx";
-import { BaseModal } from "@/components/modals/BaseModal";
+import ProfileCardContent from "./ProfileCardContent";
 
 const LoadingState = () => (
     <div className="flex-1 h-full flex items-center justify-center bg-gradient-to-b from-[#0050FF] to-[#0080FF]">
@@ -24,20 +29,36 @@ const LoadingState = () => (
     </div>
 );
 
-interface MyCardProfileProps {
-    title?: string;
-}
 
-export default function MyBaseCardProfile({ title }: MyCardProfileProps) {
+export default function MyBaseCardProfile() {
     const router = useRouter();
-    const openUrl = useOpenUrl();
+    const { showToast } = useToast();
     const [activeTab, setActiveTab] = useState<"earn" | "personal">("earn");
     const [isTodoModalOpen, setIsTodoModalOpen] = useState(false);
+    const [isQuestExpanded, setIsQuestExpanded] = useState(false);
+    const [successModalState, setSuccessModalState] = useState<{
+        isOpen: boolean;
+        rewarded: number;
+        newTotalPoints: number;
+    }>({ isOpen: false, rewarded: 0, newTotalPoints: 0 });
 
     const { data: cardData, isLoading: isPending, error } = useMyBaseCard();
 
     // Use useERC721Token for on-chain data including socials
     const { metadata, isLoading: isTokenLoading } = useERC721Token();
+
+    // Quest data
+    const { quests, claimingQuest, claim } = useQuests();
+
+    const claimableQuests = useMemo(() => {
+        return quests.filter(
+            (q) => q.status === "claimable" || q.status === "pending"
+        );
+    }, [quests]);
+
+    const claimableCount = useMemo(() => {
+        return quests.filter((q) => q.status === "claimable").length;
+    }, [quests]);
 
     const socials = useMemo(() => {
         if (!metadata?.socials) return {};
@@ -53,9 +74,65 @@ export default function MyBaseCardProfile({ title }: MyCardProfileProps) {
         router.push("/edit-profile");
     };
 
-    const handleNavigateToMint = () => {
-        router.push("/mint");
+    const handleClaim = useCallback(
+        async (quest: Quest) => {
+            if (quest.status === "claimable") {
+                try {
+                    const result = await claim(quest);
+                    if (result && result.verified) {
+                        setSuccessModalState({
+                            isOpen: true,
+                            rewarded: result.rewarded,
+                            newTotalPoints: result.newTotalPoints,
+                        });
+                    }
+                } catch (err) {
+                    showToast(
+                        err instanceof Error ? err.message : "Failed to claim quest",
+                        "error"
+                    );
+                }
+                return;
+            }
+
+            if (quest.actionType === "MINT" && quest.status === "pending") {
+                router.push("/mint");
+                return;
+            }
+
+            if (
+                quest.actionType === "LINK_SOCIAL" ||
+                quest.actionType === "LINK_BASENAME"
+            ) {
+                router.push("/edit-profile");
+                return;
+            }
+
+            try {
+                const result = await claim(quest);
+                if (result) {
+                    setSuccessModalState({
+                        isOpen: true,
+                        rewarded: result.rewarded,
+                        newTotalPoints: result.newTotalPoints,
+                    });
+                }
+            } catch (err) {
+                showToast(
+                    err instanceof Error ? err.message : "Failed to claim quest",
+                    "error"
+                );
+            }
+        },
+        [claim, router, showToast]
+    );
+
+    const getButtonName = (quest: Quest) => {
+        if (quest.status === "completed") return "Claimed";
+        if (quest.status === "claimable") return "Claim!";
+        return quest.actionType;
     };
+
 
     const rootHeight = {
         minHeight:
@@ -79,44 +156,86 @@ export default function MyBaseCardProfile({ title }: MyCardProfileProps) {
                 className="w-full flex flex-col items-center justify-start overflow-y-auto relative px-4 py-6 pb-24 gap-6 bg-basecard-blue"
                 style={rootHeight}
             >
-                <NoCardState onNavigateToMint={handleNavigateToMint} />
+                <NoCardState />
             </div>
         );
     }
 
     return (
-        <div className="w-full flex flex-col items-center justify-start overflow-y-auto relative py-2 gap-6">
+        <div className="w-full flex flex-col items-center justify-start overflow-y-auto relative gap-y-5 pb-8">
+            {/* Claimable Quest Banner */}
+            {claimableQuests.length > 0 && (
+                <div className="w-full px-5 pt-3">
+                    <button
+                        onClick={() => setIsQuestExpanded(!isQuestExpanded)}
+                        className="w-full flex items-center justify-between p-4 bg-gradient-to-r from-yellow-400 to-orange-400 rounded-xl shadow-lg"
+                    >
+                        <div className="flex items-center gap-3">
+                            <Gift className="w-6 h-6 text-white" />
+                            <span className="text-white font-bold font-k2d">
+                                {claimableCount > 0
+                                    ? `${claimableCount} Reward${claimableCount > 1 ? "s" : ""} Available!`
+                                    : `${claimableQuests.length} Quest${claimableQuests.length > 1 ? "s" : ""} Remaining`}
+                            </span>
+                        </div>
+                        {isQuestExpanded ? (
+                            <ChevronUp className="w-5 h-5 text-white" />
+                        ) : (
+                            <ChevronDown className="w-5 h-5 text-white" />
+                        )}
+                    </button>
+
+                    {/* Expandable Quest List */}
+                    {isQuestExpanded && (
+                        <div className="mt-4 flex flex-col gap-3">
+                            {claimableQuests.map((quest, index) => (
+                                <QuestItem
+                                    key={index}
+                                    title={quest.title}
+                                    content={quest.description || ""}
+                                    buttonName={getButtonName(quest)}
+                                    point={quest.rewardAmount}
+                                    isCompleted={quest.status === "completed"}
+                                    isClaimable={quest.status === "claimable"}
+                                    isClaiming={claimingQuest === quest.actionType}
+                                    onClaim={() => handleClaim(quest)}
+                                />
+                            ))}
+                        </div>
+                    )}
+                </div>
+            )}
+
             {/* Card Section */}
             <ProfileCardContent
                 card={cardData}
-                openUrl={openUrl}
                 socials={socials}
                 isSocialLoading={isSocialLoading}
-                onNavigateToCollection={handleNavigateToCollection}
-                title={title}
             />
 
             {/* Action Buttons Row */}
-            <div className="w-full max-w-[360px] flex justify-between gap-2">
+            <div className="w-full flex justify-between gap-2 px-5">
                 <ActionButton
                     icon={<IoSparklesOutline size={24} />}
                     label="BaseName"
-                    onClick={() => setIsTodoModalOpen(true)}
+                    onClick={() => {}}
+                    comingSoon
                 />
                 <ActionButton
-                    icon={<IoDocumentTextOutline size={22} />}
+                    icon={<IoDocumentTextOutline size={24} />}
                     label="Resume"
-                    onClick={() => setIsTodoModalOpen(true)}
+                    onClick={() => {}}
+                    comingSoon
                 />
                 <ActionButton
-                    icon={<IoGridOutline size={22} />}
+                    icon={<IoGridOutline size={24} />}
                     label="Collection"
                     onClick={handleNavigateToCollection}
                 />
             </div>
 
             {/* Proof of Work Section */}
-            <div className="w-full max-w-[360px]">
+            <div className="w-full px-5">
                 <div className="flex justify-between items-end mb-4">
                     <h3 className="text-[24px] leading-tight font-semibold font-k2d text-black">
                         Proof of Work
@@ -164,6 +283,17 @@ export default function MyBaseCardProfile({ title }: MyCardProfileProps) {
                 description="TODO please wait"
                 buttonText="Close"
             />
+
+            {/* Quest Success Modal */}
+            <SuccessModal
+                isOpen={successModalState.isOpen}
+                onClose={() =>
+                    setSuccessModalState((prev) => ({ ...prev, isOpen: false }))
+                }
+                title="Quest Claimed!"
+                description={`You earned +${successModalState.rewarded} BC.\nTotal Balance: ${successModalState.newTotalPoints} BC`}
+                buttonText="Awesome!"
+            />
         </div>
     );
 }
@@ -172,20 +302,33 @@ function ActionButton({
     icon,
     label,
     onClick,
+    comingSoon = false,
 }: {
     icon: React.ReactNode;
     label: string;
     onClick: () => void;
+    comingSoon?: boolean;
 }) {
     return (
         <button
             onClick={onClick}
-            className="flex-1 h-[80px] bg-basecard-blue rounded-[14px] flex flex-col items-center justify-center gap-1.5 text-white hover:bg-basecard-blue/90 transition-colors shadow-md active:scale-95"
+            className="relative flex-1 h-20 bg-[#007AFF] rounded-lg flex flex-col items-center justify-center
+                gap-1.5 text-white hover:bg-basecard-blue transition-colors shadow-md active:scale-95 overflow-hidden"
         >
             {icon}
             <span className="font-k2d font-medium text-[13px] leading-none">
                 {label}
             </span>
+            {comingSoon && (
+                <div
+                    className="absolute inset-0 flex items-center justify-center rounded-lg"
+                    style={{
+                        background: "linear-gradient(360deg, rgba(204,228,255,0.85) 0%, rgba(119,184,255,0.85) 100%)",
+                    }}
+                >
+                    <span className="font-bold text-sm text-[#0050FF]">Coming<br/>Soon!</span>
+                </div>
+            )}
         </button>
     );
 }

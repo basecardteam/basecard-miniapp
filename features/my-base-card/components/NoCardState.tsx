@@ -1,24 +1,132 @@
-import BaseButton from "@/components/buttons/BaseButton";
+"use client";
 
-// Error/No Card State Component
-export const NoCardState = ({
-    onNavigateToMint,
-}: {
-    onNavigateToMint: () => void;
-}) => (
-    <div className="flex-1 h-full flex flex-col items-center justify-center">
-        <div className="flex flex-col items-center text-center gap-6">
-            <h1 className="text-5xl sm:text-6xl font-k2d font-bold text-white drop-shadow-lg tracking-tight leading-tight">
-                No Card Found
-            </h1>
-            <p className="text-xl sm:text-2xl font-k2d font-medium text-white max-w-md drop-shadow-md">
-                Create your onchain identity
-                <br />
-                and start building your story
-            </p>
-            <BaseButton onClick={onNavigateToMint} className="w-full max-w-xs">
-                Mint Your Card
-            </BaseButton>
-        </div>
-    </div>
-);
+import SuccessModal from "@/components/modals/SuccessModal";
+import { useToast } from "@/components/ui/Toast";
+import QuestHeroSection from "@/features/quest/components/QuestHeroSection";
+import QuestItem from "@/features/quest/components/QuestItem";
+import { useQuests } from "@/features/quest/hooks/useQuests";
+import { Quest } from "@/lib/types/api";
+import { useRouter } from "next/navigation";
+import { useCallback, useState } from "react";
+
+export const NoCardState = () => {
+    const router = useRouter();
+    const { quests, isLoading, error, claimingQuest, claim } = useQuests();
+    const { showToast } = useToast();
+    const [successModalState, setSuccessModalState] = useState<{
+        isOpen: boolean;
+        rewarded: number;
+        newTotalPoints: number;
+    }>({ isOpen: false, rewarded: 0, newTotalPoints: 0 });
+
+    const handleClaim = useCallback(
+        async (quest: Quest) => {
+            if (quest.status === "claimable") {
+                try {
+                    const result = await claim(quest);
+                    if (result && result.verified) {
+                        setSuccessModalState({
+                            isOpen: true,
+                            rewarded: result.rewarded,
+                            newTotalPoints: result.newTotalPoints,
+                        });
+                    }
+                } catch (err) {
+                    showToast(
+                        err instanceof Error ? err.message : "Failed to claim quest",
+                        "error"
+                    );
+                }
+                return;
+            }
+
+            if (quest.actionType === "MINT" && quest.status === "pending") {
+                router.push("/mint");
+                return;
+            }
+
+            if (
+                quest.actionType === "LINK_SOCIAL" ||
+                quest.actionType === "LINK_BASENAME"
+            ) {
+                router.push("/edit-profile");
+                return;
+            }
+
+            try {
+                const result = await claim(quest);
+                if (result) {
+                    setSuccessModalState({
+                        isOpen: true,
+                        rewarded: result.rewarded,
+                        newTotalPoints: result.newTotalPoints,
+                    });
+                }
+            } catch (err) {
+                showToast(
+                    err instanceof Error ? err.message : "Failed to claim quest",
+                    "error"
+                );
+            }
+        },
+        [claim, router, showToast]
+    );
+
+    const getButtonName = (quest: Quest) => {
+        if (quest.status === "completed") return "Claimed";
+        if (quest.status === "claimable") return "Claim!";
+        return quest.actionType;
+    };
+
+    return (
+        <>
+            <div className="w-full flex flex-col items-center pt-4">
+                {/* Hero Section */}
+                <QuestHeroSection />
+
+                {/* Quest List */}
+                <div className="flex flex-col gap-4 w-full max-w-[340px] items-center px-2">
+                    <h2 className="text-white text-xl font-bold font-k2d w-full text-center mb-2">
+                        QUEST
+                    </h2>
+                    {isLoading ? (
+                        <div className="text-white/80 text-center py-8">
+                            Loading quests...
+                        </div>
+                    ) : error ? (
+                        <div className="text-red-300 text-center py-8">{error}</div>
+                    ) : quests.length === 0 ? (
+                        <div className="text-white/80 text-center py-8">
+                            No quests available
+                        </div>
+                    ) : (
+                        quests.map((quest, index) => (
+                            <QuestItem
+                                key={index}
+                                title={quest.title}
+                                content={quest.description || ""}
+                                buttonName={getButtonName(quest)}
+                                point={quest.rewardAmount}
+                                isCompleted={quest.status === "completed"}
+                                isClaimable={quest.status === "claimable"}
+                                isClaiming={claimingQuest === quest.actionType}
+                                onClaim={() => handleClaim(quest)}
+                            />
+                        ))
+                    )}
+                </div>
+            </div>
+
+            {/* Success Modal */}
+            <SuccessModal
+                isOpen={successModalState.isOpen}
+                onClose={() =>
+                    setSuccessModalState((prev) => ({ ...prev, isOpen: false }))
+                }
+                title="Quest Claimed!"
+                description={`You earned +${successModalState.rewarded} BC.\nTotal Balance: ${successModalState.newTotalPoints} BC`}
+                buttonText="Awesome!"
+            />
+        </>
+    );
+};

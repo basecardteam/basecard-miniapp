@@ -1,46 +1,36 @@
 "use client";
 
 import BackButton from "@/components/buttons/BackButton";
-import { MintButton } from "./components/MintButton";
-import { MintErrorMessages } from "./components/MintErrorMessages";
-import { MintHeader } from "./components/MintHeader";
-import ProfileImagePreview from "./components/ProfileImagePreview";
-import { RoleSelector } from "./components/RoleSelector";
-import { SocialsInput } from "./components/SocialsInput";
-import { WebsitesInput } from "./components/WebsitesInput";
-import { WalletConnectionRequired } from "@/components/WalletConnectionRequired";
+import BaseButton from "@/components/buttons/BaseButton";
 import {
     MiniAppContext,
     useFrameContext,
 } from "@/components/providers/FrameProvider";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useMintForm } from "@/hooks/useMintForm";
+import { useToast } from "@/components/ui/Toast";
 import { useMintBaseCard } from "@/hooks/useMintBaseCard";
-import { MAX_WEBSITES } from "@/lib/constants/mint";
+import { useMintForm } from "@/hooks/useMintForm";
+import { MAX_WEBSITES, type Role } from "@/lib/constants/mint";
+import { shareToFarcaster } from "@/lib/farcaster/share";
+import { processProfileImage } from "@/lib/processProfileImage";
 import type { MintFormData } from "@/lib/schemas/mintFormSchema";
+import { activeChain } from "@/lib/wagmi";
 import FALLBACK_PROFILE_IMAGE from "@/public/assets/empty_pfp.png";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { Suspense, useCallback, useEffect, useState } from "react";
 import { useAccount } from "wagmi";
-import { processProfileImage } from "@/lib/processProfileImage";
-import { activeChain } from "@/lib/wagmi";
-import { shareToFarcaster } from "@/lib/farcaster/share";
-
-const ErrorModal = dynamic(
-    () =>
-        import("@/components/modals/ErrorModal").then((mod) => ({
-            default: mod.default,
-        })),
-    {
-        ssr: false,
-    }
-);
+import { MintErrorMessages } from "./components/MintErrorMessages";
+import { MintHeader } from "./components/MintHeader";
+import ProfileImagePreview from "./components/ProfileImagePreview";
+import { RoleSelector } from "./components/RoleSelector";
+import { SocialsInput } from "./components/SocialsInput";
+import { WebsitesInput } from "./components/WebsitesInput";
 
 const LoadingModal = dynamic(
     () =>
-        import("@/components/modals/LoadingModal").then((mod) => ({
+        import("@/components/modals/FullScreenLoadingOverlay").then((mod) => ({
             default: mod.default,
         })),
     {
@@ -48,21 +38,14 @@ const LoadingModal = dynamic(
     }
 );
 
-const BaseModal = dynamic(
-    () =>
-        import("@/components/modals/BaseModal").then((mod) => ({
-            default: mod.BaseModal,
-        })),
-    {
-        ssr: false,
-    }
-);
+import { useModal } from "@/components/modals/BaseModal";
 
 export default function MintContent() {
     const frameContext = useFrameContext();
     const router = useRouter();
     const { address, isConnected } = useAccount();
-
+    const { showToast } = useToast();
+    
     const username = (frameContext?.context as MiniAppContext)?.user?.username;
     const defaultProfileUrl =
         (frameContext?.context as MiniAppContext)?.user?.pfpUrl ||
@@ -98,24 +81,8 @@ export default function MintContent() {
         error: mintError,
     } = useMintBaseCard();
 
-    // Modal states
-    const [showSuccessModal, setShowSuccessModal] = useState(false);
-    const [showErrorModal, setShowErrorModal] = useState(false);
-    const [errorMessage, setErrorMessage] = useState({
-        title: "Error Occurred",
-        description: "Something went wrong. Please try again.",
-    });
-    const [mintHash, setMintHash] = useState<string | undefined>();
-    const [mintImageUri, setMintImageUri] = useState<string | undefined>();
-
-    const handleCloseErrorModal = useCallback(() => {
-        setShowErrorModal(false);
-    }, []);
-
-    const showError = useCallback((title: string, description: string) => {
-        setErrorMessage({ title, description });
-        setShowErrorModal(true);
-    }, []);
+    // Modal hook
+    const { showModal } = useModal();
 
     // Form submit handler
     const onSubmit = useCallback(
@@ -127,10 +94,7 @@ export default function MintContent() {
             );
 
             if (!profileImage) {
-                showError(
-                    "Profile Image Required",
-                    "Please upload a profile image."
-                );
+                showToast("Please upload a profile image.", "error");
                 return;
             }
 
@@ -155,28 +119,42 @@ export default function MintContent() {
                         sessionStorage.clear();
                     }
 
-                    setMintHash(result.hash);
-                    setMintImageUri(result.imageUri);
-                    setShowSuccessModal(true);
+                    showModal({
+                        title: "Successfully Minted",
+                        description: "For now you can check your Base Card and transaction data",
+                        buttonText: "Share",
+                        variant: "success",
+                        linkText: "Open viewer",
+                        onLinkClick: () => {
+                            if (result.hash) {
+                                const explorerUrl = activeChain.blockExplorers?.default.url;
+                                window.open(`${explorerUrl}/tx/${result.hash}`, "_blank");
+                            }
+                        },
+                        onButtonClick: async () => {
+                            await shareToFarcaster({
+                                text: "I just minted my BaseCard! Check it out 🎉",
+                                embedUrl: result.imageUri,
+                            });
+                            router.push("/");
+                        },
+                    });
                 } else if (result.error === "User rejected") {
-                    // User rejected - do nothing, just return to form
+                    showToast("Transaction cancelled", "warning");
                 } else {
-                    showError(
-                        "Minting Failed",
-                        result.error || "Failed to mint your card"
-                    );
+                    showToast(result.error || "Failed to mint your card", "error");
                 }
             } catch (error) {
                 console.error("❌ Card minting error:", error);
-                showError(
-                    "Something Went Wrong",
+                showToast(
                     error instanceof Error
                         ? error.message
-                        : "An unexpected error occurred"
+                        : "An unexpected error occurred",
+                    "error"
                 );
             }
         },
-        [address, username, defaultProfileUrl, mintCard, showError]
+        [defaultProfileUrl, mintCard, showToast, showModal, router]
     );
 
     // Wrapper for form submit (with wallet validation)
@@ -225,27 +203,31 @@ export default function MintContent() {
     }, [newWebsite, handleAddWebsite, form]);
 
     // 입력 시 에러 메시지 초기화
-    useEffect(() => {
-        if (urlError && newWebsite.trim()) {
-            // 입력이 변경되면 에러 메시지 제거 (WebsitesInput에서도 처리)
-            setUrlError(null);
-        }
-    }, [newWebsite, urlError]);
+    const handleNewWebsiteChange = useCallback(
+        (value: string) => {
+            setNewWebsite(value);
+            if (urlError) {
+                setUrlError(null);
+            }
+        },
+        [urlError]
+    );
 
     const { errors } = formState;
 
-    // 앱 연결이 필요한 경우 안내 화면 표시
+    // 지갑 연결이 안 되어 있으면 메인 화면으로 리다이렉트
+    useEffect(() => {
+        if (!address) {
+            router.push("/");
+        }
+    }, [address, router]);
+
     if (!address) {
-        return (
-            <WalletConnectionRequired
-                title="Wallet Connection Required"
-                description="Please connect your Base Wallet to mint your card. This feature requires an active wallet connection."
-            />
-        );
+        return null;
     }
 
     return (
-        <main className="bg-white text-basecard-black scroll-container scrollbar-hide overscroll-y-none">
+        <main className="bg-white text-basecard-black scroll-container scrollbar-hide overscroll-y-none relative">
             <div className="relative">
                 <BackButton />
             </div>
@@ -293,9 +275,7 @@ export default function MintContent() {
                 {/* 역할 선택 */}
                 <RoleSelector
                     selectedRole={role}
-                    onRoleChange={(
-                        value: "Developer" | "Designer" | "Marketer"
-                    ) => setValue("role", value)}
+                    onRoleChange={(value: Role) => setValue("role", value)}
                 />
 
                 {/* 소셜 링크 입력 */}
@@ -317,7 +297,7 @@ export default function MintContent() {
                 <WebsitesInput
                     websites={websites}
                     newWebsite={newWebsite}
-                    onNewWebsiteChange={setNewWebsite}
+                    onNewWebsiteChange={handleNewWebsiteChange}
                     onAddWebsite={handleAddWebsiteWithValidation}
                     onRemoveWebsite={handleRemoveWebsite}
                     urlError={urlError}
@@ -334,11 +314,11 @@ export default function MintContent() {
                     <textarea
                         id="bio"
                         {...register("bio")}
-                        className={`w-full p-4 text-base rounded-xl border-2 transition-all duration-300 resize-none placeholder:text-sm placeholder:text-gray-400 ${
+                        className={`w-full bg-white p-4 rounded-xl border-2 transition-all min-h-20 max-h-60 duration-300 ${
                             errors.bio
                                 ? "border-red-500 focus:border-red-600 focus:ring-red-500/20"
                                 : "border-gray-200 focus:border-basecard-blue focus:ring-basecard-blue/20 hover:border-gray-300"
-                        }`}
+                        } placeholder:text-sm placeholder:text-gray-400 `}
                         rows={4}
                         placeholder="Tell us about yourself, your experience, and goals..."
                     />
@@ -356,13 +336,14 @@ export default function MintContent() {
                 {mintError && <MintErrorMessages mintError={mintError} />}
 
                 {/* 민팅 버튼 */}
-                <MintButton
-                    isGenerating={isCreatingBaseCard}
-                    isMintPending={isSendingTransaction}
-                    isMintConfirming={false}
-                    isMintSuccess={false}
-                    onSubmit={handleSubmit}
-                />
+                <BaseButton
+                    type="submit"
+                    onClick={handleSubmit}
+                    disabled={isCreatingBaseCard || isSendingTransaction}
+                    className="w-full py-6 text-lg rounded-2xl shadow-xl mt-6"
+                >
+                    Create My Card
+                </BaseButton>
             </form>
 
             {/* Loading Modal - Card Generation */}
@@ -387,55 +368,6 @@ export default function MintContent() {
                 </Suspense>
             )}
 
-            {/* Error Modal */}
-            {showErrorModal && (
-                <Suspense fallback={null}>
-                    <ErrorModal
-                        isOpen={showErrorModal}
-                        onClose={handleCloseErrorModal}
-                        title={errorMessage.title}
-                        description={errorMessage.description}
-                    />
-                </Suspense>
-            )}
-
-            {/* Success Modal */}
-            {showSuccessModal && (
-                <Suspense fallback={null}>
-                    <BaseModal
-                        isOpen={showSuccessModal}
-                        onClose={() => {
-                            setShowSuccessModal(false);
-                            router.push("/");
-                        }}
-                        title="Successfully Minted"
-                        description="For now you can check your Base Card and transaction data"
-                        buttonText="Share"
-                        variant="success"
-                        linkText="Open viewer"
-                        onLinkClick={() => {
-                            // Open block explorer transaction page
-                            if (mintHash) {
-                                const explorerUrl =
-                                    activeChain.blockExplorers?.default.url;
-                                window.open(
-                                    `${explorerUrl}/tx/${mintHash}`,
-                                    "_blank"
-                                );
-                            }
-                        }}
-                        onButtonClick={async () => {
-                            // Share to Farcaster
-                            await shareToFarcaster({
-                                text: "I just minted my BaseCard! Check it out 🎉",
-                                embedUrl: mintImageUri,
-                            });
-                            setShowSuccessModal(false);
-                            router.push("/");
-                        }}
-                    />
-                </Suspense>
-            )}
         </main>
     );
 }

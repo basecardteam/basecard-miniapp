@@ -1,24 +1,21 @@
-import Link from "next/link";
 import Image from "next/image";
-import { useMemo, useCallback, useState } from "react";
-import clsx from "clsx";
-import { FaGithub, FaGlobe, FaTwitter, FaLinkedin } from "react-icons/fa";
+import { useCallback, useMemo, useState } from "react";
+import { FaGithub, FaGlobe, FaLinkedin, FaTwitter } from "react-icons/fa";
+import { HiOutlinePencil } from "react-icons/hi";
 import { IoShareOutline } from "react-icons/io5";
 
-import { Card } from "@/lib/types";
 import { BaseModal } from "@/components/modals/BaseModal";
-import MyCardBGImage from "@/public/assets/mybasecard-background.webp";
-import FacasterLogo from "@/public/logo/farcaster-logo.png";
 import { useUser } from "@/hooks/useUser";
-import BackButton from "@/components/buttons/BackButton";
 import { resolveIpfsUrl } from "@/lib/ipfs";
+import { Card } from "@/lib/types";
+import FacasterLogo from "@/public/logo/farcaster-logo.png";
+import { useOpenUrl } from "@coinbase/onchainkit/minikit";
+import { useRouter } from "next/navigation";
 
 interface ProfileCardContentProps {
     card: Card;
-    openUrl: (url: string) => void;
     socials?: Record<string, string>;
     isSocialLoading?: boolean;
-    onNavigateToCollection: () => void;
     title?: string;
 }
 
@@ -52,14 +49,17 @@ const valueToUrl = (key: string, raw: string): string => {
 
 export default function ProfileCardContent({
     card,
-    openUrl,
     socials = {},
     isSocialLoading = false,
-    onNavigateToCollection,
-    title = "My BaseCard",
 }: ProfileCardContentProps) {
+    const openUrl = useOpenUrl();
     const [isShareModalOpen, setIsShareModalOpen] = useState(false);
     const { data: user } = useUser();
+    const router = useRouter();
+
+    const handleNavigateToCollection = useCallback(() => {
+        router.push("/edit-profile");
+    },[router]);
 
     const socialEntries: SocialEntry[] = useMemo(
         () => [
@@ -70,8 +70,8 @@ export default function ProfileCardContent({
                     <Image
                         src={FacasterLogo}
                         alt="Farcaster"
-                        width={20}
-                        height={20}
+                        width={24}
+                        height={24}
                         className="object-contain"
                     />
                 ),
@@ -79,22 +79,22 @@ export default function ProfileCardContent({
             {
                 key: "github",
                 label: "GitHub",
-                icon: <FaGithub className="text-white" size={20} />,
+                icon: <FaGithub className="text-white" size={24} />,
             },
             {
                 key: "website",
                 label: "Website",
-                icon: <FaGlobe className="text-white" size={20} />,
+                icon: <FaGlobe className="text-white" size={24} />,
             },
             {
                 key: "x",
                 label: "Twitter",
-                icon: <FaTwitter className="text-white" size={20} />,
+                icon: <FaTwitter className="text-white" size={24} />,
             },
             {
                 key: "linkedin",
                 label: "LinkedIn",
-                icon: <FaLinkedin className="text-white" size={20} />,
+                icon: <FaLinkedin className="text-white" size={24} />,
             },
         ],
         []
@@ -120,35 +120,29 @@ export default function ProfileCardContent({
     );
 
     return (
-        <div className="w-full flex flex-col items-center">
-            {/* Header Title */}
-            <div className="flex w-full items-center h-12 gap-x-2 mb-4 px-4">
-                <BackButton className="relative top-0 left-0" />
-                <div className="font-k2d font-bold text-black text-3xl tracking-tighter leading-none">
-                    {title}
-                </div>
-            </div>
-
-            <div className="relative w-full flex-1 max-w-[360px] max-h-[520px] rounded-[12px] mx-auto my-auto overflow-hidden shadow-2xl bg-basecard-blue">
-                {/* Background Image */}
-                <div className="absolute inset-0 z-0">
-                    <Image
-                        src={MyCardBGImage}
-                        alt="BaseCard Background"
-                        fill
-                        style={{
-                            objectFit: "cover",
-                            objectPosition: "center",
-                        }}
-                        priority
-                        unoptimized
-                    />
-                </div>
+        <div className="w-full flex flex-col items-center px-5">
+            <div className="relative w-full rounded-xl overflow-hidden shadow-2xl bg-basecard-blue"
+                style={{
+                    backgroundImage:"url(assets/mybasecard-background.webp)",
+                    backgroundSize:"cover",
+                    backgroundPosition:"center",
+                    backgroundRepeat:"no-repeat",
+                }}
+            >
+                {/* Edit Button - Top Right */}
+                <button
+                    onClick={handleNavigateToCollection}
+                    className="absolute top-1 right-1 z-20 rounded-full  flex justify-center items-center
+                        hover:bg-black/10 transition-colors active:scale-95"
+                    aria-label="Edit Profile"
+                >
+                    <HiOutlinePencil className="text-white" size={18} />
+                </button>
 
                 {/* Content Wrapper */}
-                <div className="relative z-10 w-full h-full flex flex-col items-center">
+                <div className="relative z-10 w-full h-full flex flex-col items-center p-5">
                     {/* Profile Image */}
-                    <div className="mt-[40px] w-[64px] h-[64px] rounded-xl overflow-hidden shadow-lg border-2 border-white/20 flex-none bg-black/20">
+                    <div className="w-20 h-20 rounded-xl overflow-hidden shadow-lg border-2 border-white/20 flex-none bg-black/20">
                         <Image
                             src={
                                 user?.profileImage
@@ -156,32 +150,26 @@ export default function ProfileCardContent({
                                     : "/assets/default-profile.png"
                             }
                             alt={card.nickname || "User"}
-                            width={64}
-                            height={64}
+                            width={80}
+                            height={80}
                             className="object-cover"
                             priority
                         />
                     </div>
                     {/* Nickname */}
-                    <div className="mt-[20px] w-full flex justify-center items-center gap-2">
-                        <h2 className="font-k2d font-bold text-[30px] leading-normal text-white tracking-tight drop-shadow-md truncate max-w-[200px] py-1">
+                    <div className="w-full h-fit flex justify-center items-center mt-4">
+                        <p className="font-semibold text-3xl leading-none text-white truncate">
                             {card.nickname || "Unknown"}
-                        </h2>
-                        <button
-                            onClick={() => setIsShareModalOpen(true)}
-                            className="text-white hover:opacity-80 transition-opacity p-1"
-                        >
-                            <IoShareOutline size={24} />
-                        </button>
+                        </p>
                     </div>
                     {/* Role */}
-                    <div className="mt-[4px] w-full text-center px-4">
-                        <p className="font-pretendard font-light text-[18px] text-white/90 tracking-tight truncate">
+                    <div className="mt-1 w-full text-center">
+                        <p className="font-light text-lg text-white/90 tracking-tight truncate">
                             {card.role || "Builder"}
                         </p>
                     </div>
                     {/* Social Icons */}
-                    <div className="mt-[20px] flex items-center gap-[14px]">
+                    <div className="mt-4 flex items-center gap-3">
                         {socialEntries.map(({ key, icon, label }) => {
                             const rawValue = effectiveSocials?.[key] ?? "";
                             const value = rawValue.trim();
@@ -197,12 +185,10 @@ export default function ProfileCardContent({
                                         if (hasUrl) handleOpenUrl(key, value);
                                     }}
                                     disabled={!hasUrl || isSocialLoading}
-                                    className={clsx(
-                                        "w-[37px] h-[37px] rounded-full flex items-center justify-center border transition-all",
-                                        hasUrl
-                                            ? "bg-[#0455FF] border-[#3E7CFF] hover:opacity-90 cursor-pointer"
-                                            : "bg-gray-800/50 border-gray-600 opacity-50 cursor-not-allowed"
-                                    )}
+                                    className={`w-10 h-10 rounded-full flex items-center justify-center border transition-all
+                                        ${hasUrl ? "bg-[#0455FF] border-[#3E7CFF] hover:opacity-90 cursor-pointer"
+                                    : "bg-gray-800/50 border-gray-600 opacity-50 cursor-not-allowed"
+                                }`}
                                     aria-label={label}
                                 >
                                     {icon}
@@ -211,23 +197,20 @@ export default function ProfileCardContent({
                         })}
                     </div>
                     {/* Bio (Description) */}
-                    <div
-                        className="mt-[24px] mb-4 w-[calc(100%-48px)] max-w-[330px] min-h-[70px] rounded-[8px] border border-[#3E7CFF]/50 flex items-center justify-center px-4 py-3"
-                        style={{ background: "rgba(255, 255, 255, 0.15)" }}
-                    >
-                        <p className="font-k2d font-medium text-[14px] leading-[20px] text-center text-white break-words">
+                    <div className="mt-4 w-full min-h-16 px-4 py-3 rounded-lg border border-[#3E7CFF]/50 bg-black/5 flex items-center justify-center">
+                        <p className="font-medium text-sm leading-5 text-center text-white break-words w-full">
                             {card.bio || "Hi, I'm a base builder"}
                         </p>
                     </div>
-                    {/* Spacer to push button to bottom or just fill space */}
-                    <div className="flex-1" />
-                    {/* Edit Profile Button */}
+                    {/* Share Button */}
                     <button
-                        onClick={onNavigateToCollection}
-                        className="w-full h-[60px] bg-[#0455FF] flex items-center justify-center gap-2 hover:bg-[#0344CC] transition-colors mt-auto"
+                        onClick={() => setIsShareModalOpen(true)}
+                        className="mt-4 w-full h-12 bg-[#0455FF] rounded-lg flex items-center justify-center gap-1
+                            hover:bg-[#0344CC] transition-colors"
                     >
-                        <span className="font-pretendard font-normal text-[16px] text-white">
-                            Edit Profile
+                        <IoShareOutline className="text-white" size={20} />
+                        <span className="font-medium text-base text-white">
+                            Share
                         </span>
                     </button>
                 </div>
