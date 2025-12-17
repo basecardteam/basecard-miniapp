@@ -1,15 +1,16 @@
 "use client";
 
+import { useContractConfig } from "@/hooks/useContractConfig";
+import { baseCardAbi } from "@/lib/abi/abi";
 import {
     createBaseCard,
-    deleteBaseCard,
     CreateBaseCardParams,
+    deleteBaseCard,
+    fetchCardByAddress,
 } from "@/lib/api/basecards";
-import { baseCardAbi } from "@/lib/abi/abi";
-import { useCallback, useState } from "react";
-import { useContractConfig } from "@/hooks/useContractConfig";
-import { useWriteContract, useAccount, usePublicClient } from "wagmi";
 import { logger } from "@/lib/common/logger";
+import { useCallback, useState } from "react";
+import { useAccount, usePublicClient, useWriteContract } from "wagmi";
 
 export function useMintBaseCard() {
     const { address } = useAccount();
@@ -93,9 +94,39 @@ export function useMintBaseCard() {
                     return { success: false, error: "User rejected" };
                 }
 
-                // Already minted error
+                // AlreadyMinted - 이미 카드가 있는 경우
                 if (rawMessage.includes("AlreadyMinted")) {
+                    logger.info("User already has a card, fetching existing card...");
+                    try {
+                        const card = await fetchCardByAddress(address!);
+                        if (card?.txHash) {
+                            return {
+                                success: true,
+                                hash: card.txHash,
+                                imageUri: card.imageUri || "",
+                                isExisting: true,
+                            };
+                        }
+                    } catch {
+                        // 서버 확인 실패
+                    }
                     return { success: false, error: "Already minted" };
+                }
+
+                // RPC 에러 등 - 서버에서 민팅 상태 확인
+                logger.warn("Transaction may have succeeded despite error, checking server...");
+                try {
+                    const card = await fetchCardByAddress(address!);
+                    if (card?.txHash) {
+                        logger.info("✅ Mint confirmed via server. Hash:", card.txHash);
+                        return {
+                            success: true,
+                            hash: card.txHash,
+                            imageUri: card.imageUri || "",
+                        };
+                    }
+                } catch {
+                    // 서버 확인 실패 - 원래 에러로 처리
                 }
 
                 // Other errors

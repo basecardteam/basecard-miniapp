@@ -23,6 +23,7 @@ import { Suspense, useCallback, useEffect, useState } from "react";
 import { useAccount } from "wagmi";
 import { MintErrorMessages } from "./components/MintErrorMessages";
 import { MintHeader } from "./components/MintHeader";
+import MintSuccessModal from "./components/MintSuccessModal";
 import ProfileImagePreview from "./components/ProfileImagePreview";
 import { RoleSelector } from "./components/RoleSelector";
 import { SocialsInput } from "./components/SocialsInput";
@@ -37,8 +38,6 @@ const LoadingModal = dynamic(
         ssr: false,
     }
 );
-
-import { useModal } from "@/components/modals/BaseModal";
 
 export default function MintContent() {
     const frameContext = useFrameContext();
@@ -81,8 +80,13 @@ export default function MintContent() {
         error: mintError,
     } = useMintBaseCard();
 
-    // Modal hook
-    const { showModal } = useModal();
+    // Success modal state
+    const [successModal, setSuccessModal] = useState<{
+        isOpen: boolean;
+        txHash: string;
+        imageUri: string;
+        isExisting: boolean;
+    }>({ isOpen: false, txHash: "", imageUri: "", isExisting: false });
 
     // Form submit handler
     const onSubmit = useCallback(
@@ -119,25 +123,11 @@ export default function MintContent() {
                         sessionStorage.clear();
                     }
 
-                    showModal({
-                        title: "Successfully Minted",
-                        description: "For now you can check your Base Card and transaction data",
-                        buttonText: "Share",
-                        variant: "success",
-                        linkText: "Open viewer",
-                        onLinkClick: () => {
-                            if (result.hash) {
-                                const explorerUrl = activeChain.blockExplorers?.default.url;
-                                window.open(`${explorerUrl}/tx/${result.hash}`, "_blank");
-                            }
-                        },
-                        onButtonClick: async () => {
-                            await shareToFarcaster({
-                                text: "I just minted my BaseCard! Check it out 🎉",
-                                embedUrl: result.imageUri,
-                            });
-                            router.push("/");
-                        },
+                    setSuccessModal({
+                        isOpen: true,
+                        txHash: result.hash || "",
+                        imageUri: result.imageUri || "",
+                        isExisting: result.isExisting || false,
                     });
                 } else if (result.error === "User rejected") {
                     showToast("Transaction cancelled", "warning");
@@ -154,7 +144,7 @@ export default function MintContent() {
                 );
             }
         },
-        [defaultProfileUrl, mintCard, showToast, showModal, router]
+        [defaultProfileUrl, mintCard, showToast]
     );
 
     // Wrapper for form submit (with wallet validation)
@@ -368,6 +358,25 @@ export default function MintContent() {
                 </Suspense>
             )}
 
+            {/* Success Modal */}
+            <MintSuccessModal
+                isOpen={successModal.isOpen}
+                txHash={successModal.txHash}
+                explorerUrl={activeChain.blockExplorers?.default.url || ""}
+                isExisting={successModal.isExisting}
+                onViewCard={() => {
+                    setSuccessModal((prev) => ({ ...prev, isOpen: false }));
+                    router.push("/");
+                }}
+                onShare={async () => {
+                    await shareToFarcaster({
+                        text: "I just minted my BaseCard! Check it out 🎉",
+                        embedUrl: successModal.imageUri,
+                    });
+                    setSuccessModal((prev) => ({ ...prev, isOpen: false }));
+                    router.push("/");
+                }}
+            />
         </main>
     );
 }
