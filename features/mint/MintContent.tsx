@@ -9,12 +9,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/Toast";
-import { useMintBaseCard } from "@/hooks/useMintBaseCard";
 import { useMintForm } from "@/hooks/useMintForm";
+import { useMintBaseCardMutation } from "@/hooks/useMintBaseCardMutation";
 import { MAX_WEBSITES, type Role } from "@/lib/constants/mint";
 import { shareToFarcaster } from "@/lib/farcaster/share";
 import { processProfileImage } from "@/lib/processProfileImage";
 import type { MintFormData } from "@/lib/schemas/mintFormSchema";
+import type { Card } from "@/lib/types/api";
 import { activeChain } from "@/lib/wagmi";
 import FALLBACK_PROFILE_IMAGE from "@/public/assets/empty_pfp.png";
 import dynamic from "next/dynamic";
@@ -39,13 +40,20 @@ const LoadingModal = dynamic(
 );
 
 import { useModal } from "@/components/modals/BaseModal";
+import { resolveIpfsUrl } from "@/lib/ipfs";
+import { useMyBaseCard } from "@/hooks/useMyBaseCard";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function MintContent() {
     const frameContext = useFrameContext();
     const router = useRouter();
-    const { address, isConnected } = useAccount();
+    const { address } = useAccount();
     const { showToast } = useToast();
-    
+    const queryClient = useQueryClient();
+
+    // Get current card data (will be updated after invalidation)
+    const { data: cardData } = useMyBaseCard();
+
     const username = (frameContext?.context as MiniAppContext)?.user?.username;
     const defaultProfileUrl =
         (frameContext?.context as MiniAppContext)?.user?.pfpUrl ||
@@ -73,13 +81,14 @@ export default function MintContent() {
     // Temporary field for new website input (not in schema)
     const [newWebsite, setNewWebsite] = useState("");
 
-    // NFT minting hook
+    // NFT minting mutation hook
     const {
-        mintCard,
+        mutateAsync: mintCard,
         isCreatingBaseCard,
         isSendingTransaction,
+        isMining,
         error: mintError,
-    } = useMintBaseCard();
+    } = useMintBaseCardMutation();
 
     // Modal hook
     const { showModal } = useModal();
@@ -121,40 +130,64 @@ export default function MintContent() {
 
                     showModal({
                         title: "Successfully Minted",
-                        description: "For now you can check your Base Card and transaction data",
+                        description:
+                            "For now you can check your Base Card and transaction data",
                         buttonText: "Share",
                         variant: "success",
                         linkText: "Open viewer",
                         onLinkClick: () => {
                             if (result.hash) {
-                                const explorerUrl = activeChain.blockExplorers?.default.url;
-                                window.open(`${explorerUrl}/tx/${result.hash}`, "_blank");
+                                const explorerUrl =
+                                    activeChain.blockExplorers?.default.url;
+                                window.open(
+                                    `${explorerUrl}/tx/${result.hash}`,
+                                    "_blank"
+                                );
                             }
                         },
                         onButtonClick: async () => {
+                            // cardData는 클로저로 인해 이전 상태(null)를 가지고 있으므로,
+                            // 업데이트된 캐시 데이터를 직접 가져와야 합니다.
+                            const freshCardData =
+                                await queryClient.fetchQuery<Card | null>({
+                                    queryKey: ["myBaseCard", address],
+                                    staleTime: 0,
+                                });
+
                             await shareToFarcaster({
                                 text: "I just minted my BaseCard! Check it out 🎉",
-                                embedUrl: result.imageUri,
+                                embedUrl: resolveIpfsUrl(
+                                    freshCardData?.imageUri
+                                ),
                             });
                             router.push("/");
                         },
                     });
-                } else if (result.error === "User rejected") {
-                    showToast("Transaction cancelled", "warning");
-                } else {
-                    showToast(result.error || "Failed to mint your card", "error");
                 }
             } catch (error) {
-                console.error("❌ Card minting error:", error);
-                showToast(
+                const errorMessage =
                     error instanceof Error
                         ? error.message
-                        : "An unexpected error occurred",
-                    "error"
-                );
+                        : "An unexpected error occurred";
+
+                // Handle "User rejected" specifically if it was thrown
+                if (errorMessage === "User rejected") {
+                    showToast("Transaction cancelled", "warning");
+                } else {
+                    console.error("❌ Card minting error:", error);
+                    showToast(errorMessage, "error");
+                }
             }
         },
-        [defaultProfileUrl, mintCard, showToast, showModal, router]
+        [
+            defaultProfileUrl,
+            mintCard,
+            showToast,
+            showModal,
+            router,
+            queryClient,
+            address,
+        ]
     );
 
     // Wrapper for form submit (with wallet validation)
@@ -333,13 +366,25 @@ export default function MintContent() {
                 </div>
 
                 {/* 에러 메시지 */}
-                {mintError && <MintErrorMessages mintError={mintError} />}
+                {/* Error handling is now done via Toast or logic inside submit, 
+                    but if we want to show persistent error from hook (e.g. simulation fail) */}
+                {mintError && (
+                    <MintErrorMessages
+                        mintError={
+                            mintError instanceof Error
+                                ? mintError.message
+                                : mintError
+                        }
+                    />
+                )}
 
                 {/* 민팅 버튼 */}
                 <BaseButton
                     type="submit"
                     onClick={handleSubmit}
-                    disabled={isCreatingBaseCard || isSendingTransaction}
+                    disabled={
+                        isCreatingBaseCard || isSendingTransaction || isMining
+                    }
                     className="w-full py-6 text-lg rounded-2xl shadow-xl mt-6"
                 >
                     Create My Card
@@ -368,6 +413,16 @@ export default function MintContent() {
                 </Suspense>
             )}
 
+            {/* Loading Modal - Mining */}
+            {isMining && (
+                <Suspense fallback={null}>
+                    <LoadingModal
+                        isOpen={isMining}
+                        title="Finalizing..."
+                        description="Waiting for transaction confirmation"
+                    />
+                </Suspense>
+            )}
         </main>
     );
 }

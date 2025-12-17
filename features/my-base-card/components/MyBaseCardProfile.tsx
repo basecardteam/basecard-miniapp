@@ -18,6 +18,8 @@ import {
 } from "react-icons/io5";
 import { NoCardState } from "./NoCardState";
 import ProfileCardContent from "./ProfileCardContent";
+import { shareToFarcaster } from "@/lib/farcaster/share";
+import { resolveIpfsUrl } from "@/lib/ipfs";
 
 const LoadingState = () => (
     <div className="flex-1 h-full flex items-center justify-center bg-gradient-to-b from-[#0050FF] to-[#0080FF]">
@@ -28,7 +30,6 @@ const LoadingState = () => (
         />
     </div>
 );
-
 
 export default function MyBaseCardProfile() {
     const router = useRouter();
@@ -82,17 +83,26 @@ export default function MyBaseCardProfile() {
                     if (result && result.verified) {
                         setSuccessModalState({
                             isOpen: true,
-                            rewarded: result.rewarded,
-                            newTotalPoints: result.newTotalPoints,
+                            rewarded: result.rewarded ?? 0,
+                            newTotalPoints: result.newTotalPoints ?? 0,
                         });
                     }
                 } catch (err) {
                     showToast(
-                        err instanceof Error ? err.message : "Failed to claim quest",
+                        err instanceof Error
+                            ? err.message
+                            : "Failed to claim quest",
                         "error"
                     );
                 }
                 return;
+            }
+
+            if (quest.actionType === "SHARE") {
+                await shareToFarcaster({
+                    text: "I just minted my BaseCard! Check it out 🎉",
+                    embedUrl: resolveIpfsUrl(cardData?.imageUri),
+                });
             }
 
             if (quest.actionType === "MINT" && quest.status === "pending") {
@@ -113,13 +123,15 @@ export default function MyBaseCardProfile() {
                 if (result) {
                     setSuccessModalState({
                         isOpen: true,
-                        rewarded: result.rewarded,
-                        newTotalPoints: result.newTotalPoints,
+                        rewarded: result.rewarded ?? 0,
+                        newTotalPoints: result.newTotalPoints ?? 0,
                     });
                 }
             } catch (err) {
                 showToast(
-                    err instanceof Error ? err.message : "Failed to claim quest",
+                    err instanceof Error
+                        ? err.message
+                        : "Failed to claim quest",
                     "error"
                 );
             }
@@ -132,7 +144,6 @@ export default function MyBaseCardProfile() {
         if (quest.status === "claimable") return "Claim!";
         return quest.actionType;
     };
-
 
     const rootHeight = {
         minHeight:
@@ -174,8 +185,12 @@ export default function MyBaseCardProfile() {
                             <Gift className="w-6 h-6 text-white" />
                             <span className="text-white font-bold font-k2d">
                                 {claimableCount > 0
-                                    ? `${claimableCount} Reward${claimableCount > 1 ? "s" : ""} Available!`
-                                    : `${claimableQuests.length} Quest${claimableQuests.length > 1 ? "s" : ""} Remaining`}
+                                    ? `${claimableCount} Reward${
+                                          claimableCount > 1 ? "s" : ""
+                                      } Available!`
+                                    : `${claimableQuests.length} Quest${
+                                          claimableQuests.length > 1 ? "s" : ""
+                                      } Remaining`}
                             </span>
                         </div>
                         {isQuestExpanded ? (
@@ -197,7 +212,9 @@ export default function MyBaseCardProfile() {
                                     point={quest.rewardAmount}
                                     isCompleted={quest.status === "completed"}
                                     isClaimable={quest.status === "claimable"}
-                                    isClaiming={claimingQuest === quest.actionType}
+                                    isClaiming={
+                                        claimingQuest === quest.actionType
+                                    }
                                     onClaim={() => handleClaim(quest)}
                                 />
                             ))}
@@ -323,10 +340,15 @@ function ActionButton({
                 <div
                     className="absolute inset-0 flex items-center justify-center rounded-lg"
                     style={{
-                        background: "linear-gradient(360deg, rgba(204,228,255,0.85) 0%, rgba(119,184,255,0.85) 100%)",
+                        background:
+                            "linear-gradient(360deg, rgba(204,228,255,0.85) 0%, rgba(119,184,255,0.85) 100%)",
                     }}
                 >
-                    <span className="font-bold text-sm text-[#0050FF]">Coming<br/>Soon!</span>
+                    <span className="font-bold text-sm text-[#0050FF]">
+                        Coming
+                        <br />
+                        Soon!
+                    </span>
                 </div>
             )}
         </button>

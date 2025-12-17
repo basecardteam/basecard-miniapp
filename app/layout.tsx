@@ -1,5 +1,4 @@
 import { minikitConfig } from "@/minikit.config";
-import { SafeArea } from "@coinbase/onchainkit/minikit";
 import type { Metadata } from "next";
 import { Viewport } from "next";
 import { Inter, K2D } from "next/font/google";
@@ -49,7 +48,7 @@ export default function RootLayout({
             <body>
                 <Providers>
                     <PreventPullToRefresh />
-                    <SafeArea>{children}</SafeArea>
+                    {children}
                 </Providers>
             </body>
         </html>

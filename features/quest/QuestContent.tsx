@@ -20,10 +20,6 @@ export default function QuestContent() {
         newTotalPoints: number;
     }>({ isOpen: false, rewarded: 0, newTotalPoints: 0 });
 
-    quests.forEach((quest) => {
-        logger.debug("quest", quest.title, quest.status);
-    });
-
     const handleClaim = useCallback(
         async (quest: Quest) => {
             // Priority 1: If claimable, always try to claim first
@@ -33,27 +29,33 @@ export default function QuestContent() {
                     if (result && result.verified) {
                         setSuccessModalState({
                             isOpen: true,
-                            rewarded: result.rewarded,
-                            newTotalPoints: result.newTotalPoints,
+                            rewarded: result.rewarded ?? quest.rewardAmount,
+                            newTotalPoints: result.newTotalPoints ?? 0,
                         });
                     }
                 } catch (err) {
                     showToast(
-                        err instanceof Error ? err.message : "Failed to claim quest",
+                        err instanceof Error
+                            ? err.message
+                            : "Failed to claim quest",
                         "error"
                     );
                 }
                 return;
             }
 
+            if (quest.actionType === "SHARE") {
+                alert("something");
+                return;
+            }
             // Priority 3: Redirects for uncompleted actions
             if (quest.actionType === "MINT" && quest.status === "pending") {
                 router.push("/mint");
                 return;
             }
             if (
-                quest.actionType === "LINK_SOCIAL" ||
-                quest.actionType === "LINK_BASENAME"
+                quest.actionType === "LINK_TWITTER" ||
+                quest.status === "pending"
             ) {
                 router.push("/my-base-card");
                 return;
@@ -66,13 +68,15 @@ export default function QuestContent() {
                 if (result) {
                     setSuccessModalState({
                         isOpen: true,
-                        rewarded: result.rewarded,
-                        newTotalPoints: result.newTotalPoints,
+                        rewarded: result.rewarded ?? quest.rewardAmount,
+                        newTotalPoints: result.newTotalPoints ?? 0,
                     });
                 }
             } catch (err) {
                 showToast(
-                    err instanceof Error ? err.message : "Failed to claim quest",
+                    err instanceof Error
+                        ? err.message
+                        : "Failed to claim quest",
                     "error"
                 );
             }

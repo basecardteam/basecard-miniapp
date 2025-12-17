@@ -16,7 +16,7 @@ import { SocialsInput } from "@/features/mint/components/SocialsInput";
 import { WebsitesInput } from "@/features/mint/components/WebsitesInput";
 import { useMyBaseCard } from "@/hooks/useMyBaseCard";
 import { useUser } from "@/hooks/useUser";
-import { updateBaseCard } from "@/lib/api/basecards";
+import { useEditBaseCard } from "@/hooks/useEditBaseCard";
 import type { MintFormData } from "@/lib/schemas/mintFormSchema";
 import FALLBACK_PROFILE_IMAGE from "@/public/assets/empty_pfp.png";
 import dynamic from "next/dynamic";
@@ -35,11 +35,32 @@ const BaseModal = dynamic(
     }
 );
 
+const LoadingModal = dynamic(
+    () =>
+        import("@/components/modals/FullScreenLoadingOverlay").then((mod) => ({
+            default: mod.default,
+        })),
+    {
+        ssr: false,
+    }
+);
+
+import { useModal } from "@/components/modals/BaseModal";
+
 export default function EditProfileContent() {
     const frameContext = useFrameContext();
     const router = useRouter();
     const { address } = useAccount();
     const { data: user } = useUser();
+    const {
+        editCard,
+        isCreatingBaseCard,
+        isSendingTransaction,
+        error: editError,
+    } = useEditBaseCard();
+
+    // Modal hook
+    const { showModal } = useModal();
 
     const username = (frameContext?.context as MiniAppContext)?.user?.username;
     // Default image if no card data
@@ -95,7 +116,6 @@ export default function EditProfileContent() {
 
     const [newWebsite, setNewWebsite] = useState("");
     const [showSuccessModal, setShowSuccessModal] = useState(false);
-    const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitError, setSubmitError] = useState<string | null>(null);
 
     // WebsitesInput에서 실시간 검증하므로 여기서는 단순히 추가만
@@ -126,32 +146,27 @@ export default function EditProfileContent() {
             return;
         }
 
-        setIsSubmitting(true);
         setSubmitError(null);
 
-        try {
-            const socials: Record<string, string> = {};
-            if (data.github) socials.github = data.github;
-            if (data.twitter) socials.twitter = data.twitter;
-            if (data.farcaster) socials.farcaster = data.farcaster;
-            if (data.linkedin) socials.linkedin = data.linkedin;
+        const socials: Record<string, string> = {};
+        if (data.github) socials.github = data.github;
+        if (data.twitter) socials.twitter = data.twitter;
+        if (data.farcaster) socials.farcaster = data.farcaster;
+        if (data.linkedin) socials.linkedin = data.linkedin;
 
-            await updateBaseCard(cardData.id, {
-                nickname: data.name,
-                role: data.role,
-                bio: data.bio,
-                socials: Object.keys(socials).length > 0 ? socials : undefined,
-                profileImageFile: data.profileImageFile || undefined,
-            });
+        // 1. Backend API 호출 (이미지 처리) → 2. Contract 호출 (editBaseCard)
+        const result = await editCard({
+            nickname: data.name,
+            role: data.role,
+            bio: data.bio,
+            socials: Object.keys(socials).length > 0 ? socials : undefined,
+            profileImageFile: data.profileImageFile || undefined,
+        });
 
+        if (result.success) {
             setShowSuccessModal(true);
-        } catch (error) {
-            console.error("Failed to update profile:", error instanceof Error ? error.message : error);
-            setSubmitError(
-                error instanceof Error ? error.message : "Failed to update profile"
-            );
-        } finally {
-            setIsSubmitting(false);
+        } else if (result.error && result.error !== "User rejected") {
+            setSubmitError(result.error);
         }
     };
 
@@ -159,8 +174,7 @@ export default function EditProfileContent() {
 
     if (isCardLoading) {
         return (
-            <div className="flex items-center justify-center h-screen">
-            </div>
+            <div className="flex items-center justify-center h-screen"></div>
         );
     }
 
@@ -275,12 +289,38 @@ export default function EditProfileContent() {
 
                 <BaseButton
                     type="submit"
-                    disabled={isSubmitting}
+                    disabled={isCreatingBaseCard || isSendingTransaction}
                     className="py-5 text-lg rounded-lg shadow-xl fixed bottom-5 left-0 right-0 mx-5"
                 >
-                    {isSubmitting ? "Saving..." : "Save"}
+                    {isCreatingBaseCard
+                        ? "Updating..."
+                        : isSendingTransaction
+                        ? "Confirming..."
+                        : "Save"}
                 </BaseButton>
             </form>
+
+            {/* Loading Modal - Card Generation */}
+            {isCreatingBaseCard && (
+                <Suspense fallback={null}>
+                    <LoadingModal
+                        isOpen={isCreatingBaseCard}
+                        title="Updating Your Card..."
+                        description="We're processing your profile changes"
+                    />
+                </Suspense>
+            )}
+
+            {/* Loading Modal - Sending Transaction */}
+            {isSendingTransaction && (
+                <Suspense fallback={null}>
+                    <LoadingModal
+                        isOpen={isSendingTransaction}
+                        title="Almost There..."
+                        description="Please approve in your wallet"
+                    />
+                </Suspense>
+            )}
 
             {/* Success Modal */}
             {showSuccessModal && (
@@ -292,7 +332,7 @@ export default function EditProfileContent() {
                             router.push("/my-base-card");
                         }}
                         title="Profile Updated"
-                        description="Your profile changes have been saved successfully."
+                        description="Your profile changes have been saved on blockchain."
                         buttonText="Okay"
                         variant="success"
                     />

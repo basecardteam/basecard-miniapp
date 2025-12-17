@@ -4,16 +4,15 @@ import {
     CollectionFilterTag,
     filterCollections,
 } from "@/lib/filterCollections";
-import { useOpenUrl } from "@coinbase/onchainkit/minikit";
 import { useState } from "react";
 import { useAccount } from "wagmi";
+import { sdk } from "@farcaster/miniapp-sdk";
 
 /**
  * Collection 페이지의 전체 로직을 통합한 훅
  */
 export function useCollectionPage() {
     const [selectedTag, setSelectedTag] = useState<CollectionFilterTag>("All");
-    const openUrl = useOpenUrl();
     const { address } = useAccount();
 
     // 사용자 카드 정보 조회
@@ -34,7 +33,7 @@ export function useCollectionPage() {
         setSelectedTag,
         tags,
         filteredCards,
-        openUrl,
+        openUrl: sdk.actions.openUrl,
         myCard,
         isMyCardLoading,
         myCardError,
