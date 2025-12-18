@@ -1,8 +1,7 @@
 "use client";
 
-import BaseCardLogoTypo from "@/public/baseCardTypo.png";
-
 import { useFrameContext } from "@/components/providers/FrameProvider";
+import BaseCardLogoTypo from "@/public/assets/basecard-typo.png";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import BrowserWalletConnect from "./BrowserWalletConnect";
