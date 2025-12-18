@@ -7,6 +7,31 @@ import { logger } from "../common/logger";
  * Uses GET /v1/basecards/address/:address endpoint
  * Returns null if card not found instead of throwing error
  */
+/**
+ * Fetch all basecards
+ * Uses GET /v1/basecards endpoint
+ */
+export async function fetchAllBaseCards(): Promise<Card[]> {
+    const response = await fetch(`${config.BACKEND_API_URL}/v1/basecards`);
+
+    if (!response.ok) {
+        throw new Error("Failed to fetch cards");
+    }
+
+    const data: ApiResponse<Card[]> = await response.json();
+
+    if (!data.success || !data.result) {
+        throw new Error(data.error || "Failed to fetch cards");
+    }
+
+    return data.result;
+}
+
+/**
+ * Fetch card data by wallet address
+ * Uses GET /v1/basecards/address/:address endpoint
+ * Returns null if card not found instead of throwing error
+ */
 export async function fetchCardByAddress(
     address: string
 ): Promise<Card | null> {
