@@ -2,7 +2,7 @@
 
 import UserProfileAvatar from "@/components/avatars/UserProfileAvatar";
 import { useUser } from "@/hooks/api/useUser";
-import BaseCardLogoTypo from "@/public/baseCardTypo.png";
+import BaseCardLogoTypo from "@/public/assets/basecard-typo.png";
 import Image from "next/image";
 
 export default function QuestHeader() {
