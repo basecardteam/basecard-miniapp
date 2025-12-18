@@ -16,6 +16,7 @@ import { Card } from "@/lib/types";
 import BCLogo from "@/public/bc-icon.png";
 import { sdk } from "@farcaster/miniapp-sdk";
 import { useRouter } from "next/navigation";
+import { useAccount } from "wagmi";
 
 interface ProfileCardContentProps {
     card: Card;
@@ -63,6 +64,7 @@ export default function ProfileCardContent({
     const [qrCodeDataURL, setQrCodeDataURL] = useState<string>("");
     const [isLoadingQR, setIsLoadingQR] = useState(false);
     const { data: user } = useUser();
+    const { address } = useAccount();
     const { showToast } = useToast();
     const router = useRouter();
 
@@ -72,22 +74,24 @@ export default function ProfileCardContent({
 
     // Copy Link handler
     const handleCopyLink = useCallback(async () => {
+        if (!address) return;
         try {
-            const shareURL = generateCardShareURL(card.id.toString());
+            const shareURL = generateCardShareURL(address);
             await navigator.clipboard.writeText(shareURL);
             showToast("Link copied!", "success");
         } catch (error) {
             console.error("Failed to copy link:", error);
             showToast("Failed to copy link", "error");
         }
-    }, [card.id, showToast]);
+    }, [address, showToast]);
 
     // Share with QR handler
     const handleShareQR = useCallback(async () => {
+        if (!address) return;
         setIsQRModalOpen(true);
         setIsLoadingQR(true);
         try {
-            const qrCode = await generateCardShareQRCode(card.id.toString(), {
+            const qrCode = await generateCardShareQRCode(address, {
                 width: 250,
                 margin: 2,
                 color: {
@@ -102,11 +106,12 @@ export default function ProfileCardContent({
         } finally {
             setIsLoadingQR(false);
         }
-    }, [card.id]);
+    }, [address]);
 
     // Cast my Card handler (share to Farcaster)
     const handleCastCard = useCallback(async () => {
-        const shareUrl = generateCardShareURL(card.id.toString());
+        if (!address) return;
+        const shareUrl = generateCardShareURL(address);
         const imageUrl = card?.imageUri
             ? resolveIpfsUrl(card.imageUri)
             : undefined;
@@ -115,7 +120,7 @@ export default function ProfileCardContent({
             imageUrl,
             embedUrl: shareUrl,
         });
-    }, [card]);
+    }, [address, card?.imageUri]);
 
     const socialEntries: SocialEntry[] = useMemo(
         () => [
