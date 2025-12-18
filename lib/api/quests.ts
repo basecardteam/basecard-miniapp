@@ -29,9 +29,12 @@ export async function fetchQuests(): Promise<Quest[]> {
 /**
  * Fetch user's quests with completion status from userQuests table
  */
-export async function fetchUserQuests(address: string): Promise<Quest[]> {
+export async function fetchUserQuests(
+    address: string,
+    fid?: number
+): Promise<Quest[]> {
     const response = await fetch(
-        `${config.BACKEND_API_URL}/v1/user-quests/user/${address}`,
+        `${config.BACKEND_API_URL}/v1/user-quests/user/${address}?fid=${fid}`,
         {
             method: "GET",
             headers: {

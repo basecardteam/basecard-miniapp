@@ -28,7 +28,7 @@ export function useQuests() {
         queryKey: ["quests", address],
         queryFn: async () => {
             if (isConnected && address) {
-                return fetchUserQuests(address);
+                return fetchUserQuests(address, fid);
             }
             return fetchQuests();
         },
@@ -38,7 +38,6 @@ export function useQuests() {
 
     // Mutations
     const { mutateAsync: claimMutate } = useClaimQuestMutation();
-    const { mutateAsync: verifyMutate } = useVerifyQuestMutation();
 
     const handleClaim = useCallback(
         async (quest: Quest): Promise<VerifyQuestResponse | null> => {
@@ -64,21 +63,6 @@ export function useQuests() {
         [address, claimMutate, fid]
     );
 
-    const handleVerify =
-        useCallback(async (): Promise<VerifyQuestResponse | null> => {
-            if (!address) {
-                throw new Error("Please connect your wallet first");
-            }
-
-            try {
-                const result = await verifyMutate({ address, fid });
-                return result;
-            } catch (err) {
-                console.error("Verification failed", err);
-                return null;
-            }
-        }, [address, verifyMutate, fid]);
-
     return {
         quests,
         isLoading,
@@ -86,7 +70,6 @@ export function useQuests() {
         error: error ? (error as Error).message : null,
         claimingQuest,
         claim: handleClaim,
-        verify: handleVerify,
         refetch,
     };
 }
