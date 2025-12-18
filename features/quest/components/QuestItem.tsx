@@ -81,7 +81,7 @@ export default function QuestItem({
 
             {/* Completed: Show earned points text */}
             {isCompleted ? (
-                <div className="flex items-center justify-end w-full">
+                <div className="flex items-center justify-end w-full h-10">
                     <span className="text-green-600 font-semibold text-sm">
                         +{point} BC
                     </span>
@@ -108,11 +108,11 @@ export default function QuestItem({
                         onClick={() => {
                             onAction?.();
                         }}
-                        className="flex-1 flex justify-center items-center h-8 px-2 rounded-md text-sm font-medium bg-white border border-gray-300 text-gray-700 active:bg-gray-50 transition-colors"
+                        className="flex-1 flex justify-center items-center px-2 rounded-md text-sm font-medium bg-white border border-gray-300 text-gray-700 active:bg-gray-50 transition-colors"
                     >
                         <span>{buttonName}</span>
                     </button>
-                    <div className="flex-1 flex justify-center items-center h-8 px-2 rounded-md text-sm font-medium bg-gray-100 text-gray-400">
+                    <div className="flex-1 h-10 flex justify-center items-center px-2 rounded-md text-sm font-medium bg-gray-100 text-gray-400">
                         <span>+{point} BC</span>
                     </div>
                 </div>

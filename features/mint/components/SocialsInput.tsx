@@ -1,9 +1,8 @@
 "use client";
 
+import FarcasterIcon from "@/components/icons/FarcasterIcon";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import FacasterGrayLogo from "@/public/logo/FacasterGrayLogo.png";
-import Image from "next/image";
 import { memo } from "react";
 import { FieldError, UseFormRegisterReturn } from "react-hook-form";
 import { FaGithub, FaLinkedin, FaSquareXTwitter } from "react-icons/fa6";
@@ -40,15 +39,7 @@ const SOCIAL_CONFIG = [
     {
         id: "farcaster",
         label: "Farcaster",
-        icon: (
-            <Image
-                src={FacasterGrayLogo}
-                alt="Farcaster"
-                width={20}
-                height={20}
-                className="object-contain text-gray-200"
-            />
-        ),
+        icon: <FarcasterIcon size={20} className="text-gray-400" />,
         placeholder: "@username",
         registerKey: "farcaster" as const,
     },

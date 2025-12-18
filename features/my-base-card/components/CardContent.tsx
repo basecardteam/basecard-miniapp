@@ -1,8 +1,8 @@
 import BackButton from "@/components/buttons/BackButton";
+import FarcasterIcon from "@/components/icons/FarcasterIcon";
 import { BaseModal } from "@/components/modals/BaseModal";
 import { useUser } from "@/hooks/useUser";
 import { Card } from "@/lib/types";
-import FacasterLogo from "@/public/logo/farcaster-logo.png";
 import clsx from "clsx";
 import Image from "next/image";
 import { useCallback, useMemo, useState } from "react";
@@ -64,15 +64,7 @@ export default function CardContent({
             {
                 key: "farcaster",
                 label: "Farcaster",
-                icon: (
-                    <Image
-                        src={FacasterLogo}
-                        alt="Farcaster"
-                        width={20}
-                        height={20}
-                        className="object-contain"
-                    />
-                ),
+                icon: <FarcasterIcon size={20} className="text-white" />,
             },
             {
                 key: "github",

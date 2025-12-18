@@ -4,13 +4,19 @@ import { FaGithub, FaGlobe, FaLinkedin, FaTwitter } from "react-icons/fa";
 import { HiOutlinePencil } from "react-icons/hi";
 import { IoShareOutline } from "react-icons/io5";
 
-import { BaseModal } from "@/components/modals/BaseModal";
+import FarcasterIcon from "@/components/icons/FarcasterIcon";
+import ShareBottomSheet from "@/components/modals/ShareBottomSheet";
+import { ShareModal } from "@/components/modals/ShareModal";
+import { useToast } from "@/components/ui/Toast";
 import { useUser } from "@/hooks/useUser";
+import { shareToFarcaster } from "@/lib/farcaster/share";
 import { resolveIpfsUrl } from "@/lib/ipfs";
+import { generateCardShareQRCode, generateCardShareURL } from "@/lib/qrCodeGenerator";
 import { Card } from "@/lib/types";
+import BCLogo from "@/public/bc-icon.png";
 import { sdk } from "@farcaster/miniapp-sdk";
-import FacasterLogo from "@/public/logo/farcaster-logo.png";
 import { useRouter } from "next/navigation";
+import { useAccount } from "wagmi";
 
 interface ProfileCardContentProps {
     card: Card;
@@ -53,28 +59,75 @@ export default function ProfileCardContent({
     isSocialLoading = false,
 }: ProfileCardContentProps) {
     const openUrl = sdk.actions.openUrl;
-    const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+    const [isShareSheetOpen, setIsShareSheetOpen] = useState(false);
+    const [isQRModalOpen, setIsQRModalOpen] = useState(false);
+    const [qrCodeDataURL, setQrCodeDataURL] = useState<string>("");
+    const [isLoadingQR, setIsLoadingQR] = useState(false);
     const { data: user } = useUser();
+    const { address } = useAccount();
+    const { showToast } = useToast();
     const router = useRouter();
 
     const handleNavigateToCollection = useCallback(() => {
         router.push("/edit-profile");
     }, [router]);
 
+    // Copy Link handler
+    const handleCopyLink = useCallback(async () => {
+        if (!address) return;
+        try {
+            const shareURL = generateCardShareURL(address);
+            await navigator.clipboard.writeText(shareURL);
+            showToast("Link copied!", "success");
+        } catch (error) {
+            console.error("Failed to copy link:", error);
+            showToast("Failed to copy link", "error");
+        }
+    }, [address, showToast]);
+
+    // Share with QR handler
+    const handleShareQR = useCallback(async () => {
+        if (!address) return;
+        setIsQRModalOpen(true);
+        setIsLoadingQR(true);
+        try {
+            const qrCode = await generateCardShareQRCode(address, {
+                width: 250,
+                margin: 2,
+                color: {
+                    dark: "#000000",
+                    light: "#FFFFFF00",
+                },
+            });
+            setQrCodeDataURL(qrCode);
+        } catch (error) {
+            console.error("Failed to generate QR code:", error);
+            setQrCodeDataURL("");
+        } finally {
+            setIsLoadingQR(false);
+        }
+    }, [address]);
+
+    // Cast my Card handler (share to Farcaster)
+    const handleCastCard = useCallback(async () => {
+        if (!address) return;
+        const shareUrl = generateCardShareURL(address);
+        const imageUrl = card?.imageUri
+            ? resolveIpfsUrl(card.imageUri)
+            : undefined;
+        await shareToFarcaster({
+            text: `Check out my Basecard! Collect this and see all about me 🎉`,
+            imageUrl,
+            embedUrl: shareUrl,
+        });
+    }, [address, card?.imageUri]);
+
     const socialEntries: SocialEntry[] = useMemo(
         () => [
             {
                 key: "farcaster",
                 label: "Farcaster",
-                icon: (
-                    <Image
-                        src={FacasterLogo}
-                        alt="Farcaster"
-                        width={24}
-                        height={24}
-                        className="object-contain"
-                    />
-                ),
+                icon: <FarcasterIcon size={22} className="text-white" />,
             },
             {
                 key: "github",
@@ -188,10 +241,10 @@ export default function ProfileCardContent({
                                     disabled={!hasUrl || isSocialLoading}
                                     className={`w-10 h-10 rounded-full flex items-center justify-center border transition-all
                                         ${
-                                            hasUrl
-                                                ? "bg-[#0455FF] border-[#3E7CFF] hover:opacity-90 cursor-pointer"
-                                                : "bg-gray-800/50 border-gray-600 opacity-50 cursor-not-allowed"
-                                        }`}
+                                hasUrl
+                                    ? "bg-[#0455FF] border-[#3E7CFF] hover:opacity-90 cursor-pointer"
+                                    : "bg-gray-800/50 border-gray-600 opacity-50 cursor-not-allowed"
+                                }`}
                                     aria-label={label}
                                 >
                                     {icon}
@@ -207,7 +260,7 @@ export default function ProfileCardContent({
                     </div>
                     {/* Share Button */}
                     <button
-                        onClick={() => setIsShareModalOpen(true)}
+                        onClick={() => setIsShareSheetOpen(true)}
                         className="mt-4 w-full h-12 bg-[#0455FF] rounded-lg flex items-center justify-center gap-1
                             hover:bg-[#0344CC] transition-colors"
                     >
@@ -218,13 +271,27 @@ export default function ProfileCardContent({
                     </button>
                 </div>
 
-                {/* Share Modal */}
-                <BaseModal
-                    isOpen={isShareModalOpen}
-                    onClose={() => setIsShareModalOpen(false)}
-                    title="Share Feature"
-                    description="Share functionality is coming soon!"
-                    buttonText="Close"
+                {/* Share Bottom Sheet */}
+                <ShareBottomSheet
+                    isOpen={isShareSheetOpen}
+                    onClose={() => setIsShareSheetOpen(false)}
+                    onCopyLink={handleCopyLink}
+                    onShareQR={handleShareQR}
+                    onCastCard={handleCastCard}
+                />
+
+                {/* QR Code Modal */}
+                <ShareModal
+                    isOpen={isQRModalOpen}
+                    onClose={() => setIsQRModalOpen(false)}
+                    title="Share My Card"
+                    profileImageUrl={user?.profileImage ? resolveIpfsUrl(user.profileImage) : undefined}
+                    name={card?.nickname || undefined}
+                    subtitle={card?.role || undefined}
+                    qrCodeDataURL={qrCodeDataURL}
+                    isLoadingQR={isLoadingQR}
+                    qrErrorMessage="QR 코드 생성 실패"
+                    logoSrc={BCLogo.src}
                 />
             </div>
         </div>

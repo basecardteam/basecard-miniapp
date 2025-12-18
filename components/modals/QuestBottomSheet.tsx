@@ -25,14 +25,35 @@ export default function QuestBottomSheet({
     const [isClosing, setIsClosing] = useState(false);
     const [dragY, setDragY] = useState(0);
     const [isDragging, setIsDragging] = useState(false);
+    const [closingWithDrag, setClosingWithDrag] = useState(false);
+    const [hasAnimatedIn, setHasAnimatedIn] = useState(false);
     const sheetRef = useRef<HTMLDivElement>(null);
     const startYRef = useRef(0);
     const lastTouchTimeRef = useRef(0);
+
+    const handleAnimationEnd = useCallback((e: React.AnimationEvent) => {
+        if (e.animationName === "slideUp") {
+            setHasAnimatedIn(true);
+        }
+    }, []);
 
     const handleClose = useCallback(() => {
         setIsClosing(true);
         setTimeout(() => {
             setIsClosing(false);
+            setHasAnimatedIn(false);
+            setDragY(0);
+            onClose();
+        }, 300);
+    }, [onClose]);
+
+    const handleDragClose = useCallback(() => {
+        setClosingWithDrag(true);
+        const sheetHeight = sheetRef.current?.offsetHeight || 500;
+        setDragY(sheetHeight);
+        setTimeout(() => {
+            setClosingWithDrag(false);
+            setHasAnimatedIn(false);
             setDragY(0);
             onClose();
         }, 300);
@@ -59,11 +80,11 @@ export default function QuestBottomSheet({
         lastTouchTimeRef.current = Date.now();
         setIsDragging(false);
         if (dragY > 150) {
-            handleClose();
+            handleDragClose();
         } else {
             setDragY(0);
         }
-    }, [dragY, handleClose]);
+    }, [dragY, handleDragClose]);
 
     const handleBackdropClick = useCallback((e: React.MouseEvent) => {
         // Ignore ghost clicks that happen shortly after touch events
@@ -129,18 +150,21 @@ export default function QuestBottomSheet({
                 className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl z-10"
                 style={{
                     maxHeight: "90vh",
-                    transform: isDragging ? `translateY(${dragY}px)` : undefined,
+                    transform: (isDragging || closingWithDrag) ? `translateY(${dragY}px)` : undefined,
                     animation:
-                        isDragging || dragY > 0
+                        isDragging || closingWithDrag
                             ? "none"
                             : isClosing
                                 ? "slideDown 300ms ease-out forwards"
-                                : "slideUp 300ms ease-out forwards",
+                                : hasAnimatedIn
+                                    ? "none"
+                                    : "slideUp 300ms ease-out forwards",
                     transition: isDragging ? "none" : "transform 300ms ease-out",
                 }}
                 onClick={(e) => e.stopPropagation()}
                 onMouseDown={(e) => e.stopPropagation()}
                 onTouchMove={handleTouchMove}
+                onAnimationEnd={handleAnimationEnd}
             >
                 {/* Drag Handle */}
                 <div
