@@ -17,62 +17,28 @@ export const minikitConfig = {
         signature: ACCOUNT_SIGNATURE,
     },
     baseBuilder: {
-        allowedAddresses: [
-            "0xE0Ab3848E1D00DD970085F10923C45646DbA181D",
-            "0x1b8902178e313aEC2Dee0e2B707de71E3B85d632",
-        ],
+        allowedAddresses: ALLOWED_ADDRESSES_STRING.split(","),
     },
     miniapp: {
         version: "1",
         name: "BaseCard",
-        subtitle: "Builder Identity on Base",
-        description:
-            "Stop repeating your pitch. Mint your verified, onchain builder profile card (SBT). Search for talent and connect directly",
-        screenshotUrls: [`${ROOT_URL}/screenshot-portrait.png`],
+        homeUrl: ROOT_URL,
         iconUrl: `${ROOT_URL}/bc-icon.png`,
-        imageUrl: "https://basecard.vercel.app/image.png",
         splashImageUrl: `${ROOT_URL}/bc-icon.png`,
         splashBackgroundColor: "#ffffff",
-        homeUrl: ROOT_URL,
+        webhookUrl: `${ROOT_URL}/api/webhook`,
+        subtitle: "Builder Identity on Base",
+        description:
+            "Stop repeating your pitch. Mint your verified, onchain ID card, BaseCard! And, find people who share your interests.",
+        // screenshotUrls: [`${ROOT_URL}/screenshot-portrait.png`],
         primaryCategory: "social",
-        tags: ["builder", "networking", "sbt", "base", "identity"],
-        heroImageUrl: `${ROOT_URL}/blue-hero.png`,
-        tagline: "",
-        ogTitle: "BaseCard",
-        ogDescription: "",
-        ogImageUrl: `${ROOT_URL}/blue-hero.png`,
-        buttonTitle: "Open BaseCard",
+        tags: ["baseapp", "miniapp", "social", "identity", "earn"],
+        heroImageUrl: `${ROOT_URL}/bc-hero.png`,
+        // TODO: ...
+        // tagline
+        // ogTitle
+        // ogDescription
+        // ogImageUrl
+        noindex: false,
     },
 } as const;
-
-// {
-//   "frame": {
-//     "name": "BaseCard",
-//     "version": "1",
-//     "iconUrl": "https://miniapp.basecard.org/icon.png",
-//     "homeUrl": "https://miniapp.basecard.org",
-//     "imageUrl": "https://miniapp.basecard.org/image.png",
-//     "buttonTitle": "Open My BaseCard",
-//     "splashImageUrl": "https://miniapp.basecard.org/splash.png",
-//     "splashBackgroundColor": "#F0F0F0",
-//     "subtitle": "Builder Identity on Base",
-//     "description": "Stop repeating your pitch. Mint your verified, onchain builder profile card (SBT). Search for talent and connect directly",
-//     "screenshotUrls": [
-//       "https://miniapp.basecard.org/screenshot-portrait.png"
-//     ],
-//     "primaryCategory": "social",
-//     "tags": [
-//       "builder",
-//       "networking",
-//       "sbt",
-//       "base",
-//       "social"
-//     ],
-//     "heroImageUrl": "https://miniapp.basecard.org/hero.png"
-//   },
-//   "accountAssociation": {
-//     "header": "",
-//     "payload": "",
-//     "signature": ""
-//   }
-// }
