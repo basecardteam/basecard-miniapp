@@ -1,4 +1,5 @@
 import PreventPullToRefresh from "@/components/utils/PreventPullToRefresh";
+import { minikitConfig } from "@/minikit.config";
 import type { Metadata } from "next";
 import { Viewport } from "next";
 import { Inter, K2D } from "next/font/google";
@@ -26,23 +27,33 @@ export const viewport: Viewport = {
     userScalable: false,
 };
 
-// export const metadata: Metadata = {
-//     title: minikitConfig.miniapp.name,
-//     // openGraph: {
-//     //     title: minikitConfig.miniapp.name,
-//     //     description: minikitConfig.miniapp.description,
-//     //     images: [minikitConfig.miniapp.imageUrl],
-//     //     url: minikitConfig.miniapp.homeUrl,
-//     //     siteName: minikitConfig.miniapp.name,
-//     // },
-// };
-
 export const metadata: Metadata = {
-  other: {
-    'base:app_id': '6943ae91d77c069a945bdfec',
-  },
+    other: {
+        "base:app_id": "6943ae91d77c069a945bdfec",
+    },
 };
 
+export async function generateMetadata(): Promise<Metadata> {
+    return {
+        other: {
+            "fc:miniapp": JSON.stringify({
+                version: "next",
+                imageUrl: minikitConfig.miniapp.embedImageUrl,
+                button: {
+                    title: minikitConfig.miniapp.buttonTitle,
+                    action: {
+                        type: "launch_miniapp",
+                        name: minikitConfig.miniapp.name,
+                        url: minikitConfig.miniapp.homeUrl,
+                        splashImageUrl: minikitConfig.miniapp.splashImageUrl,
+                        splashBackgroundColor:
+                            minikitConfig.miniapp.splashBackgroundColor,
+                    },
+                },
+            }),
+        },
+    };
+}
 
 export default function RootLayout({
     children,
