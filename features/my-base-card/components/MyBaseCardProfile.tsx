@@ -3,16 +3,15 @@ import QuestBottomSheet from "@/components/modals/QuestBottomSheet";
 import SuccessModal from "@/components/modals/SuccessModal";
 import { useFrameContext } from "@/components/providers/FrameProvider";
 import { useToast } from "@/components/ui/Toast";
-import { useQuests } from "@/features/quest/hooks/useQuests";
+import { useQuestHandler } from "@/features/quest/hooks/useQuestHandler";
+import { useMyBaseCard } from "@/hooks/api/useMyBaseCard";
+import { useQuests } from "@/hooks/api/useQuests";
 import { useERC721Token } from "@/hooks/useERC721Token";
-import { useMyBaseCard } from "@/hooks/useMyBaseCard";
-import { shareToFarcaster } from "@/lib/farcaster/share";
-import { resolveIpfsUrl } from "@/lib/ipfs";
 import { Quest } from "@/lib/types/api";
 import clsx from "clsx";
 import { ChevronRight, Gift } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useCallback, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { AiOutlineLoading } from "react-icons/ai";
 import {
     IoDocumentTextOutline,
@@ -41,11 +40,10 @@ export default function MyBaseCardProfile() {
     const [activeTab, setActiveTab] = useState<"earn" | "personal">("earn");
     const [isTodoModalOpen, setIsTodoModalOpen] = useState(false);
     const [isQuestSheetOpen, setIsQuestSheetOpen] = useState(false);
-    const [successModalState, setSuccessModalState] = useState<{
-        isOpen: boolean;
-        rewarded: number;
-        newTotalPoints: number;
-    }>({ isOpen: false, rewarded: 0, newTotalPoints: 0 });
+
+    // Use shared quest handler
+    const { handleQuestAction, successModalState, setSuccessModalState } =
+        useQuestHandler();
 
     const { data: cardData, isLoading: isPending } = useMyBaseCard();
 
@@ -53,7 +51,7 @@ export default function MyBaseCardProfile() {
     const { metadata, isLoading: isTokenLoading } = useERC721Token();
 
     // Quest data
-    const { quests, claimingQuest, claim } = useQuests();
+    const { quests, claimingQuest } = useQuests();
 
     const incompleteCount = useMemo(() => {
         return quests.filter((q) => q.status !== "completed").length;
@@ -83,102 +81,7 @@ export default function MyBaseCardProfile() {
         router.push("/edit-profile");
     };
 
-    const handleClaim = useCallback(async (quest: Quest) => {
-        if (quest.status === "claimable") {
-            try {
-                const result = await claim(quest);
-                if (result && result.verified) {
-                    setSuccessModalState({
-                        isOpen: true,
-                        rewarded: result.rewarded ?? 0,
-                        newTotalPoints: result.newTotalPoints ?? 0,
-                    });
-                }
-            } catch (err) {
-                showToast(
-                    err instanceof Error
-                        ? err.message
-                        : "Failed to claim quest",
-                    "error"
-                );
-            }
-            return;
-        }
 
-        // Handle SHARE quest - share to Farcaster
-        if (quest.actionType === "SHARE") {
-            const shareUrl = address
-                ? `${process.env.NEXT_PUBLIC_URL || "https://basecard.vercel.app"}/card/${address}`
-                : process.env.NEXT_PUBLIC_URL || "https://basecard.vercel.app";
-            const imageUrl = metadata?.image ? resolveIpfsUrl(metadata.image) : undefined;
-            await shareToFarcaster({
-                text: "I just minted my Basecard! Collect this and check all about myself",
-                imageUrl,
-                embedUrl: shareUrl,
-            });
-            return;
-        }
-
-        // Handle NOTIFICATION quest - request notification permission
-        if (quest.actionType === "NOTIFICATION") {
-            if (!frameContext?.requestNotificationPermission) {
-                showToast("Notification not supported", "error");
-                return;
-            }
-
-            try {
-                const result = await frameContext.requestNotificationPermission();
-                if (result.success && result.notificationDetails) {
-                    showToast("Notifications enabled!", "success");
-                    const claimResult = await claim(quest);
-                    if (claimResult && claimResult.verified) {
-                        setSuccessModalState({
-                            isOpen: true,
-                            rewarded: claimResult.rewarded ?? 0,
-                            newTotalPoints: claimResult.newTotalPoints ?? 0,
-                        });
-                    }
-                } else if (result.reason === "not_in_miniapp") {
-                    showToast("Please open in Base app", "warning");
-                }
-            } catch (err) {
-                showToast(
-                    err instanceof Error ? err.message : "Failed to enable notifications",
-                    "error"
-                );
-            }
-            return;
-        }
-
-        if (quest.actionType === "MINT" && quest.status === "pending") {
-            router.push("/mint");
-            return;
-        }
-
-        // Link 관련 퀘스트는 EditProfile 페이지로 이동
-        if (quest.actionType.startsWith("LINK_")) {
-            router.push("/edit-profile");
-            return;
-        }
-
-        try {
-            const result = await claim(quest);
-            if (result) {
-                setSuccessModalState({
-                    isOpen: true,
-                    rewarded: result.rewarded ?? 0,
-                    newTotalPoints: result.newTotalPoints ?? 0,
-                });
-            }
-        } catch (err) {
-            showToast(
-                err instanceof Error
-                    ? err.message
-                    : "Failed to claim quest",
-                "error"
-            );
-        }
-    }, [claim, router, showToast, address, frameContext, metadata]);
 
     const getButtonName = (quest: Quest) => {
         if (quest.status === "completed") return "Claimed";
@@ -360,7 +263,7 @@ export default function MyBaseCardProfile() {
                 onClose={() => setIsQuestSheetOpen(false)}
                 quests={quests}
                 claimingQuest={claimingQuest}
-                onAction={handleClaim}
+                onAction={handleQuestAction}
                 getButtonName={getButtonName}
             />
         </div>

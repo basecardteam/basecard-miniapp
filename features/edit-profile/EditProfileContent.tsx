@@ -14,9 +14,9 @@ import ProfileImagePreview from "@/features/mint/components/ProfileImagePreview"
 import { RoleSelector } from "@/features/mint/components/RoleSelector";
 import { SocialsInput } from "@/features/mint/components/SocialsInput";
 import { WebsitesInput } from "@/features/mint/components/WebsitesInput";
+import { useMyBaseCard } from "@/hooks/api/useMyBaseCard";
+import { useUser } from "@/hooks/api/useUser";
 import { useEditBaseCard } from "@/hooks/useEditBaseCard";
-import { useMyBaseCard } from "@/hooks/useMyBaseCard";
-import { useUser } from "@/hooks/useUser";
 import type { MintFormData } from "@/lib/schemas/mintFormSchema";
 import FALLBACK_PROFILE_IMAGE from "@/public/assets/empty_pfp.png";
 import dynamic from "next/dynamic";

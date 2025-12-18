@@ -1,9 +1,9 @@
 "use client";
 
 import { useToast } from "@/components/ui/Toast";
+import { useMyBaseCard } from "@/hooks/api/useMyBaseCard";
+import { useUser } from "@/hooks/api/useUser";
 import { useMiniappParams } from "@/hooks/useMiniappParams";
-import { useMyBaseCard } from "@/hooks/useMyBaseCard";
-import { useUser } from "@/hooks/useUser";
 import { ACTION_ADD_CARD } from "@/lib/constants/actions";
 import { useRouter } from "next/navigation";
 import { useAccount } from "wagmi";

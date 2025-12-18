@@ -1,12 +1,12 @@
+import { useMyBaseCard } from "@/hooks/api/useMyBaseCard";
 import { useFetchCollections } from "@/hooks/useFetchCollections";
-import { useMyBaseCard } from "@/hooks/useMyBaseCard";
 import {
     CollectionFilterTag,
     filterCollections,
 } from "@/lib/filterCollections";
+import { sdk } from "@farcaster/miniapp-sdk";
 import { useState } from "react";
 import { useAccount } from "wagmi";
-import { sdk } from "@farcaster/miniapp-sdk";
 
 /**
  * Collection 페이지의 전체 로직을 통합한 훅

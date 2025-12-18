@@ -1,7 +1,7 @@
 "use client";
 
-import { Suspense, lazy, use } from "react";
 import { config } from "@/lib/common/config";
+import { Suspense, lazy, use } from "react";
 
 const CardViewerScreen = lazy(async () => {
     if (config.ENABLE_LAZY_LOAD_TEST) {
@@ -25,7 +25,7 @@ export default function CardPage({ params }: CardPageProps) {
 
     return (
         <Suspense fallback={<CardSkeleton />}>
-            <CardViewerScreen address={address} />
+            <CardViewerScreen />
         </Suspense>
     );
 }

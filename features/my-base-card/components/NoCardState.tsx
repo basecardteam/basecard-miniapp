@@ -4,73 +4,19 @@ import SuccessModal from "@/components/modals/SuccessModal";
 import { useToast } from "@/components/ui/Toast";
 import QuestHeroSection from "@/features/quest/components/QuestHeroSection";
 import QuestItem from "@/features/quest/components/QuestItem";
-import { useQuests } from "@/features/quest/hooks/useQuests";
+import { useQuestHandler } from "@/features/quest/hooks/useQuestHandler";
+import { useQuests } from "@/hooks/api/useQuests";
 import { Quest } from "@/lib/types/api";
 import { useRouter } from "next/navigation";
-import { useCallback, useState } from "react";
 
 export const NoCardState = () => {
     const router = useRouter();
-    const { quests, isLoading, error, claimingQuest, claim } = useQuests();
+    const { quests, isLoading, error, claimingQuest } = useQuests();
     const { showToast } = useToast();
-    const [successModalState, setSuccessModalState] = useState<{
-        isOpen: boolean;
-        rewarded: number;
-        newTotalPoints: number;
-    }>({ isOpen: false, rewarded: 0, newTotalPoints: 0 });
+    const { handleQuestAction, successModalState, setSuccessModalState } =
+        useQuestHandler();
 
-    const handleClaim = useCallback(
-        async (quest: Quest) => {
-            if (quest.status === "claimable") {
-                try {
-                    const result = await claim(quest);
-                    if (result && result.verified) {
-                        setSuccessModalState({
-                            isOpen: true,
-                            rewarded: result.rewarded,
-                            newTotalPoints: result.newTotalPoints,
-                        });
-                    }
-                } catch (err) {
-                    showToast(
-                        err instanceof Error ? err.message : "Failed to claim quest",
-                        "error"
-                    );
-                }
-                return;
-            }
 
-            if (quest.actionType === "MINT" && quest.status === "pending") {
-                router.push("/mint");
-                return;
-            }
-
-            if (
-                quest.actionType === "LINK_SOCIAL" ||
-                quest.actionType === "LINK_BASENAME"
-            ) {
-                router.push("/edit-profile");
-                return;
-            }
-
-            try {
-                const result = await claim(quest);
-                if (result) {
-                    setSuccessModalState({
-                        isOpen: true,
-                        rewarded: result.rewarded,
-                        newTotalPoints: result.newTotalPoints,
-                    });
-                }
-            } catch (err) {
-                showToast(
-                    err instanceof Error ? err.message : "Failed to claim quest",
-                    "error"
-                );
-            }
-        },
-        [claim, router, showToast]
-    );
 
     const getButtonName = (quest: Quest) => {
         if (quest.status === "completed") return "Claimed";
@@ -110,7 +56,7 @@ export const NoCardState = () => {
                                 isCompleted={quest.status === "completed"}
                                 isClaimable={quest.status === "claimable"}
                                 isClaiming={claimingQuest === quest.actionType}
-                                onAction={() => handleClaim(quest)}
+                                onAction={() => handleQuestAction(quest)}
                             />
                         ))
                     )}

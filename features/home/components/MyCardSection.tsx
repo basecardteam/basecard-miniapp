@@ -6,7 +6,7 @@ import {
     CardEmptyState,
     CardLoadingState,
 } from "@/components/CardStates";
-import { useMyBaseCard } from "@/hooks/useMyBaseCard";
+import { useMyBaseCard } from "@/hooks/api/useMyBaseCard";
 import { getIPFSUrl } from "@/lib/utils";
 import { QrCode } from "lucide-react";
 import Image from "next/image";

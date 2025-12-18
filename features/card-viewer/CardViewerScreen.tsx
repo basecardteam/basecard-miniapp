@@ -10,6 +10,6 @@ interface CardViewerScreenProps {
     address: string;
 }
 
-export default function CardViewerScreen(props: CardViewerScreenProps) {
-    return <CardViewerContent {...props} />;
+export default function CardViewerScreen() {
+    return <CardViewerContent />;
 }

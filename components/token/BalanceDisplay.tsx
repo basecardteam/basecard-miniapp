@@ -1,8 +1,8 @@
 "use client";
 
+import { useUser } from "@/hooks/api/useUser";
 import { cn, text as dsText } from "@coinbase/onchainkit/theme";
 import { AiOutlineLoading } from "react-icons/ai";
-import { useUser } from "@/hooks/useUser";
 
 interface BalanceDisplayProps {
     className?: string;

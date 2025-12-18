@@ -1,7 +1,7 @@
 import BackButton from "@/components/buttons/BackButton";
 import FarcasterIcon from "@/components/icons/FarcasterIcon";
 import { BaseModal } from "@/components/modals/BaseModal";
-import { useUser } from "@/hooks/useUser";
+import { useUser } from "@/hooks/api/useUser";
 import { Card } from "@/lib/types";
 import clsx from "clsx";
 import Image from "next/image";

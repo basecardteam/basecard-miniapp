@@ -9,7 +9,7 @@ import ConfirmationModal from "@/components/modals/ConfirmationModal";
 import ErrorModal from "@/components/modals/ErrorModal";
 import LoadingModal from "@/components/modals/LoadingModal";
 import { useToast } from "@/components/ui/Toast";
-import { useMyBaseCard } from "@/hooks/useMyBaseCard";
+import { useMyBaseCard } from "@/hooks/api/useMyBaseCard";
 import { createCollection } from "@/lib/api/collections";
 
 interface CardCollectionAdderProps {

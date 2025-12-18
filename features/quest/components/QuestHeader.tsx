@@ -1,11 +1,9 @@
 "use client";
 
-import Image from "next/image";
-import BaseCardLogoTypo from "@/public/baseCardTypo.png";
-import { useUser } from "@/hooks/useUser";
-import BackButton from "@/components/buttons/BackButton";
 import UserProfileAvatar from "@/components/avatars/UserProfileAvatar";
-import { cn } from "@/lib/utils";
+import { useUser } from "@/hooks/api/useUser";
+import BaseCardLogoTypo from "@/public/baseCardTypo.png";
+import Image from "next/image";
 
 export default function QuestHeader() {
     const { data: user } = useUser();

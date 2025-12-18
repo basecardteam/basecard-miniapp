@@ -1,7 +1,7 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { usePublicClient, useAccount } from "wagmi";
-import { useMintBaseCard } from "./useMintBaseCard";
 import { CreateBaseCardParams } from "@/lib/api/basecards";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useAccount, usePublicClient } from "wagmi";
+import { useMintBaseCard } from "./useMintBaseCard";
 
 export function useMintBaseCardMutation() {
     const { address } = useAccount();
@@ -32,7 +32,7 @@ export function useMintBaseCardMutation() {
             // 2. Wait for Transaction Receipt
             if (publicClient && result.hash) {
                 await publicClient.waitForTransactionReceipt({
-                    hash: result.hash,
+                    hash: `0x${result.hash}`,
                 });
             }
 

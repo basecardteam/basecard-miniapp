@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { CiSearch } from "react-icons/ci";
 
 import { CollectionFilter } from "@/features/collection/components/CollectionFilter";
-import { useMyBaseCard } from "@/hooks/useMyBaseCard";
+import { useMyBaseCard } from "@/hooks/api/useMyBaseCard";
 import {
     CollectionFilterTag,
     filterCollections,
