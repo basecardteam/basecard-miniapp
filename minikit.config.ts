@@ -29,7 +29,7 @@ export const minikitConfig = {
         // TODO: ...
         // tagline
         // ogTitle
-        // ogDescription
+        // ogDescriptionaa
         // ogImageUrl
         noindex: false,
     },
