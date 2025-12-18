@@ -27,15 +27,10 @@ export const viewport: Viewport = {
     userScalable: false,
 };
 
-export const metadata: Metadata = {
-    other: {
-        "base:app_id": "6943ae91d77c069a945bdfec",
-    },
-};
-
 export async function generateMetadata(): Promise<Metadata> {
     return {
         other: {
+            "base:app_id": "6943ae91d77c069a945bdfec",
             "fc:miniapp": JSON.stringify({
                 version: "next",
                 imageUrl: minikitConfig.miniapp.embedImageUrl,
