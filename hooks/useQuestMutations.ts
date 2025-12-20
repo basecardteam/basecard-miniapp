@@ -6,28 +6,24 @@ export function useClaimQuestMutation() {
 
     return useMutation({
         mutationFn: async ({
-            address,
-            questId,
-            fid,
             accessToken,
+            questId,
         }: {
-            address: string;
+            accessToken: string;
             questId: string;
-            fid?: number;
-            accessToken?: string;
         }) => {
-            const result = await claimQuest(address, questId, fid, accessToken);
+            const result = await claimQuest(accessToken, questId);
             return result;
         },
-        onSuccess: async (result, variables) => {
+        onSuccess: async (result) => {
             if (result.verified) {
                 // Update both quests and user points
                 await Promise.all([
                     queryClient.invalidateQueries({
-                        queryKey: ["quests", variables.address],
+                        queryKey: ["quests"],
                     }),
                     queryClient.invalidateQueries({
-                        queryKey: ["user", variables.address],
+                        queryKey: ["user"],
                     }),
                 ]);
             }
@@ -39,22 +35,14 @@ export function useVerifyQuestMutation() {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async ({
-            address,
-            fid,
-            accessToken,
-        }: {
-            address: string;
-            fid?: number;
-            accessToken?: string;
-        }) => {
-            const result = await verifyQuest(address, fid, accessToken);
+        mutationFn: async ({ accessToken }: { accessToken: string }) => {
+            const result = await verifyQuest(accessToken);
             return result;
         },
-        onSuccess: async (result, variables) => {
+        onSuccess: async (result) => {
             if (result.success) {
                 await queryClient.invalidateQueries({
-                    queryKey: ["quests", variables.address],
+                    queryKey: ["quests"],
                 });
             }
         },

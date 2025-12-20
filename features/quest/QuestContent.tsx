@@ -9,10 +9,11 @@ import { useQuests } from "@/hooks/api/useQuests";
 import { Quest } from "@/lib/types/api";
 
 export default function QuestContent() {
-    const { quests, isLoading, error, claimingQuest } = useQuests();
+    const { quests, isLoading, error, claimingQuest, isAuthenticated } =
+        useQuests();
     const { handleQuestAction, successModalState, setSuccessModalState } =
         useQuestHandler();
-    const { isAuthenticated, isAuthLoading } = useAuth();
+    const { isAuthLoading } = useAuth();
 
     const getButtonName = (quest: Quest) => {
         if (quest.status === "completed") return "Claimed";
@@ -42,25 +43,18 @@ export default function QuestContent() {
                 {/* Hero Section */}
                 <QuestHeroSection />
 
+                {/* Login prompt for unauthenticated users */}
+                {!isAuthLoading && !isAuthenticated && (
+                    <div className="w-full max-w-[340px] bg-white/10 backdrop-blur-sm rounded-2xl p-4 mb-4 text-center">
+                        <div className="text-white/90 text-sm">
+                            🔐 Sign in to track your progress and claim rewards
+                        </div>
+                    </div>
+                )}
+
                 {/* Quest List */}
                 <div className="flex flex-col gap-4 w-full max-w-[340px] items-center">
-                    {/* Auth Loading State */}
-                    {isAuthLoading ? (
-                        <div className="text-white/80 text-center py-8">
-                            Checking authentication...
-                        </div>
-                    ) : /* Not Authenticated State */
-                    !isAuthenticated ? (
-                        <div className="w-full bg-white/10 backdrop-blur-sm rounded-2xl p-6 text-center">
-                            <div className="text-white text-lg font-semibold mb-2">
-                                🔐 Login Required
-                            </div>
-                            <div className="text-white/80 text-sm">
-                                Please connect your wallet and sign in to view
-                                and complete quests.
-                            </div>
-                        </div>
-                    ) : isLoading ? (
+                    {isLoading ? (
                         <div className="text-white/80 text-center py-8">
                             Loading quests...
                         </div>

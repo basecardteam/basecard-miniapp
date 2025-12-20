@@ -31,14 +31,25 @@ export async function loginWithFarcaster(token: string): Promise<AuthResponse> {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
             },
+            body: JSON.stringify({ token }),
         }
     );
 
     if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || "Failed to login with Farcaster");
+        console.error("[loginWithFarcaster] API Error:", {
+            status: response.status,
+            statusText: response.statusText,
+            errorData,
+        });
+        throw new Error(
+            `Farcaster login failed (${response.status}): ${
+                errorData.message ||
+                errorData.error ||
+                JSON.stringify(errorData)
+            }`
+        );
     }
 
     const data: ApiResponse<RawAuthResponse> = await response.json();

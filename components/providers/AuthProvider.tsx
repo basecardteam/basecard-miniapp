@@ -68,23 +68,22 @@ export default function AuthProvider({
     const [isAuthLoading, setIsAuthLoading] = useState(true);
     const [authUser, setAuthUser] = useState<AuthUser | null>(null);
     const [accessToken, setAccessToken] = useState<string | null>(null);
-    const isRefreshing = useRef(false);
+    const isAuthInProgress = useRef(false);
 
     const frameContext = useFrameContext();
     const isInMiniApp = frameContext?.isInMiniApp ?? false;
+    const isContextReady = frameContext?.isContextReady ?? false;
 
     const { address, isConnected } = useAccount();
     const { signMessageAsync } = useSignMessage();
 
     // Save auth state to localStorage with expiry
     const saveAuthState = useCallback((response: AuthResponse) => {
-        // Debug: log the full response to see what backend returns
         logger.debug(
             "Auth response received:",
             JSON.stringify(response, null, 2)
         );
 
-        // Validate accessToken before saving
         if (!response.accessToken || typeof response.accessToken !== "string") {
             logger.error(
                 "Invalid accessToken in response:",
@@ -119,44 +118,134 @@ export default function AuthProvider({
         localStorage.removeItem(AUTH_EXPIRES_KEY);
     }, []);
 
-    // Farcaster re-auth
-    const refreshFarcasterAuth = useCallback(async () => {
-        if (isRefreshing.current) return;
-        isRefreshing.current = true;
+    // Unified Farcaster auth (for both initial login and refresh)
+    const performFarcasterAuth = useCallback(
+        async (isInitialLogin: boolean = false) => {
+            if (isAuthInProgress.current) return;
+            isAuthInProgress.current = true;
 
-        try {
-            logger.debug("Refreshing Farcaster auth token...");
-            const { token } = await sdk.quickAuth.getToken();
-            const response = await loginWithFarcaster(token);
-            saveAuthState(response);
-            logger.debug("Farcaster auth token refreshed");
-        } catch (error) {
-            logger.error("Farcaster auth refresh failed:", error);
-            logout();
-        } finally {
-            isRefreshing.current = false;
-        }
-    }, [saveAuthState, logout]);
+            if (isInitialLogin) {
+                setIsAuthLoading(true);
+            }
 
-    // MetaMask re-auth
-    const refreshMetaMaskAuth = useCallback(async () => {
-        if (isRefreshing.current || !address) return;
-        isRefreshing.current = true;
+            try {
+                logger.info(
+                    isInitialLogin
+                        ? "Attempting Farcaster Quick Auth login..."
+                        : "Refreshing Farcaster auth token..."
+                );
 
-        try {
-            logger.debug("Refreshing MetaMask auth token...");
-            const message = generateSignInMessage(address);
-            const signature = await signMessageAsync({ message });
-            const response = await loginWithWallet(address, message, signature);
-            saveAuthState(response);
-            logger.debug("MetaMask auth token refreshed");
-        } catch (error) {
-            logger.error("MetaMask auth refresh failed:", error);
-            logout();
-        } finally {
-            isRefreshing.current = false;
-        }
-    }, [address, signMessageAsync, saveAuthState, logout]);
+                const { token } = await sdk.quickAuth.getToken();
+                const response = await loginWithFarcaster(token);
+                saveAuthState(response);
+
+                logger.info(
+                    isInitialLogin
+                        ? "Farcaster Quick Auth login successful"
+                        : "Farcaster auth token refreshed",
+                    response.user
+                );
+            } catch (error) {
+                // Log detailed error info
+                const errorDetails =
+                    error instanceof Error
+                        ? {
+                              message: error.message,
+                              name: error.name,
+                              stack: error.stack,
+                          }
+                        : {
+                              raw: String(error),
+                              typeof: typeof error,
+                              json: JSON.stringify(error),
+                          };
+
+                logger.error(
+                    isInitialLogin
+                        ? "Farcaster Quick Auth login failed:"
+                        : "Farcaster auth refresh failed:",
+                    errorDetails
+                );
+                if (!isInitialLogin) {
+                    logout(); // Only logout on refresh failure
+                }
+            } finally {
+                isAuthInProgress.current = false;
+                if (isInitialLogin) {
+                    setIsAuthLoading(false);
+                }
+            }
+        },
+        [saveAuthState, logout]
+    );
+
+    // Unified MetaMask auth (for both initial login and refresh)
+    const performMetaMaskAuth = useCallback(
+        async (walletAddress: string, isInitialLogin: boolean = false) => {
+            if (isAuthInProgress.current) return;
+            isAuthInProgress.current = true;
+
+            if (isInitialLogin) {
+                setIsAuthLoading(true);
+            }
+
+            try {
+                logger.debug(
+                    isInitialLogin
+                        ? "Attempting MetaMask login..."
+                        : "Refreshing MetaMask auth token...",
+                    { walletAddress }
+                );
+
+                const message = generateSignInMessage(walletAddress);
+                const signature = await signMessageAsync({ message });
+                const response = await loginWithWallet(
+                    walletAddress,
+                    message,
+                    signature
+                );
+                saveAuthState(response);
+
+                logger.debug(
+                    isInitialLogin
+                        ? "MetaMask login successful"
+                        : "MetaMask auth token refreshed",
+                    response.user
+                );
+            } catch (error) {
+                logger.error(
+                    isInitialLogin
+                        ? "MetaMask login failed:"
+                        : "MetaMask auth refresh failed:",
+                    error
+                );
+                if (!isInitialLogin) {
+                    logout(); // Only logout on refresh failure
+                }
+                if (isInitialLogin) {
+                    throw error; // Re-throw for initial login
+                }
+            } finally {
+                isAuthInProgress.current = false;
+                if (isInitialLogin) {
+                    setIsAuthLoading(false);
+                }
+            }
+        },
+        [signMessageAsync, saveAuthState, logout]
+    );
+
+    // Public loginWithMetaMask (wrapper for initial login)
+    const loginWithMetaMask = useCallback(
+        async (connectedAddress?: string) => {
+            const walletAddress = connectedAddress || address;
+            if (!walletAddress) {
+                throw new Error("Wallet not connected");
+            }
+            await performMetaMaskAuth(walletAddress, true);
+        },
+        [address, performMetaMaskAuth]
+    );
 
     // Restore auth state from localStorage (check expiry)
     useEffect(() => {
@@ -173,7 +262,6 @@ export default function AuthProvider({
                 logout();
             }
         } else if (storedToken) {
-            // Token exists but expired - clear it
             logger.debug("Stored token expired, clearing...");
             logout();
         }
@@ -188,9 +276,9 @@ export default function AuthProvider({
             if (isTokenExpired()) {
                 logger.debug("Token expired or expiring soon, refreshing...");
                 if (isInMiniApp) {
-                    refreshFarcasterAuth();
+                    performFarcasterAuth(false);
                 } else if (isConnected && address) {
-                    refreshMetaMaskAuth();
+                    performMetaMaskAuth(address, false);
                 }
             }
         };
@@ -206,85 +294,31 @@ export default function AuthProvider({
         isInMiniApp,
         isConnected,
         address,
-        refreshFarcasterAuth,
-        refreshMetaMaskAuth,
+        performFarcasterAuth,
+        performMetaMaskAuth,
     ]);
 
     // Farcaster Quick Auth flow (auto-login in miniapp)
     useEffect(() => {
+        // Wait for FrameProvider context to be ready before checking isInMiniApp
+        if (!isContextReady) return;
         if (!isInMiniApp || isAuthenticated) {
             return;
         }
-
-        const loginFarcaster = async () => {
-            try {
-                setIsAuthLoading(true);
-                logger.debug("Attempting Farcaster Quick Auth login...");
-
-                const { token } = await sdk.quickAuth.getToken();
-                const response = await loginWithFarcaster(token);
-
-                saveAuthState(response);
-                logger.debug(
-                    "Farcaster Quick Auth login successful",
-                    response.user
-                );
-            } catch (error) {
-                logger.error("Farcaster Quick Auth login failed:", error);
-            } finally {
-                setIsAuthLoading(false);
-            }
-        };
-
-        loginFarcaster();
-    }, [isInMiniApp, isAuthenticated, saveAuthState]);
-
-    // MetaMask login (manual trigger)
-    // connectedAddress is optional - use it when calling right after connectAsync
-    // because React state (address) may not be updated yet
-    const loginWithMetaMask = useCallback(
-        async (connectedAddress?: string) => {
-            const walletAddress = connectedAddress || address;
-            logger.debug("Attempting MetaMask login...", { walletAddress });
-
-            if (!walletAddress) {
-                throw new Error("Wallet not connected");
-            }
-
-            try {
-                setIsAuthLoading(true);
-
-                const message = generateSignInMessage(walletAddress);
-                const signature = await signMessageAsync({ message });
-
-                const response = await loginWithWallet(
-                    walletAddress,
-                    message,
-                    signature
-                );
-
-                saveAuthState(response);
-                logger.debug("MetaMask login successful", response.user);
-            } catch (error) {
-                logger.error("MetaMask login failed:", error);
-                throw error;
-            } finally {
-                setIsAuthLoading(false);
-            }
-        },
-        [address, signMessageAsync, saveAuthState]
-    );
+        logger.debug(
+            "Context ready, isInMiniApp:",
+            isInMiniApp,
+            "triggering Farcaster auth..."
+        );
+        performFarcasterAuth(true);
+    }, [isContextReady, isInMiniApp, isAuthenticated, performFarcasterAuth]);
 
     // Browser wallet auto-login: if wallet is already connected but not authenticated
     useEffect(() => {
-        // Skip if in miniapp (Farcaster auth handles that)
         if (isInMiniApp) return;
-        // Skip if already authenticated or still loading
         if (isAuthenticated || isAuthLoading) return;
-        // Skip if wallet not connected
         if (!isConnected || !address) return;
 
-        // Add delay to allow React state to stabilize and prevent duplicate requests
         const timeoutId = setTimeout(() => {
             logger.debug(
                 "Wallet connected, triggering auto-login after delay..."

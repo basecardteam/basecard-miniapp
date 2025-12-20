@@ -1,6 +1,6 @@
 "use client";
 
-import { resolveIpfsUrl } from "@/lib/ipfs";
+import { resolveIpfsUrl } from "@/lib/utils";
 import FALLBACK_PROFILE_IMAGE from "@/public/assets/empty_pfp.png";
 import Image, { StaticImageData } from "next/image";
 import { useEffect, useMemo, useState } from "react";

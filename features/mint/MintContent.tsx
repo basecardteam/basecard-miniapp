@@ -13,11 +13,11 @@ import { useMintBaseCardMutation } from "@/hooks/useMintBaseCardMutation";
 import { useMintForm } from "@/hooks/useMintForm";
 import { MAX_WEBSITES, type Role } from "@/lib/constants/mint";
 import { shareToFarcaster } from "@/lib/farcaster/share";
-import { resolveIpfsUrl } from "@/lib/ipfs";
 import { processProfileImage } from "@/lib/processProfileImage";
 import type { MintFormData } from "@/lib/schemas/mintFormSchema";
+import { resolveIpfsUrl } from "@/lib/utils";
 import { activeChain } from "@/lib/wagmi";
-import FALLBACK_PROFILE_IMAGE from "@/public/assets/empty_pfp.png";
+import defaultProfileImage from "@/public/assets/default-profile.png";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { Suspense, useCallback, useEffect, useState } from "react";
@@ -49,7 +49,7 @@ export default function MintContent() {
     const username = (frameContext?.context as MiniAppContext)?.user?.username;
     const defaultProfileUrl =
         (frameContext?.context as MiniAppContext)?.user?.pfpUrl ||
-        FALLBACK_PROFILE_IMAGE;
+        defaultProfileImage;
 
     // Form state management
     const {
@@ -384,8 +384,10 @@ export default function MintContent() {
                     router.push("/");
                 }}
                 onShare={async () => {
-                    const shareUrl = `${process.env.NEXT_PUBLIC_URL || "https://basecard.vercel.app"}/card/${address}`;
-                    const imageUrl = successModal.imageUri ? resolveIpfsUrl(successModal.imageUri) : undefined;
+                    const shareUrl = `${process.env.NEXT_PUBLIC_URL}/card/${address}`;
+                    const imageUrl = successModal.imageUri
+                        ? resolveIpfsUrl(successModal.imageUri)
+                        : undefined;
                     await shareToFarcaster({
                         text: "I just minted my Basecard! Collect this and check all about myself",
                         imageUrl,

@@ -1,5 +1,5 @@
 import { fetchCardByAddress } from "@/lib/api/basecards";
-import { resolveIpfsUrl } from "@/lib/ipfs";
+import { resolveIpfsUrl } from "@/lib/utils";
 import { Metadata } from "next";
 
 interface CardLayoutProps {
@@ -51,7 +51,9 @@ export async function generateMetadata({
                 "fc:frame:image": imageUrl || "",
                 "fc:frame:button:1": "View Card",
                 "fc:frame:button:1:action": "link",
-                "fc:frame:button:1:target": `${process.env.NEXT_PUBLIC_URL || "https://basecard.vercel.app"}/card/${address}`,
+                "fc:frame:button:1:target": `${
+                    process.env.NEXT_PUBLIC_URL || "https://basecard.vercel.app"
+                }/card/${address}`,
             },
         };
     } catch (error) {

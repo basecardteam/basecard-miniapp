@@ -3,8 +3,8 @@ import { useToast } from "@/components/ui/Toast";
 import { useQuests } from "@/hooks/api/useQuests";
 import { useERC721Token } from "@/hooks/useERC721Token";
 import { shareToFarcaster } from "@/lib/farcaster/share";
-import { resolveIpfsUrl } from "@/lib/ipfs";
 import { Quest } from "@/lib/types/api";
+import { resolveIpfsUrl } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import { useAccount } from "wagmi";
@@ -66,8 +66,12 @@ export function useQuestHandler(): UseQuestHandlerResult {
             // Handle SHARE quest - share to Farcaster
             if (quest.actionType === "SHARE") {
                 const shareUrl = address
-                    ? `${process.env.NEXT_PUBLIC_URL || "https://basecard.vercel.app"}/card/${address}`
-                    : process.env.NEXT_PUBLIC_URL || "https://basecard.vercel.app";
+                    ? `${
+                          process.env.NEXT_PUBLIC_URL ||
+                          "https://basecard.vercel.app"
+                      }/card/${address}`
+                    : process.env.NEXT_PUBLIC_URL ||
+                      "https://basecard.vercel.app";
                 const imageUrl = metadata?.image
                     ? resolveIpfsUrl(metadata.image)
                     : undefined;
@@ -88,7 +92,8 @@ export function useQuestHandler(): UseQuestHandlerResult {
                 }
 
                 try {
-                    const result = await frameContext.requestNotificationPermission();
+                    const result =
+                        await frameContext.requestNotificationPermission();
                     if (result.success && result.notificationDetails) {
                         showToast("Notifications enabled!", "success");
                         // Verify the quest after enabling notifications
@@ -138,7 +143,9 @@ export function useQuestHandler(): UseQuestHandlerResult {
                 }
             } catch (err) {
                 showToast(
-                    err instanceof Error ? err.message : "Failed to claim quest",
+                    err instanceof Error
+                        ? err.message
+                        : "Failed to claim quest",
                     "error"
                 );
             }

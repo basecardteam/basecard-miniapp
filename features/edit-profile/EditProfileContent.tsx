@@ -18,7 +18,7 @@ import { useMyBaseCard } from "@/hooks/api/useMyBaseCard";
 import { useUser } from "@/hooks/api/useUser";
 import { useEditBaseCard } from "@/hooks/useEditBaseCard";
 import type { MintFormData } from "@/lib/schemas/mintFormSchema";
-import FALLBACK_PROFILE_IMAGE from "@/public/assets/empty_pfp.png";
+import defaultProfileImage from "@/public/assets/default-profile.png";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { Suspense, useCallback, useEffect, useState } from "react";
@@ -66,7 +66,7 @@ export default function EditProfileContent() {
     // Default image if no card data
     const defaultProfileUrl =
         (frameContext?.context as MiniAppContext)?.user?.pfpUrl ||
-        FALLBACK_PROFILE_IMAGE;
+        defaultProfileImage;
 
     // Fetch existing card data
     const { data: cardData, isLoading: isCardLoading } = useMyBaseCard();
@@ -130,7 +130,7 @@ export default function EditProfileContent() {
     }, [newWebsite, handleAddWebsite]);
 
     const { errors } = formState;
-    222
+    222;
     if (!address) {
         return (
             <WalletConnectionRequired
@@ -295,8 +295,8 @@ export default function EditProfileContent() {
                     {isCreatingBaseCard
                         ? "Updating..."
                         : isSendingTransaction
-                            ? "Confirming..."
-                            : "Save"}
+                        ? "Confirming..."
+                        : "Save"}
                 </BaseButton>
             </form>
 
