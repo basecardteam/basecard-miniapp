@@ -96,9 +96,7 @@ export function useMintBaseCard() {
 
                 // User rejected the transaction
                 if (rawMessage.includes("User rejected")) {
-                    deleteBaseCard(address!, accessToken || undefined).catch(
-                        logger.warn
-                    );
+                    deleteBaseCard(address!, accessToken).catch(logger.warn);
                     // Don't set error for user rejection - it's intentional
                     return { success: false, error: "User rejected" };
                 }

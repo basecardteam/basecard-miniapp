@@ -117,27 +117,26 @@ export async function createBaseCard(
 }
 
 export interface UpdateBaseCardParams {
-    nickname?: string;
-    role?: string;
-    bio?: string;
-    socials?: Record<string, string>;
-    profileImageFile?: File;
+    nickname: string;
+    role: string;
+    bio: string;
+    socials: Record<string, string>;
+    profileImageFile: File;
 }
 
 export async function updateBaseCard(
     address: string,
     params: UpdateBaseCardParams,
-    accessToken?: string
+    accessToken: string
 ): Promise<CreateCardResponse> {
     const formData = new FormData();
 
-    if (params.nickname) formData.append("nickname", params.nickname);
-    if (params.role) formData.append("role", params.role);
-    if (params.bio !== undefined) formData.append("bio", params.bio);
-    if (params.socials)
-        formData.append("socials", JSON.stringify(params.socials));
-    if (params.profileImageFile)
-        formData.append("profileImageFile", params.profileImageFile);
+    // Always send all fields - empty string means "clear/delete"
+    formData.append("nickname", params.nickname);
+    formData.append("role", params.role);
+    formData.append("bio", params.bio);
+    formData.append("socials", JSON.stringify(params.socials));
+    formData.append("profileImageFile", params.profileImageFile);
 
     logger.debug("Update card request - address:", address);
     logger.debug("Update card request - params:", params);
@@ -147,9 +146,7 @@ export async function updateBaseCard(
     );
 
     const headers: HeadersInit = {};
-    if (accessToken && accessToken.length > 0) {
-        headers["Authorization"] = `Bearer ${accessToken}`;
-    }
+    headers["Authorization"] = `Bearer ${accessToken}`;
 
     const response = await fetch(
         `${config.BACKEND_API_URL}/v1/basecards/${address}`,
@@ -185,8 +182,8 @@ export async function updateBaseCard(
 
 export async function rollbackUpdate(
     address: string,
-    uploadedFiles: { s3Key: string; ipfsId: string },
-    accessToken?: string
+    uploadedFiles: { ipfsId: string },
+    accessToken: string
 ): Promise<void> {
     const response = await fetch(
         `${config.BACKEND_API_URL}/v1/basecards/${address}/rollback`,
@@ -205,7 +202,7 @@ export async function rollbackUpdate(
 
 export async function deleteBaseCard(
     address: string,
-    accessToken?: string
+    accessToken: string
 ): Promise<void> {
     const response = await fetch(
         `${config.BACKEND_API_URL}/v1/basecards/${address}`,
