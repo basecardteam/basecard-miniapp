@@ -1,6 +1,5 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { claimQuest, verifyQuest } from "@/lib/api/quests";
-import { VerifyQuestResponse } from "@/lib/types/api";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 export function useClaimQuestMutation() {
     const queryClient = useQueryClient();
@@ -10,12 +9,14 @@ export function useClaimQuestMutation() {
             address,
             questId,
             fid,
+            accessToken,
         }: {
             address: string;
             questId: string;
             fid?: number;
+            accessToken?: string;
         }) => {
-            const result = await claimQuest(address, questId, fid);
+            const result = await claimQuest(address, questId, fid, accessToken);
             return result;
         },
         onSuccess: async (result, variables) => {
@@ -41,11 +42,13 @@ export function useVerifyQuestMutation() {
         mutationFn: async ({
             address,
             fid,
+            accessToken,
         }: {
             address: string;
             fid?: number;
+            accessToken?: string;
         }) => {
-            const result = await verifyQuest(address, fid);
+            const result = await verifyQuest(address, fid, accessToken);
             return result;
         },
         onSuccess: async (result, variables) => {

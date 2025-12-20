@@ -1,6 +1,7 @@
 "use client";
 
 import SuccessModal from "@/components/modals/SuccessModal";
+import { useAuth } from "@/components/providers/AuthProvider";
 import QuestHeroSection from "@/features/quest/components/QuestHeroSection";
 import QuestItem from "@/features/quest/components/QuestItem";
 import { useQuestHandler } from "@/features/quest/hooks/useQuestHandler";
@@ -11,8 +12,7 @@ export default function QuestContent() {
     const { quests, isLoading, error, claimingQuest } = useQuests();
     const { handleQuestAction, successModalState, setSuccessModalState } =
         useQuestHandler();
-
-
+    const { isAuthenticated, isAuthLoading } = useAuth();
 
     const getButtonName = (quest: Quest) => {
         if (quest.status === "completed") return "Claimed";
@@ -44,7 +44,23 @@ export default function QuestContent() {
 
                 {/* Quest List */}
                 <div className="flex flex-col gap-4 w-full max-w-[340px] items-center">
-                    {isLoading ? (
+                    {/* Auth Loading State */}
+                    {isAuthLoading ? (
+                        <div className="text-white/80 text-center py-8">
+                            Checking authentication...
+                        </div>
+                    ) : /* Not Authenticated State */
+                    !isAuthenticated ? (
+                        <div className="w-full bg-white/10 backdrop-blur-sm rounded-2xl p-6 text-center">
+                            <div className="text-white text-lg font-semibold mb-2">
+                                🔐 Login Required
+                            </div>
+                            <div className="text-white/80 text-sm">
+                                Please connect your wallet and sign in to view
+                                and complete quests.
+                            </div>
+                        </div>
+                    ) : isLoading ? (
                         <div className="text-white/80 text-center py-8">
                             Loading quests...
                         </div>

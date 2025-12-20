@@ -1,19 +1,18 @@
-import { useState, useCallback } from "react";
-import { useAccount } from "wagmi";
-import { fetchQuests, fetchUserQuests } from "@/lib/api/quests";
-import { Quest, VerifyQuestResponse } from "@/lib/types/api";
-import { useQuery } from "@tanstack/react-query";
-import {
-    useClaimQuestMutation,
-    useVerifyQuestMutation,
-} from "@/hooks/useQuestMutations";
+import { useAuth } from "@/components/providers/AuthProvider";
 import {
     MiniAppContext,
     useFrameContext,
 } from "@/components/providers/FrameProvider";
+import { useClaimQuestMutation } from "@/hooks/useQuestMutations";
+import { fetchQuests, fetchUserQuests } from "@/lib/api/quests";
+import { Quest, VerifyQuestResponse } from "@/lib/types/api";
+import { useQuery } from "@tanstack/react-query";
+import { useCallback, useState } from "react";
+import { useAccount } from "wagmi";
 
 export function useQuests() {
     const { address, isConnected } = useAccount();
+    const { accessToken, isAuthenticated } = useAuth();
     const frameContext = useFrameContext();
     const fid = (frameContext?.context as MiniAppContext)?.user?.fid;
     const [claimingQuest, setClaimingQuest] = useState<string | null>(null);
@@ -25,14 +24,15 @@ export function useQuests() {
         error,
         refetch,
     } = useQuery({
-        queryKey: ["quests", address],
+        queryKey: ["quests", address, accessToken],
         queryFn: async () => {
+            if (!accessToken) return [];
             if (isConnected && address) {
-                return fetchUserQuests(address, fid);
+                return fetchUserQuests(address, fid, accessToken);
             }
-            return fetchQuests();
+            return fetchQuests(accessToken);
         },
-        enabled: true,
+        enabled: isAuthenticated && !!accessToken, // Only fetch when authenticated AND token available
         staleTime: 1000 * 60, // 1 minute
     });
 
@@ -52,6 +52,7 @@ export function useQuests() {
                     address,
                     questId: quest.id,
                     fid,
+                    accessToken: accessToken || undefined,
                 });
                 return result;
             } catch (err) {
@@ -60,7 +61,7 @@ export function useQuests() {
                 setClaimingQuest(null);
             }
         },
-        [address, claimMutate, fid]
+        [address, claimMutate, fid, accessToken]
     );
 
     return {

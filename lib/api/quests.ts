@@ -3,14 +3,25 @@ import { ApiResponse, Quest, VerifyQuestResponse } from "@/lib/types/api";
 import { logger } from "../common/logger";
 
 /**
+ * Helper to create headers with optional auth token
+ */
+function createHeaders(accessToken?: string): HeadersInit {
+    const headers: HeadersInit = {
+        "Content-Type": "application/json",
+    };
+    if (accessToken && accessToken.length > 0) {
+        headers["Authorization"] = `Bearer ${accessToken}`;
+    }
+    return headers;
+}
+
+/**
  * Fetch all quests (without user status)
  */
-export async function fetchQuests(): Promise<Quest[]> {
+export async function fetchQuests(accessToken?: string): Promise<Quest[]> {
     const response = await fetch(`${config.BACKEND_API_URL}/v1/quests`, {
         method: "GET",
-        headers: {
-            "Content-Type": "application/json",
-        },
+        headers: createHeaders(accessToken),
     });
 
     if (!response.ok) {
@@ -31,15 +42,14 @@ export async function fetchQuests(): Promise<Quest[]> {
  */
 export async function fetchUserQuests(
     address: string,
-    fid?: number
+    fid?: number,
+    accessToken?: string
 ): Promise<Quest[]> {
     const response = await fetch(
         `${config.BACKEND_API_URL}/v1/user-quests/user/${address}?fid=${fid}`,
         {
             method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-            },
+            headers: createHeaders(accessToken),
         }
     );
 
@@ -59,21 +69,17 @@ export async function fetchUserQuests(
 /**
  * Claim a quest reward after on-chain verification
  */
-/**
- * Claim a quest reward after on-chain verification
- */
 export async function claimQuest(
     address: string,
     questId: string,
-    fid?: number
+    fid?: number,
+    accessToken?: string
 ): Promise<VerifyQuestResponse> {
     const response = await fetch(
         `${config.BACKEND_API_URL}/v1/user-quests/claim`,
         {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
+            headers: createHeaders(accessToken),
             body: JSON.stringify({ address, questId, fid }),
         }
     );
@@ -105,15 +111,14 @@ export async function claimQuest(
  */
 export async function verifyQuest(
     address: string,
-    fid?: number
+    fid?: number,
+    accessToken?: string
 ): Promise<VerifyQuestResponse> {
     const response = await fetch(
         `${config.BACKEND_API_URL}/v1/user-quests/verify`,
         {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
+            headers: createHeaders(accessToken),
             body: JSON.stringify({ address, fid }),
         }
     );
