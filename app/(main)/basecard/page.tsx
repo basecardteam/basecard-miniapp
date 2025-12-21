@@ -1,4 +1,4 @@
-import MyBaseCardScreen from "@/features/basecard/MyBaseCardScreen";
+import MyBaseCardScreen from "@/features/basecard/BaseCardScreen";
 import { Suspense } from "react";
 
 const CardSkeleton = () => (

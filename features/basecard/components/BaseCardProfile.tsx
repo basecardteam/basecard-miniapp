@@ -8,7 +8,6 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { AiOutlineLoading } from "react-icons/ai";
 import {
-    IoClose,
     IoDocumentTextOutline,
     IoGridOutline,
     IoSparklesOutline,
@@ -159,24 +158,16 @@ export default function MyBaseCardProfile({
                 {/* [PROFILE ONLY] Quest Banner */}
                 {isProfile && <QuestBanner />}
 
-                {/* [VIEWER ONLY] Close Button Header */}
-                {isViewer && (
-                    <div className="w-full flex justify-end px-4 pt-4">
-                        <button
-                            onClick={handleClose}
-                            className="p-2 rounded-full hover:bg-gray-100 transition-colors"
-                            aria-label="Close"
-                        >
-                            <IoClose size={24} className="text-gray-600" />
-                        </button>
-                    </div>
-                )}
+                {/* [VIEWER ONLY] Top Spacer */}
+                {isViewer && <div className="h-4" />}
 
                 {/* Card Section - Both modes */}
                 <ProfileCardContent
                     card={card!}
                     socials={socials}
                     isSocialLoading={isSocialLoading}
+                    mode={mode}
+                    onClose={isViewer ? handleClose : undefined}
                 />
 
                 {/* [PROFILE ONLY] Action Buttons Row */}

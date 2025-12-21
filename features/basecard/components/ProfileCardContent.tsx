@@ -2,7 +2,7 @@ import Image from "next/image";
 import { useCallback, useMemo, useState } from "react";
 import { FaGithub, FaGlobe, FaLinkedin, FaTwitter } from "react-icons/fa";
 import { HiOutlinePencil } from "react-icons/hi";
-import { IoShareOutline } from "react-icons/io5";
+import { IoClose, IoShareOutline } from "react-icons/io5";
 
 import FarcasterIcon from "@/components/icons/FarcasterIcon";
 import ShareBottomSheet from "@/components/modals/ShareBottomSheet";
@@ -22,11 +22,16 @@ import { sdk } from "@farcaster/miniapp-sdk";
 import { useRouter } from "next/navigation";
 import { useAccount } from "wagmi";
 
+// =============================================================================
+// Types
+// =============================================================================
+
 interface ProfileCardContentProps {
     card: Card;
     socials?: Record<string, string>;
     isSocialLoading?: boolean;
-    title?: string;
+    mode?: "profile" | "viewer";
+    onClose?: () => void;
 }
 
 type SocialEntry = {
@@ -35,13 +40,49 @@ type SocialEntry = {
     icon: React.ReactNode;
 };
 
-const socialPrefixes: Record<string, string> = {
+// =============================================================================
+// Constants
+// =============================================================================
+
+const SOCIAL_PREFIXES: Record<string, string> = {
     x: "https://x.com/",
     twitter: "https://x.com/",
     farcaster: "https://farcaster.xyz/",
     github: "https://github.com/",
     website: "",
 };
+
+const SOCIAL_ENTRIES: SocialEntry[] = [
+    {
+        key: "farcaster",
+        label: "Farcaster",
+        icon: <FarcasterIcon size={22} className="text-white" />,
+    },
+    {
+        key: "github",
+        label: "GitHub",
+        icon: <FaGithub className="text-white" size={24} />,
+    },
+    {
+        key: "website",
+        label: "Website",
+        icon: <FaGlobe className="text-white" size={24} />,
+    },
+    {
+        key: "x",
+        label: "Twitter",
+        icon: <FaTwitter className="text-white" size={24} />,
+    },
+    {
+        key: "linkedin",
+        label: "LinkedIn",
+        icon: <FaLinkedin className="text-white" size={24} />,
+    },
+];
+
+// =============================================================================
+// Utility Functions
+// =============================================================================
 
 const valueToUrl = (key: string, raw: string): string => {
     const trimmed = raw.trim();
@@ -50,34 +91,77 @@ const valueToUrl = (key: string, raw: string): string => {
     const hasProtocol = /^https?:\/\//i.test(trimmed);
     if (hasProtocol) return trimmed;
 
-    const prefix = socialPrefixes[key] ?? "";
+    const prefix = SOCIAL_PREFIXES[key] ?? "";
     if (prefix.length === 0) return trimmed;
 
     const normalized = trimmed.startsWith("@") ? trimmed.slice(1) : trimmed;
     return `${prefix}${normalized}`;
 };
 
+// =============================================================================
+// Main Component
+// =============================================================================
+
 export default function ProfileCardContent({
     card,
     socials = {},
     isSocialLoading = false,
+    mode = "profile",
+    onClose,
 }: ProfileCardContentProps) {
+    const router = useRouter();
     const openUrl = sdk.actions.openUrl;
-    const [isShareSheetOpen, setIsShareSheetOpen] = useState(false);
-    const [isQRModalOpen, setIsQRModalOpen] = useState(false);
-    const [qrCodeDataURL, setQrCodeDataURL] = useState<string>("");
-    const [isLoadingQR, setIsLoadingQR] = useState(false);
     const { data: user } = useUser();
     const { address } = useAccount();
     const { showToast } = useToast();
     const { ipfsGatewayUrl } = useConfig();
-    const router = useRouter();
 
-    const handleNavigateToCollection = useCallback(() => {
+    // =========================================================================
+    // Derived States
+    // =========================================================================
+
+    const isProfile = mode === "profile";
+    const isViewer = mode === "viewer";
+
+    // Use card.socials as fallback if socials prop is empty
+    const effectiveSocials = useMemo(() => {
+        if (socials && Object.keys(socials).length > 0) return socials;
+        return card.socials || {};
+    }, [socials, card.socials]);
+
+    const profileImageUrl = useMemo(() => {
+        if (user?.profileImage) {
+            return resolveIpfsUrl(user.profileImage, ipfsGatewayUrl);
+        }
+        return "/assets/default-profile.png";
+    }, [user?.profileImage, ipfsGatewayUrl]);
+
+    // =========================================================================
+    // Modal States
+    // =========================================================================
+
+    const [isShareSheetOpen, setIsShareSheetOpen] = useState(false);
+    const [isQRModalOpen, setIsQRModalOpen] = useState(false);
+    const [qrCodeDataURL, setQrCodeDataURL] = useState<string>("");
+    const [isLoadingQR, setIsLoadingQR] = useState(false);
+
+    // =========================================================================
+    // Handlers
+    // =========================================================================
+
+    const handleNavigateToEdit = useCallback(() => {
         router.push("/edit-profile");
     }, [router]);
 
-    // Copy Link handler
+    const handleOpenUrl = useCallback(
+        (key: string, rawValue: string) => {
+            const url = valueToUrl(key, rawValue);
+            if (url.length === 0) return;
+            openUrl(url);
+        },
+        [openUrl]
+    );
+
     const handleCopyLink = useCallback(async () => {
         if (!address) return;
         try {
@@ -90,7 +174,6 @@ export default function ProfileCardContent({
         }
     }, [address, showToast]);
 
-    // Share with QR handler
     const handleShareQR = useCallback(async () => {
         if (!address) return;
         setIsQRModalOpen(true);
@@ -99,10 +182,7 @@ export default function ProfileCardContent({
             const qrCode = await generateCardShareQRCode(address, {
                 width: 250,
                 margin: 2,
-                color: {
-                    dark: "#000000",
-                    light: "#FFFFFF00",
-                },
+                color: { dark: "#000000", light: "#FFFFFF00" },
             });
             setQrCodeDataURL(qrCode);
         } catch (error) {
@@ -113,7 +193,6 @@ export default function ProfileCardContent({
         }
     }, [address]);
 
-    // Cast my Card handler (share to Farcaster)
     const handleCastCard = useCallback(async () => {
         if (!address) return;
         const shareUrl = generateCardShareURL(address);
@@ -127,55 +206,9 @@ export default function ProfileCardContent({
         });
     }, [address, card?.imageUri, ipfsGatewayUrl]);
 
-    const socialEntries: SocialEntry[] = useMemo(
-        () => [
-            {
-                key: "farcaster",
-                label: "Farcaster",
-                icon: <FarcasterIcon size={22} className="text-white" />,
-            },
-            {
-                key: "github",
-                label: "GitHub",
-                icon: <FaGithub className="text-white" size={24} />,
-            },
-            {
-                key: "website",
-                label: "Website",
-                icon: <FaGlobe className="text-white" size={24} />,
-            },
-            {
-                key: "x",
-                label: "Twitter",
-                icon: <FaTwitter className="text-white" size={24} />,
-            },
-            {
-                key: "linkedin",
-                label: "LinkedIn",
-                icon: <FaLinkedin className="text-white" size={24} />,
-            },
-        ],
-        []
-    );
-
-    // Use card.socials as fallback if socials prop is empty
-    const effectiveSocials = useMemo(() => {
-        if (socials && Object.keys(socials).length > 0) {
-            return socials;
-        }
-        return card.socials || {};
-    }, [socials, card.socials]);
-
-    const handleOpenUrl = useCallback(
-        (key: string, rawValue: string) => {
-            const url = valueToUrl(key, rawValue);
-            if (url.length === 0) {
-                return;
-            }
-            openUrl(url);
-        },
-        [openUrl]
-    );
+    // =========================================================================
+    // Render
+    // =========================================================================
 
     return (
         <div className="w-full flex flex-col items-center px-5">
@@ -188,29 +221,30 @@ export default function ProfileCardContent({
                     backgroundRepeat: "no-repeat",
                 }}
             >
-                {/* Edit Button - Top Right */}
-                <button
-                    onClick={handleNavigateToCollection}
-                    className="absolute top-1 right-1 z-20 rounded-full  flex justify-center items-center
-                        hover:bg-black/10 transition-colors active:scale-95"
-                    aria-label="Edit Profile"
-                >
-                    <HiOutlinePencil className="text-white" size={18} />
-                </button>
+                {/* Card Action Button - Top Right */}
+                {isProfile && (
+                    <CardActionButton
+                        onClick={handleNavigateToEdit}
+                        icon={
+                            <HiOutlinePencil className="text-white" size={18} />
+                        }
+                        label="Edit Profile"
+                    />
+                )}
+                {isViewer && onClose && (
+                    <CardActionButton
+                        onClick={onClose}
+                        icon={<IoClose className="text-white" size={22} />}
+                        label="Close"
+                    />
+                )}
 
                 {/* Content Wrapper */}
                 <div className="relative z-10 w-full h-full flex flex-col items-center p-5">
                     {/* Profile Image */}
                     <div className="w-20 h-20 rounded-xl overflow-hidden shadow-lg border-2 border-white/20 flex-none bg-black/20">
                         <Image
-                            src={
-                                user?.profileImage
-                                    ? resolveIpfsUrl(
-                                          user.profileImage,
-                                          ipfsGatewayUrl
-                                      )
-                                    : "/assets/default-profile.png"
-                            }
+                            src={profileImageUrl}
                             alt={card.nickname || "User"}
                             width={80}
                             height={80}
@@ -218,21 +252,24 @@ export default function ProfileCardContent({
                             priority
                         />
                     </div>
+
                     {/* Nickname */}
                     <div className="w-full h-fit flex justify-center items-center mt-4">
                         <p className="font-semibold text-3xl leading-none text-white truncate">
                             {card.nickname || "Unknown"}
                         </p>
                     </div>
+
                     {/* Role */}
                     <div className="mt-1 w-full text-center">
                         <p className="font-light text-lg text-white/90 tracking-tight truncate">
                             {card.role || "Builder"}
                         </p>
                     </div>
+
                     {/* Social Icons */}
                     <div className="mt-4 flex items-center gap-3">
-                        {socialEntries.map(({ key, icon, label }) => {
+                        {SOCIAL_ENTRIES.map(({ key, icon, label }) => {
                             const rawValue = effectiveSocials?.[key] ?? "";
                             const value = rawValue.trim();
                             const hasUrl = value.length > 0;
@@ -260,12 +297,14 @@ export default function ProfileCardContent({
                             );
                         })}
                     </div>
-                    {/* Bio (Description) */}
+
+                    {/* Bio */}
                     <div className="mt-4 w-full min-h-16 px-4 py-3 rounded-lg border border-[#3E7CFF]/50 bg-black/5 flex items-center justify-center">
                         <p className="font-medium text-sm leading-5 text-center text-white break-words w-full">
                             {card.bio || "Hi, I'm a base builder"}
                         </p>
                     </div>
+
                     {/* Share Button */}
                     <button
                         onClick={() => setIsShareSheetOpen(true)}
@@ -279,7 +318,7 @@ export default function ProfileCardContent({
                     </button>
                 </div>
 
-                {/* Share Bottom Sheet */}
+                {/* Modals */}
                 <ShareBottomSheet
                     isOpen={isShareSheetOpen}
                     onClose={() => setIsShareSheetOpen(false)}
@@ -288,7 +327,6 @@ export default function ProfileCardContent({
                     onCastCard={handleCastCard}
                 />
 
-                {/* QR Code Modal */}
                 <ShareModal
                     isOpen={isQRModalOpen}
                     onClose={() => setIsQRModalOpen(false)}
@@ -307,5 +345,30 @@ export default function ProfileCardContent({
                 />
             </div>
         </div>
+    );
+}
+
+// =============================================================================
+// Sub Components
+// =============================================================================
+
+function CardActionButton({
+    onClick,
+    icon,
+    label,
+}: {
+    onClick: () => void;
+    icon: React.ReactNode;
+    label: string;
+}) {
+    return (
+        <button
+            onClick={onClick}
+            className="absolute top-2 right-2 z-20 p-2 rounded-full flex justify-center items-center
+                hover:bg-black/10 transition-colors active:scale-95"
+            aria-label={label}
+        >
+            {icon}
+        </button>
     );
 }

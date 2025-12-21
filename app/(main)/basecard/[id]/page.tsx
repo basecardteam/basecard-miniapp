@@ -1,6 +1,6 @@
 "use client";
 
-import MyBaseCardScreen from "@/features/basecard/MyBaseCardScreen";
+import MyBaseCardScreen from "@/features/basecard/BaseCardScreen";
 import { useParams } from "next/navigation";
 import { Suspense } from "react";
 

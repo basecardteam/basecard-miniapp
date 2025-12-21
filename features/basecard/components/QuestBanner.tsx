@@ -13,7 +13,7 @@ export default function QuestBanner() {
     const [isQuestSheetOpen, setIsQuestSheetOpen] = useState(false);
 
     // Quest hooks
-    const { quests, claimingQuest } = useQuests();
+    const { quests, claimingQuest, isLoading } = useQuests();
     const { handleQuestAction, successModalState, setSuccessModalState } =
         useQuestHandler();
 
@@ -58,6 +58,15 @@ export default function QuestBanner() {
 
         return buttonLabels[quest.actionType] || quest.actionType;
     };
+
+    // Loading skeleton
+    if (isLoading) {
+        return (
+            <div className="w-full px-4 pt-2">
+                <div className="w-full h-8 bg-gray-200 rounded-lg animate-pulse" />
+            </div>
+        );
+    }
 
     // Don't render if no quests
     if (quests.length === 0) return null;

@@ -16,8 +16,6 @@ export const NoCardState = () => {
     const { handleQuestAction, successModalState, setSuccessModalState } =
         useQuestHandler();
 
-
-
     const getButtonName = (quest: Quest) => {
         if (quest.status === "completed") return "Claimed";
         if (quest.status === "claimable") return "Claim!";
@@ -40,7 +38,9 @@ export const NoCardState = () => {
                             Loading quests...
                         </div>
                     ) : error ? (
-                        <div className="text-red-300 text-center py-8">{error}</div>
+                        <div className="text-red-300 text-center py-8">
+                            {error}
+                        </div>
                     ) : quests.length === 0 ? (
                         <div className="text-white/80 text-center py-8">
                             No quests available
