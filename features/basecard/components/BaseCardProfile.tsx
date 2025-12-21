@@ -148,11 +148,12 @@ export default function MyBaseCardProfile({
         }
     }, [
         cardId,
-        isCollectedFromQuery,
         isAuthenticated,
         accessToken,
         showToast,
         queryClient,
+        isCollected,
+
     ]);
 
     // ==========================================================================

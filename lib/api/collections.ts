@@ -2,10 +2,6 @@ import { config } from "@/lib/common/config";
 import { ApiResponse, Card } from "@/lib/types/api";
 import { createHeaders } from "../utils";
 
-interface AddCollectionParams {
-    basecardId: string;
-}
-
 interface CollectionResponse {
     id: string;
     userId: string;

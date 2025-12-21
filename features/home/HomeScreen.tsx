@@ -37,7 +37,7 @@ export default function HomeScreen() {
         <div className="bg-white">
             {card ? (
                 <div className="flex flex-col flex-1">
-                    {action === ACTION_ADD_CARD && cardId && (
+                    {action === ACTION_ADD_CARD && cardId !== null && (
                         <CardCollectionAdder collectedCardId={cardId} />
                     )}
                     <MyCardSection />

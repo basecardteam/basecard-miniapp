@@ -50,20 +50,18 @@ export default function CollectionScreen() {
             {/* Header */}
             <div className="flex gap-x-2 h-12 mb-5 items-center">
                 <BackButton className="relative top-0 left-0" />
-                <h2 className="text-3xl font-k2d font-bold text-black">
+                <div className="text-3xl font-k2d font-bold text-black">
                     My Collection
-                </h2>
+                </div>
             </div>
 
             {/* Content */}
-            <div className="px-5">
-                <CollectionFilter
-                    tags={tags}
-                    selectedTag={selectedTag}
-                    onTagChange={setSelectedTag}
-                />
-                <div className="space-y-4 mt-5">{renderContent()}</div>
-            </div>
+            <CollectionFilter
+                tags={tags}
+                selectedTag={selectedTag}
+                onTagChange={setSelectedTag}
+            />
+            <div className="space-y-4 mt-5">{renderContent()}</div>
         </div>
     );
 }

@@ -89,7 +89,7 @@ export default function CardCollectionAdder({
             }
             router.replace("/");
         }
-    }, [address, myCard?.id, collectedCardId, router, showToast]);
+    }, [address, myCard, collectedCardId, router, showToast, accessToken, isAuthenticated]);
 
     // -------------------------------------------------------------
     // 3. UX helper functions

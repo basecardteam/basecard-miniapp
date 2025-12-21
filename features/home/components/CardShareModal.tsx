@@ -7,7 +7,6 @@ import { Card } from "@/lib/types";
 import BCLogo from "@/public/bc-icon.png";
 import { MiniAppContext } from "@farcaster/miniapp-core/dist/context";
 import { useCallback, useEffect, useState } from "react";
-import { useAccount } from "wagmi";
 
 interface CardShareModalProps {
     isVisible: boolean;
@@ -26,17 +25,16 @@ export const CardShareModal: React.FC<CardShareModalProps> = ({
 }) => {
     const [qrCodeDataURL, setQrCodeDataURL] = useState<string>("");
     const [isLoading, setIsLoading] = useState(false);
-    const { address } = useAccount();
     const frameContext = useFrameContext();
     const user = (frameContext?.context as MiniAppContext)?.user;
 
     /** Generate QR code when modal opens */
     const generateQRCode = useCallback(async () => {
-        if (!address || !isVisible) return;
+        if (!card?.id || !isVisible) return;
 
         setIsLoading(true);
         try {
-            const qrCode = await generateCardShareQRCode(address, {
+            const qrCode = await generateCardShareQRCode(card.id, {
                 width: 250,
                 margin: 2,
                 color: {
@@ -51,7 +49,7 @@ export const CardShareModal: React.FC<CardShareModalProps> = ({
         } finally {
             setIsLoading(false);
         }
-    }, [address, isVisible]);
+    }, [card?.id, isVisible]);
 
     useEffect(() => {
         if (isVisible) {
