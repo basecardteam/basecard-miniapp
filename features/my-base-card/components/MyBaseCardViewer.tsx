@@ -1,7 +1,7 @@
 "use client";
 
 import { useMyBaseCard } from "@/hooks/api/useMyBaseCard";
-import { useERC721Token } from "@/hooks/useERC721Token";
+import { useERC721Token } from "@/hooks/evm/useERC721Token";
 import { sdk } from "@farcaster/miniapp-sdk";
 import { useRouter } from "next/navigation";
 import { useMemo } from "react";

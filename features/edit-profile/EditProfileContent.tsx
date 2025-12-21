@@ -46,6 +46,7 @@ const LoadingModal = dynamic(
 );
 
 import { useModal } from "@/components/modals/BaseModal";
+import { processProfileImage } from "@/lib/processProfileImage";
 
 export default function EditProfileContent() {
     const frameContext = useFrameContext();
@@ -155,12 +156,18 @@ export default function EditProfileContent() {
         if (data.linkedin) socials.linkedin = data.linkedin;
 
         // 1. Backend API 호출 (이미지 처리) → 2. Contract 호출 (editBaseCard)
+        const profileImage = await processProfileImage(
+            data.profileImageFile,
+            cardData.imageUri,
+            activeProfileUrl as string
+        );
+
         const result = await editCard({
             nickname: data.name,
             role: data.role,
-            bio: data.bio,
-            socials: Object.keys(socials).length > 0 ? socials : undefined,
-            profileImageFile: data.profileImageFile || undefined,
+            bio: data.bio || "",
+            socials: Object.keys(socials).length > 0 ? socials : {},
+            profileImageFile: profileImage,
         });
 
         if (result.success) {

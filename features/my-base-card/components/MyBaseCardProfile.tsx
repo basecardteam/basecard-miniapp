@@ -1,12 +1,10 @@
 import { BaseModal } from "@/components/modals/BaseModal";
 import QuestBottomSheet from "@/components/modals/QuestBottomSheet";
 import SuccessModal from "@/components/modals/SuccessModal";
-import { useFrameContext } from "@/components/providers/FrameProvider";
-import { useToast } from "@/components/ui/Toast";
 import { useQuestHandler } from "@/features/quest/hooks/useQuestHandler";
 import { useMyBaseCard } from "@/hooks/api/useMyBaseCard";
 import { useQuests } from "@/hooks/api/useQuests";
-import { useERC721Token } from "@/hooks/useERC721Token";
+import { useERC721Token } from "@/hooks/evm/useERC721Token";
 import { Quest } from "@/lib/types/api";
 import clsx from "clsx";
 import { ChevronRight, Gift } from "lucide-react";
@@ -18,7 +16,6 @@ import {
     IoGridOutline,
     IoSparklesOutline,
 } from "react-icons/io5";
-import { useAccount } from "wagmi";
 import { NoCardState } from "./NoCardState";
 import ProfileCardContent from "./ProfileCardContent";
 
@@ -34,9 +31,6 @@ const LoadingState = () => (
 
 export default function MyBaseCardProfile() {
     const router = useRouter();
-    const { address } = useAccount();
-    const { showToast } = useToast();
-    const frameContext = useFrameContext();
     const [activeTab, setActiveTab] = useState<"earn" | "personal">("earn");
     const [isTodoModalOpen, setIsTodoModalOpen] = useState(false);
     const [isQuestSheetOpen, setIsQuestSheetOpen] = useState(false);
@@ -78,10 +72,8 @@ export default function MyBaseCardProfile() {
     const isSocialLoading = isTokenLoading;
 
     const handleNavigateToCollection = () => {
-        router.push("/edit-profile");
+        router.push("/collection");
     };
-
-
 
     const getButtonName = (quest: Quest) => {
         if (quest.status === "completed") return "Claimed";
@@ -147,23 +139,37 @@ export default function MyBaseCardProfile() {
                         )}
                     >
                         <div className="flex items-center gap-2">
-                            <Gift className={clsx(
-                                "w-4 h-4",
-                                claimableCount > 0 ? "text-white" : "text-[#007AFF]"
-                            )} />
-                            <span className={clsx(
-                                "font-semibold text-xs font-k2d",
-                                claimableCount > 0 ? "text-white" : "text-[#007AFF]"
-                            )}>
+                            <Gift
+                                className={clsx(
+                                    "w-4 h-4",
+                                    claimableCount > 0
+                                        ? "text-white"
+                                        : "text-[#007AFF]"
+                                )}
+                            />
+                            <span
+                                className={clsx(
+                                    "font-semibold text-xs font-k2d",
+                                    claimableCount > 0
+                                        ? "text-white"
+                                        : "text-[#007AFF]"
+                                )}
+                            >
                                 {claimableCount > 0
                                     ? `Claim +${claimableAmount} BC`
-                                    : `${incompleteCount} Quest${incompleteCount > 1 ? "s" : ""}`}
+                                    : `${incompleteCount} Quest${
+                                          incompleteCount > 1 ? "s" : ""
+                                      }`}
                             </span>
                         </div>
-                        <ChevronRight className={clsx(
-                            "w-3.5 h-3.5",
-                            claimableCount > 0 ? "text-white" : "text-[#007AFF]"
-                        )} />
+                        <ChevronRight
+                            className={clsx(
+                                "w-3.5 h-3.5",
+                                claimableCount > 0
+                                    ? "text-white"
+                                    : "text-[#007AFF]"
+                            )}
+                        />
                     </button>
                 </div>
             )}

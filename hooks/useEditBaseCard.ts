@@ -1,8 +1,8 @@
 "use client";
 
 import { useAuth } from "@/components/providers/AuthProvider";
-import { useConfig } from "@/hooks/useConfig";
-import { useERC721Token } from "@/hooks/useERC721Token";
+import { useConfig } from "@/hooks/api/useConfig";
+import { useERC721Token } from "@/hooks/evm/useERC721Token";
 import { baseCardAbi } from "@/lib/abi/abi";
 import {
     rollbackUpdate,

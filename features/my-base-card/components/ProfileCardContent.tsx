@@ -8,8 +8,8 @@ import FarcasterIcon from "@/components/icons/FarcasterIcon";
 import ShareBottomSheet from "@/components/modals/ShareBottomSheet";
 import { ShareModal } from "@/components/modals/ShareModal";
 import { useToast } from "@/components/ui/Toast";
+import { useConfig } from "@/hooks/api/useConfig";
 import { useUser } from "@/hooks/api/useUser";
-import { useConfig } from "@/hooks/useConfig";
 import { shareToFarcaster } from "@/lib/farcaster/share";
 import {
     generateCardShareQRCode,

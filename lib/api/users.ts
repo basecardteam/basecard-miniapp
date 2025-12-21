@@ -1,6 +1,6 @@
 import { config } from "@/lib/common/config";
 import { ApiResponse, User } from "@/lib/types/api";
-import { createHeaders } from "./quests";
+import { createHeaders } from "../utils";
 
 /**
  * Get or Create User by wallet address

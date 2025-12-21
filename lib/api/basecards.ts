@@ -1,6 +1,7 @@
 import { config } from "@/lib/common/config";
 import { ApiResponse, Card, CreateCardResponse } from "@/lib/types/api";
 import { logger } from "../common/logger";
+import { Socials } from "../types";
 
 /**
  * Helper to create headers with optional auth token
@@ -41,7 +42,7 @@ export async function fetchAllBaseCards(): Promise<Card[]> {
 
 /**
  * Fetch card data by wallet address
- * Uses GET /v1/basecards/address/:address endpoint
+ * Uses GET /v1/basecards/address/me endpoint
  * Returns null if card not found instead of throwing error
  */
 export async function fetchCardByAddress(
@@ -72,9 +73,9 @@ export async function fetchCardByAddress(
 export interface CreateBaseCardParams {
     nickname: string;
     role: string;
-    bio?: string;
+    bio: string;
     profileImageFile: File;
-    socials?: Record<string, string>;
+    socials: Socials;
 }
 
 export async function createBaseCard(
@@ -120,7 +121,7 @@ export interface UpdateBaseCardParams {
     nickname: string;
     role: string;
     bio: string;
-    socials: Record<string, string>;
+    socials: Socials;
     profileImageFile: File;
 }
 
@@ -137,13 +138,6 @@ export async function updateBaseCard(
     formData.append("bio", params.bio);
     formData.append("socials", JSON.stringify(params.socials));
     formData.append("profileImageFile", params.profileImageFile);
-
-    logger.debug("Update card request - address:", address);
-    logger.debug("Update card request - params:", params);
-    logger.debug(
-        "Update card request - formData entries:",
-        Object.fromEntries(formData.entries())
-    );
 
     const headers: HeadersInit = {};
     headers["Authorization"] = `Bearer ${accessToken}`;

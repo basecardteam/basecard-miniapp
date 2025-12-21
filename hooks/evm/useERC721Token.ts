@@ -1,4 +1,4 @@
-import { useConfig } from "@/hooks/useConfig";
+import { useConfig } from "@/hooks/api/useConfig";
 import baseCardAbi from "@/lib/abi/BaseCard.json";
 import { logger } from "@/lib/common/logger";
 import { useMemo } from "react";

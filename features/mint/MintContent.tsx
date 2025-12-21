@@ -96,7 +96,8 @@ export default function MintContent() {
             // Process profile image: use uploaded file or fallback to default URL
             const profileImage = await processProfileImage(
                 data.profileImageFile ?? undefined,
-                defaultProfileUrl
+                null, // No existing card image for new mint
+                defaultProfileUrl as string
             );
 
             if (!profileImage) {

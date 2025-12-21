@@ -55,3 +55,14 @@ export const resolveIpfsUrl = (
 
     return cleanUri;
 };
+
+/**
+ * Helper for API to create headers with optional auth token
+ */
+export const createHeaders = (accessToken: string): HeadersInit => {
+    const headers: HeadersInit = {
+        "Content-Type": "application/json",
+    };
+    headers["Authorization"] = `Bearer ${accessToken}`;
+    return headers;
+};

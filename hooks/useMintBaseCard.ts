@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuth } from "@/components/providers/AuthProvider";
-import { useConfig } from "@/hooks/useConfig";
+import { useConfig } from "@/hooks/api/useConfig";
 import { baseCardAbi } from "@/lib/abi/abi";
 import {
     createBaseCard,

@@ -1,7 +1,7 @@
 import { useFrameContext } from "@/components/providers/FrameProvider";
 import { useToast } from "@/components/ui/Toast";
 import { useQuests } from "@/hooks/api/useQuests";
-import { useERC721Token } from "@/hooks/useERC721Token";
+import { useERC721Token } from "@/hooks/evm/useERC721Token";
 import { shareToFarcaster } from "@/lib/farcaster/share";
 import { Quest } from "@/lib/types/api";
 import { resolveIpfsUrl } from "@/lib/utils";

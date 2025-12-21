@@ -1,17 +1,7 @@
 import { config } from "@/lib/common/config";
 import { ApiResponse, Quest, VerifyQuestResponse } from "@/lib/types/api";
 import { logger } from "../common/logger";
-
-/**
- * Helper to create headers with optional auth token
- */
-export const createHeaders = (accessToken: string): HeadersInit => {
-    const headers: HeadersInit = {
-        "Content-Type": "application/json",
-    };
-    headers["Authorization"] = `Bearer ${accessToken}`;
-    return headers;
-};
+import { createHeaders } from "../utils";
 
 /**
  * Fetch all quests (without user status) - requires auth
