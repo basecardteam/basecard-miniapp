@@ -26,7 +26,7 @@ const CardItem = React.memo(function CardItem({
     } satisfies React.CSSProperties;
 
     const handleCardClick = () => {
-        router.push(`/card/${card.id}`);
+        router.push(`/basecard/${card.id}`);
     };
 
     return (

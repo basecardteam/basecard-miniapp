@@ -1,4 +1,7 @@
-import MyBaseCardScreen from "@/features/my-base-card/MyBaseCardScreen";
+"use client";
+
+import MyBaseCardScreen from "@/features/basecard/MyBaseCardScreen";
+import { useParams } from "next/navigation";
 import { Suspense } from "react";
 
 const CardSkeleton = () => (
@@ -9,10 +12,13 @@ const CardSkeleton = () => (
     </div>
 );
 
-export default function MyCardPage() {
+export default function BaseCardPage() {
+    const params = useParams<{ id: string }>();
+    const cardId = params?.id;
+
     return (
         <Suspense fallback={<CardSkeleton />}>
-            <MyBaseCardScreen />
+            <MyBaseCardScreen mode="viewer" cardId={cardId} />
         </Suspense>
     );
 }
