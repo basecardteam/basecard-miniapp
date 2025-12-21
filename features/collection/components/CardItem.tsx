@@ -58,7 +58,7 @@ const CardItem = React.memo(function CardItem({
                     }}
                 />
 
-                <CardOverlayInfo card={card} isActive={isActive} />
+                {/* <CardOverlayInfo card={card} isActive={isActive} /> */}
             </div>
         </div>
     );
