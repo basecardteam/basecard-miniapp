@@ -2,8 +2,8 @@ import { config } from "@/lib/common/config";
 import { ApiResponse, Card } from "@/lib/types/api";
 import { createHeaders } from "../utils";
 
-interface CreateCollectionParams {
-    collectedCardId: string;
+interface AddCollectionParams {
+    basecardId: string;
 }
 
 interface CollectionResponse {
@@ -20,24 +20,24 @@ interface CollectionResponse {
     updatedAt: string;
 }
 
-export const createCollection = async (
+export const addCollection = async (
     accessToken: string,
-    params: CreateCollectionParams
+    basecardId: string
 ): Promise<void> => {
     const response = await fetch(`${config.BACKEND_API_URL}/v1/collections`, {
         method: "POST",
         headers: createHeaders(accessToken),
-        body: JSON.stringify(params),
+        body: JSON.stringify({ basecardId }),
     });
 
     if (!response.ok) {
-        throw new Error("Failed to create collection");
+        throw new Error("Failed to add to collection");
     }
 
     const data: ApiResponse<null> = await response.json();
 
     if (!data.success) {
-        throw new Error(data.error || "Failed to create collection");
+        throw new Error(data.error || "Failed to add to collection");
     }
 };
 

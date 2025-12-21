@@ -1,11 +1,16 @@
 import { BaseModal } from "@/components/modals/BaseModal";
+import { useAuth } from "@/components/providers/AuthProvider";
+import { useToast } from "@/components/ui/Toast";
+import { useBaseCard } from "@/hooks/api/useBaseCard";
 import { useMyBaseCard } from "@/hooks/api/useMyBaseCard";
 import { useMyCollections } from "@/hooks/api/useMyCollections";
 import { useERC721Token } from "@/hooks/evm/useERC721Token";
+import { addCollection } from "@/lib/api/collections";
 import { Card } from "@/lib/types/api";
+import { useQueryClient } from "@tanstack/react-query";
 import clsx from "clsx";
 import { useRouter } from "next/navigation";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import { AiOutlineLoading } from "react-icons/ai";
 import {
     IoDocumentTextOutline,
@@ -49,30 +54,35 @@ export default function MyBaseCardProfile({
     cardId,
 }: MyBaseCardProfileProps) {
     const router = useRouter();
+    const queryClient = useQueryClient();
+    const { isAuthenticated, accessToken } = useAuth();
+    const { showToast } = useToast();
     const [activeTab, setActiveTab] = useState<"earn" | "personal">("earn");
     const [isTodoModalOpen, setIsTodoModalOpen] = useState(false);
+    const [localCollected, setLocalCollected] = useState(false);
+
+    // Mode flags (declared early for conditional hook usage)
+    const isViewer = mode === "viewer";
+    const isProfile = mode === "profile";
 
     // Data fetching based on mode
     const { data: myCard, isLoading: isMyCardLoading } = useMyBaseCard();
-    const { data: collections, isLoading: isCollectionsLoading } =
-        useMyCollections();
+    const { data: viewerCard, isLoading: isViewerCardLoading } = useBaseCard(
+        isViewer ? cardId : undefined
+    );
+    const { data: collections } = useMyCollections();
     const { metadata, isLoading: isTokenLoading } = useERC721Token();
 
     // ==========================================================================
     // Derived States
     // ==========================================================================
 
-    const isViewer = mode === "viewer";
-    const isProfile = mode === "profile";
-
-    // Card data: from myCard (profile) or filtered from collections (viewer)
+    // Card data: from myCard (profile) or fetched viewerCard (viewer)
     const card: Card | null = useMemo(() => {
         if (isProfile) return myCard ?? null;
-        if (isViewer && collections && cardId) {
-            return collections.find((c) => c.id === cardId) ?? null;
-        }
+        if (isViewer) return viewerCard ?? null;
         return null;
-    }, [isProfile, isViewer, myCard, collections, cardId]);
+    }, [isProfile, isViewer, myCard, viewerCard]);
 
     // Socials: from on-chain token (profile) or from card data (viewer)
     const socials = useMemo(() => {
@@ -84,9 +94,18 @@ export default function MyBaseCardProfile({
         }, {} as Record<string, string>);
     }, [isViewer, card, metadata]);
 
-    const isLoading = isProfile ? isMyCardLoading : isCollectionsLoading;
+    const isLoading = isProfile ? isMyCardLoading : isViewerCardLoading;
     const isSocialLoading = isProfile ? isTokenLoading : false;
     const isNotFound = !isLoading && !card;
+
+    // Check if current card is already in collections (for viewer mode)
+    const isCollectedFromQuery = useMemo(() => {
+        if (!isViewer || !cardId || !collections) return false;
+        return collections.some((c) => c.id === cardId);
+    }, [isViewer, cardId, collections]);
+
+    // Combined collected state (query result OR local state after successful collect)
+    const isCollected = isCollectedFromQuery || localCollected;
 
     // ==========================================================================
     // Handlers
@@ -94,6 +113,47 @@ export default function MyBaseCardProfile({
 
     const handleClose = () => router.back();
     const handleNavigateToCollection = () => router.push("/collection");
+
+    const [isCollecting, setIsCollecting] = useState(false);
+    const [isCollectSuccessModalOpen, setIsCollectSuccessModalOpen] =
+        useState(false);
+
+    const handleCollect = useCallback(async () => {
+        if (!cardId || isCollected) return;
+
+        if (!isAuthenticated || !accessToken) {
+            showToast("Please login to collect this card.", "error");
+            return;
+        }
+
+        setIsCollecting(true);
+        try {
+            await addCollection(accessToken, cardId);
+            setLocalCollected(true); // Immediately update UI
+            queryClient.invalidateQueries({ queryKey: ["collections"] }); // Refetch in background
+            setIsCollectSuccessModalOpen(true); // Show success modal
+        } catch (error) {
+            const message =
+                error instanceof Error
+                    ? error.message
+                    : "Failed to collect card";
+            if (message.includes("already exists")) {
+                showToast("You have already collected this card.", "error");
+                setLocalCollected(true); // Already collected
+            } else {
+                showToast(message, "error");
+            }
+        } finally {
+            setIsCollecting(false);
+        }
+    }, [
+        cardId,
+        isCollectedFromQuery,
+        isAuthenticated,
+        accessToken,
+        showToast,
+        queryClient,
+    ]);
 
     // ==========================================================================
     // Styles
@@ -168,6 +228,8 @@ export default function MyBaseCardProfile({
                     isSocialLoading={isSocialLoading}
                     mode={mode}
                     onClose={isViewer ? handleClose : undefined}
+                    isCollected={isViewer ? isCollected : undefined}
+                    onCollect={isViewer ? handleCollect : undefined}
                 />
 
                 {/* [PROFILE ONLY] Action Buttons Row */}
@@ -244,6 +306,21 @@ export default function MyBaseCardProfile({
                         title="Coming Soon"
                         description="TODO please wait"
                         buttonText="Close"
+                    />
+                )}
+
+                {/* [VIEWER ONLY] Collect Success Modal */}
+                {isViewer && (
+                    <BaseModal
+                        isOpen={isCollectSuccessModalOpen}
+                        onClose={() => setIsCollectSuccessModalOpen(false)}
+                        title="🎉 Collected!"
+                        description="This card has been added to your collection."
+                        buttonText="Go to My Collection"
+                        onButtonClick={() => {
+                            setIsCollectSuccessModalOpen(false);
+                            router.push("/collection");
+                        }}
                     />
                 )}
             </div>

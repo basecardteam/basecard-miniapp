@@ -11,7 +11,7 @@ import LoadingModal from "@/components/modals/LoadingModal";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useToast } from "@/components/ui/Toast";
 import { useMyBaseCard } from "@/hooks/api/useMyBaseCard";
-import { createCollection } from "@/lib/api/collections";
+import { addCollection } from "@/lib/api/collections";
 
 interface CardCollectionAdderProps {
     collectedCardId: string; // Wallet address of the card owner to collect
@@ -72,7 +72,7 @@ export default function CardCollectionAdder({
         setIsProcessing(true);
 
         try {
-            await createCollection(accessToken, { collectedCardId });
+            await addCollection(accessToken, collectedCardId);
 
             setIsProcessing(false);
             showToast("Card collected successfully!", "success");

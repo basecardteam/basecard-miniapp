@@ -41,6 +41,32 @@ export async function fetchAllBaseCards(): Promise<Card[]> {
 }
 
 /**
+ * Fetch card data by card ID
+ * Uses GET /v1/basecards/:id endpoint
+ * Returns null if card not found
+ */
+export async function fetchBaseCardById(cardId: string): Promise<Card | null> {
+    const response = await fetch(
+        `${config.BACKEND_API_URL}/v1/basecards/${cardId}`
+    );
+
+    if (!response.ok) {
+        if (response.status === 404) {
+            return null;
+        }
+        throw new Error("Failed to fetch card");
+    }
+
+    const data: ApiResponse<Card | null> = await response.json();
+
+    if (!data.success) {
+        throw new Error(data.error || "Failed to fetch card");
+    }
+
+    return data.result;
+}
+
+/**
  * Fetch card data by wallet address
  * Uses GET /v1/basecards/address/me endpoint
  * Returns null if card not found instead of throwing error

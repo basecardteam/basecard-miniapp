@@ -2,7 +2,8 @@ import Image from "next/image";
 import { useCallback, useMemo, useState } from "react";
 import { FaGithub, FaGlobe, FaLinkedin, FaTwitter } from "react-icons/fa";
 import { HiOutlinePencil } from "react-icons/hi";
-import { IoClose, IoShareOutline } from "react-icons/io5";
+import { IoCheckmarkCircle, IoClose, IoShareOutline } from "react-icons/io5";
+import { MdOutlineBookmarkAdd } from "react-icons/md";
 
 import FarcasterIcon from "@/components/icons/FarcasterIcon";
 import ShareBottomSheet from "@/components/modals/ShareBottomSheet";
@@ -32,6 +33,8 @@ interface ProfileCardContentProps {
     isSocialLoading?: boolean;
     mode?: "profile" | "viewer";
     onClose?: () => void;
+    isCollected?: boolean;
+    onCollect?: () => void;
 }
 
 type SocialEntry = {
@@ -108,6 +111,8 @@ export default function ProfileCardContent({
     isSocialLoading = false,
     mode = "profile",
     onClose,
+    isCollected = false,
+    onCollect,
 }: ProfileCardContentProps) {
     const router = useRouter();
     const openUrl = sdk.actions.openUrl;
@@ -215,7 +220,7 @@ export default function ProfileCardContent({
             <div
                 className="relative w-full rounded-xl overflow-hidden shadow-2xl bg-basecard-blue"
                 style={{
-                    backgroundImage: "url(assets/mybasecard-background.webp)",
+                    backgroundImage: "url(/assets/mybasecard-background.webp)",
                     backgroundSize: "cover",
                     backgroundPosition: "center",
                     backgroundRepeat: "no-repeat",
@@ -305,17 +310,52 @@ export default function ProfileCardContent({
                         </p>
                     </div>
 
-                    {/* Share Button */}
-                    <button
-                        onClick={() => setIsShareSheetOpen(true)}
-                        className="mt-4 w-full h-12 bg-[#0455FF] rounded-lg flex items-center justify-center gap-1
-                            hover:bg-[#0344CC] transition-colors"
-                    >
-                        <IoShareOutline className="text-white" size={20} />
-                        <span className="font-medium text-base text-white">
-                            Share
-                        </span>
-                    </button>
+                    {/* [PROFILE] Share Button / [VIEWER] Collect Button */}
+                    {isProfile ? (
+                        <button
+                            onClick={() => setIsShareSheetOpen(true)}
+                            className="mt-4 w-full h-12 bg-[#0455FF] rounded-lg flex items-center justify-center gap-1
+                                hover:bg-[#0344CC] transition-colors"
+                        >
+                            <IoShareOutline className="text-white" size={20} />
+                            <span className="font-medium text-base text-white">
+                                Share
+                            </span>
+                        </button>
+                    ) : (
+                        <button
+                            onClick={isCollected ? undefined : onCollect}
+                            disabled={isCollected}
+                            className={`mt-4 w-full h-12 rounded-lg flex items-center justify-center gap-2 transition-colors
+                                ${
+                                    isCollected
+                                        ? "bg-gray-400 cursor-not-allowed"
+                                        : "bg-[#0455FF] hover:bg-[#0344CC]"
+                                }`}
+                        >
+                            {isCollected ? (
+                                <>
+                                    <IoCheckmarkCircle
+                                        className="text-white"
+                                        size={20}
+                                    />
+                                    <span className="font-medium text-base text-white">
+                                        Collected
+                                    </span>
+                                </>
+                            ) : (
+                                <>
+                                    <MdOutlineBookmarkAdd
+                                        className="text-white"
+                                        size={20}
+                                    />
+                                    <span className="font-medium text-base text-white">
+                                        Collect
+                                    </span>
+                                </>
+                            )}
+                        </button>
+                    )}
                 </div>
 
                 {/* Modals */}

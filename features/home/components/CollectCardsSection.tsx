@@ -2,6 +2,7 @@
 
 import { CollectionFilter } from "@/features/collection/components/CollectionFilter";
 import { useBaseCards } from "@/hooks/api/useBaseCards";
+import { useMyBaseCard } from "@/hooks/api/useMyBaseCard";
 import {
     CollectionFilterTag,
     filterCollections,
@@ -16,7 +17,14 @@ export default function CollectCardsSection() {
     const deferredSearchTerm = searchInput;
 
     const { data: allCards, isError, isPending } = useBaseCards();
-    const cards = useMemo(() => allCards || [], [allCards]);
+    const { data: myCard } = useMyBaseCard();
+
+    // Filter out my own card from the list
+    const cards = useMemo(() => {
+        if (!allCards) return [];
+        if (!myCard?.id) return allCards;
+        return allCards.filter((card) => card.id !== myCard.id);
+    }, [allCards, myCard?.id]);
 
     const { filteredCards, tags } = useMemo(
         () => filterCollections(cards, selectedTag, deferredSearchTerm),
