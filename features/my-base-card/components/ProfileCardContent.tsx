@@ -173,7 +173,7 @@ export default function ProfileCardContent({
     );
 
     return (
-        <div className="w-full flex flex-col items-center px-5">
+        <div className="w-full flex flex-col items-center px-5 relative">
             <div
                 className="relative w-full rounded-xl overflow-hidden shadow-2xl bg-basecard-blue"
                 style={{

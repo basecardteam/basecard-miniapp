@@ -1,32 +1,32 @@
 import QuestCardImage from "./QuestCardImage";
 
+const HERO_TITLE = "Your first onchain ID card";
+
+const STEPS = [
+    "Mint your BaseCard",
+    "Earn BC",
+    "Use your BC points to earn USDC",
+];
+
 export default function QuestHeroSection() {
     return (
-        <div className="w-full flex flex-col items-center">
-            {/* Title */}
-            <h1 className="font-k2d text-[27px] font-bold text-white text-center mb-8 leading-[33px] tracking-[-0.05em] whitespace-nowrap">
-                Your first onchain ID card
+        <div className="w-full flex flex-col items-center gap-y-7">
+            <h1 className="font-k2d text-2xl font-bold text-white text-center whitespace-nowrap">
+                {HERO_TITLE}
             </h1>
 
-            {/* Central Card Image */}
-            <div className="mb-8">
-                <QuestCardImage />
-            </div>
+            <QuestCardImage />
 
-            {/* Process List */}
-            <div className="w-full max-w-[340px] flex flex-col gap-2 mb-8 px-0 font-k2d pl-8">
-                <div className="flex items-center gap-2 text-white text-[18px] font-semibold leading-[33px] tracking-[-0.05em]">
-                    <span className="flex-shrink-0">1.</span>
-                    <span>Mint your BaseCard</span>
-                </div>
-                <div className="flex items-center gap-2 text-white text-[18px] font-semibold leading-[33px] tracking-[-0.05em]">
-                    <span className="flex-shrink-0">2.</span>
-                    <span>Earn BC</span>
-                </div>
-                <div className="flex items-center gap-2 text-white text-[18px] font-semibold leading-[33px] tracking-[-0.05em]">
-                    <span className="flex-shrink-0">3.</span>
-                    <span>Use your BC points to earn USDC</span>
-                </div>
+            <div className="w-full flex sm:max-w-[70%] flex-col gap-1 pl-7 ">
+                {STEPS.map((step, index) => (
+                    <div
+                        key={index}
+                        className="flex items-center gap-2 text-white text-lg font-medium  "
+                    >
+                        <span className="flex-shrink-0">{index + 1}.</span>
+                        <span>{step}</span>
+                    </div>
+                ))}
             </div>
         </div>
     );

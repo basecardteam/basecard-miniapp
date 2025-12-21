@@ -16,7 +16,7 @@ import { SocialsInput } from "@/features/mint/components/SocialsInput";
 import { WebsitesInput } from "@/features/mint/components/WebsitesInput";
 import { useMyBaseCard } from "@/hooks/api/useMyBaseCard";
 import { useUser } from "@/hooks/api/useUser";
-import { useEditBaseCard } from "@/hooks/useEditBaseCard";
+import { useEditBaseCard } from "@/features/edit-profile/hooks/useEditBaseCard";
 import type { MintFormData } from "@/lib/schemas/mintFormSchema";
 import FALLBACK_PROFILE_IMAGE from "@/public/assets/empty_pfp.png";
 import dynamic from "next/dynamic";
@@ -45,7 +45,6 @@ const LoadingModal = dynamic(
     }
 );
 
-import { useModal } from "@/components/modals/BaseModal";
 
 export default function EditProfileContent() {
     const frameContext = useFrameContext();
@@ -59,8 +58,6 @@ export default function EditProfileContent() {
         error: editError,
     } = useEditBaseCard();
 
-    // Modal hook
-    const { showModal } = useModal();
 
     const username = (frameContext?.context as MiniAppContext)?.user?.username;
     // Default image if no card data

@@ -25,7 +25,6 @@ export function useMyBaseCard() {
         },
         enabled: isConnected && !!address,
         staleTime: 1000 * 30, // 30 seconds
-        refetchInterval: 1000 * 30, // 30 seconds
         retry: 1,
     });
 }

@@ -1,22 +1,24 @@
 "use client";
 
+import { useContractConfig } from "@/hooks/useContractConfig";
+import { useERC721Token } from "@/hooks/useERC721Token";
+import { baseCardAbi } from "@/lib/abi/abi";
 import {
+    rollbackUpdate,
     updateBaseCard,
     UpdateBaseCardParams,
-    rollbackUpdate,
 } from "@/lib/api/basecards";
-import { baseCardAbi } from "@/lib/abi/abi";
-import { useCallback, useState } from "react";
-import { useContractConfig } from "@/hooks/useContractConfig";
-import { useWriteContract, useAccount, usePublicClient } from "wagmi";
 import { logger } from "@/lib/common/logger";
-import { useERC721Token } from "@/hooks/useERC721Token";
+import { useQueryClient } from "@tanstack/react-query";
+import { simulateContract, waitForTransactionReceipt, writeContract } from "@wagmi/core";
+import { useCallback, useState } from "react";
+import { useAccount, useConfig } from "wagmi";
 
 export function useEditBaseCard() {
     const { address } = useAccount();
-    const { writeContractAsync } = useWriteContract();
+    const config = useConfig();
+    const queryClient = useQueryClient();
     const { contractAddress } = useContractConfig();
-    const publicClient = usePublicClient();
     const { tokenId } = useERC721Token();
 
     const [isCreatingBaseCard, setIsCreatingBaseCard] = useState(false);
@@ -54,22 +56,18 @@ export function useEditBaseCard() {
                 logger.info("Step 2: Sending editBaseCard transaction...");
                 setIsSendingTransaction(true);
 
-                if (!publicClient) {
-                    throw new Error("Wallet not connected");
-                }
-
                 if (!contractAddress) {
                     throw new Error("Contract address not found");
                 }
 
-                const { request } = await publicClient.simulateContract({
+                // Simulate first
+                const { request } = await simulateContract(config, {
                     address: contractAddress as `0x${string}`,
                     abi: baseCardAbi,
                     functionName: "editBaseCard",
                     account: address,
                     args: [
                         BigInt(tokenId),
-                        // Encode CardData struct as tuple: [imageURI, nickname, role, bio]
                         [
                             card_data.imageUri,
                             card_data.nickname,
@@ -82,9 +80,27 @@ export function useEditBaseCard() {
                 });
                 logger.info("✅ Simulation successful", request);
 
-                const hash = await writeContractAsync(request);
-
+                // writeContract from @wagmi/core
+                const hash = await writeContract(config, request);
                 logger.info("✅ Transaction sent. Hash:", hash);
+
+                // 블록체인 확인 대기
+                logger.info("⏳ Waiting for transaction confirmation...");
+                const receipt = await waitForTransactionReceipt(config, { hash });
+
+                if (receipt.status !== "success") {
+                    throw new Error("Transaction failed on chain");
+                }
+                logger.info("✅ Transaction confirmed!", receipt);
+
+                // 백엔드가 블록체인 이벤트를 처리할 시간 대기
+                logger.info("⏳ Waiting for backend to process event...");
+                await new Promise((resolve) => setTimeout(resolve, 2000));
+
+                // Invalidate and refetch myBaseCard query
+                await queryClient.invalidateQueries({ queryKey: ["myBaseCard", address] });
+                await queryClient.refetchQueries({ queryKey: ["myBaseCard", address] });
+
                 setIsSendingTransaction(false);
 
                 return {
@@ -100,6 +116,12 @@ export function useEditBaseCard() {
                     err instanceof Error ? err.message : String(err);
 
                 logger.debug(rawMessage);
+
+
+                // RPC 에러 등 - 서버에서 업데이트 상태 확인 (딜레이 후 재시도)
+                logger.warn(
+                    "Transaction may have succeeded despite error, checking server..."
+                );
 
                 // Rollback if files were uploaded but transaction failed/rejected
                 if (uploadedFiles && address) {
@@ -117,6 +139,7 @@ export function useEditBaseCard() {
                     return { success: false, error: "User rejected" };
                 }
 
+
                 // Other errors
                 logger.error("❌ Edit error:", err);
                 setError(rawMessage);
@@ -126,7 +149,7 @@ export function useEditBaseCard() {
                 };
             }
         },
-        [address, tokenId, writeContractAsync, publicClient, contractAddress]
+        [address, tokenId, config, contractAddress, queryClient, ]
     );
 
     return {

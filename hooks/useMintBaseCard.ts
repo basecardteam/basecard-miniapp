@@ -55,7 +55,6 @@ export function useMintBaseCard() {
                     functionName: "mintBaseCard",
                     account: address,
                     args: [
-                        // Encode CardData struct as tuple: [imageURI, nickname, role, bio]
                         [
                             card_data.imageUri,
                             card_data.nickname,
@@ -113,20 +112,28 @@ export function useMintBaseCard() {
                     return { success: false, error: "Already minted" };
                 }
 
-                // RPC 에러 등 - 서버에서 민팅 상태 확인
+                // RPC 에러 등 - 서버에서 민팅 상태 확인 (딜레이 후 재시도)
                 logger.warn("Transaction may have succeeded despite error, checking server...");
-                try {
-                    const card = await fetchCardByAddress(address!);
-                    if (card?.txHash) {
-                        logger.info("✅ Mint confirmed via server. Hash:", card.txHash);
-                        return {
-                            success: true,
-                            hash: card.txHash,
-                            imageUri: card.imageUri || "",
-                        };
+                const maxRetries = 5;
+                const retryDelay = 1000; // 1초
+
+                for (let i = 0; i < maxRetries; i++) {
+                    try {
+                        // 백엔드가 이벤트를 처리할 시간을 줌
+                        await new Promise(resolve => setTimeout(resolve, retryDelay));
+
+                        const card = await fetchCardByAddress(address!);
+                        if (card?.txHash) {
+                            logger.info("✅ Mint confirmed via server. Hash:", card.txHash);
+                            return {
+                                success: true,
+                                hash: card.txHash,
+                                imageUri: card.imageUri || "",
+                            };
+                        }
+                    } catch {
+                        logger.warn(`Server check attempt ${i + 1}/${maxRetries} failed`);
                     }
-                } catch {
-                    // 서버 확인 실패 - 원래 에러로 처리
                 }
 
                 // Other errors

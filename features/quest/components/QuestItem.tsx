@@ -40,20 +40,20 @@ export default function QuestItem({
                     className={cn(
                         "flex justify-center items-center w-5 h-5 rounded flex-shrink-0 mt-0.5",
                         isCompleted
-                            ? "bg-green-500"
+                            ? "bg-blue-500"
                             : isClaimable
-                                ? "bg-yellow-500"
-                                : "bg-gray-700"
+                                ? "bg-white border-2 border-blue-500"
+                                : "border-2 border-gray-300 bg-white"
                     )}
                 >
-                    <Check className="w-3 h-3 text-white stroke-[3]" />
+                    <Check className={cn("w-3 h-3 stroke-[3]", isCompleted ? "text-white" : isClaimable ? "text-blue-500" : "text-gray-300")} />
                 </div>
                 {/* Title + Description */}
                 <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-1.5">
                         <span
                             className={cn(
-                                "font-medium text-sm text-gray-900",
+                                "font-regular text-base text-gray-900",
                                 isCompleted && "line-through text-gray-500"
                             )}
                         >
@@ -61,7 +61,7 @@ export default function QuestItem({
                         </span>
                         {/* Claimable Badge */}
                         {isClaimable && !isCompleted && (
-                            <span className="text-[10px] bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded-full font-medium">
+                            <span className="text-[10px] bg-white border border-blue-500 text-blue-600 px-1.5 py-0.5 rounded-full font-medium">
                                 Claim!
                             </span>
                         )}
@@ -69,7 +69,7 @@ export default function QuestItem({
                     {content && (
                         <span
                             className={cn(
-                                "text-[11px] leading-tight text-gray-500 block mt-0.5",
+                                "text-sm leading-tight text-gray-500 block mt-0.5",
                                 isCompleted && "line-through"
                             )}
                         >
@@ -93,7 +93,11 @@ export default function QuestItem({
                         onAction?.();
                     }}
                     disabled={isClaiming}
-                    className="w-full flex justify-center items-center h-9 rounded-md text-sm font-semibold bg-blue-600 text-white active:bg-blue-700 transition-colors"
+                    className={cn(
+                        "w-full flex justify-center items-center h-9 rounded-md",
+                        "text-sm font-semibold text-white active:opacity-90",
+                        "transition-colors animate-claimable-gradient"
+                    )}
                 >
                     {isClaiming ? (
                         <Loader2 className="w-4 h-4 animate-spin" />

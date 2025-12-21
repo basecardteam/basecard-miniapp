@@ -1,65 +1,35 @@
 "use client";
 
 import SuccessModal from "@/components/modals/SuccessModal";
-import { useToast } from "@/components/ui/Toast";
 import QuestHeroSection from "@/features/quest/components/QuestHeroSection";
-import QuestItem from "@/features/quest/components/QuestItem";
+import QuestList from "@/features/quest/components/QuestList";
 import { useQuestHandler } from "@/features/quest/hooks/useQuestHandler";
 import { useQuests } from "@/hooks/api/useQuests";
-import { Quest } from "@/lib/types/api";
-import { useRouter } from "next/navigation";
 
 export const NoCardState = () => {
-    const router = useRouter();
     const { quests, isLoading, error, claimingQuest } = useQuests();
-    const { showToast } = useToast();
-    const { handleQuestAction, successModalState, setSuccessModalState } =
-        useQuestHandler();
-
-
-
-    const getButtonName = (quest: Quest) => {
-        if (quest.status === "completed") return "Claimed";
-        if (quest.status === "claimable") return "Claim!";
-        return quest.actionType;
-    };
+    const { handleQuestAction, successModalState, setSuccessModalState } = useQuestHandler();
 
     return (
         <>
-            <div className="w-full flex flex-col items-center pt-4">
+            <div className="w-full flex flex-col items-center pt-4 gap-y-10">
                 {/* Hero Section */}
                 <QuestHeroSection />
 
                 {/* Quest List */}
-                <div className="flex flex-col gap-4 w-full max-w-[340px] items-center px-2">
-                    <h2 className="text-white text-xl font-bold font-k2d w-full text-center mb-2">
+                <div className="flex flex-col gap-4 w-full items-center px-2">
+                    <div className="text-white text-2xl font-bold font-k2d w-full text-center mb-2">
                         QUEST
-                    </h2>
-                    {isLoading ? (
-                        <div className="text-white/80 text-center py-8">
-                            Loading quests...
-                        </div>
-                    ) : error ? (
-                        <div className="text-red-300 text-center py-8">{error}</div>
-                    ) : quests.length === 0 ? (
-                        <div className="text-white/80 text-center py-8">
-                            No quests available
-                        </div>
-                    ) : (
-                        quests.map((quest, index) => (
-                            <QuestItem
-                                key={index}
-                                title={quest.title}
-                                content={quest.description || ""}
-                                buttonName={getButtonName(quest)}
-                                point={quest.rewardAmount}
-                                isCompleted={quest.status === "completed"}
-                                isClaimable={quest.status === "claimable"}
-                                isClaiming={claimingQuest === quest.actionType}
-                                onAction={() => handleQuestAction(quest)}
-                            />
-                        ))
-                    )}
+                    </div>
+                    <QuestList
+                        quests={quests}
+                        claimingQuest={claimingQuest}
+                        onAction={handleQuestAction}
+                        isLoading={isLoading}
+                        error={error}
+                        variant="dark"
+                        className="flex flex-col gap-4 w-full"
+                    />
                 </div>
             </div>
 

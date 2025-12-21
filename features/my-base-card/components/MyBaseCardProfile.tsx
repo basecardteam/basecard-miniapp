@@ -1,15 +1,12 @@
 import { BaseModal } from "@/components/modals/BaseModal";
 import QuestBottomSheet from "@/components/modals/QuestBottomSheet";
 import SuccessModal from "@/components/modals/SuccessModal";
-import { useFrameContext } from "@/components/providers/FrameProvider";
-import { useToast } from "@/components/ui/Toast";
+import QuestBanner from "@/features/quest/components/QuestBanner";
 import { useQuestHandler } from "@/features/quest/hooks/useQuestHandler";
 import { useMyBaseCard } from "@/hooks/api/useMyBaseCard";
 import { useQuests } from "@/hooks/api/useQuests";
 import { useERC721Token } from "@/hooks/useERC721Token";
-import { Quest } from "@/lib/types/api";
 import clsx from "clsx";
-import { ChevronRight, Gift } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { AiOutlineLoading } from "react-icons/ai";
@@ -18,7 +15,6 @@ import {
     IoGridOutline,
     IoSparklesOutline,
 } from "react-icons/io5";
-import { useAccount } from "wagmi";
 import { NoCardState } from "./NoCardState";
 import ProfileCardContent from "./ProfileCardContent";
 
@@ -34,9 +30,6 @@ const LoadingState = () => (
 
 export default function MyBaseCardProfile() {
     const router = useRouter();
-    const { address } = useAccount();
-    const { showToast } = useToast();
-    const frameContext = useFrameContext();
     const [activeTab, setActiveTab] = useState<"earn" | "personal">("earn");
     const [isTodoModalOpen, setIsTodoModalOpen] = useState(false);
     const [isQuestSheetOpen, setIsQuestSheetOpen] = useState(false);
@@ -53,20 +46,6 @@ export default function MyBaseCardProfile() {
     // Quest data
     const { quests, claimingQuest } = useQuests();
 
-    const incompleteCount = useMemo(() => {
-        return quests.filter((q) => q.status !== "completed").length;
-    }, [quests]);
-
-    const claimableCount = useMemo(() => {
-        return quests.filter((q) => q.status === "claimable").length;
-    }, [quests]);
-
-    const claimableAmount = useMemo(() => {
-        return quests
-            .filter((q) => q.status === "claimable")
-            .reduce((sum, q) => sum + q.rewardAmount, 0);
-    }, [quests]);
-
     const socials = useMemo(() => {
         if (!metadata?.socials) return {};
         return metadata.socials.reduce((acc, curr) => {
@@ -79,29 +58,6 @@ export default function MyBaseCardProfile() {
 
     const handleNavigateToCollection = () => {
         router.push("/edit-profile");
-    };
-
-
-
-    const getButtonName = (quest: Quest) => {
-        if (quest.status === "completed") return "Claimed";
-        if (quest.status === "claimable") return "Claim!";
-
-        // 친숙한 버튼 텍스트
-        const buttonLabels: Record<string, string> = {
-            MINT: "Mint",
-            SHARE: "Share",
-            FOLLOW: "Follow",
-            NOTIFICATION: "Enable",
-            LINK_BASENAME: "Link",
-            LINK_FARCASTER: "Link",
-            LINK_GITHUB: "Link",
-            LINK_LINKEDIN: "Link",
-            LINK_TWITTER: "Link",
-            LINK_WEBSITE: "Link",
-        };
-
-        return buttonLabels[quest.actionType] || quest.actionType;
     };
 
     const rootHeight = {
@@ -134,39 +90,7 @@ export default function MyBaseCardProfile() {
     return (
         <div className="w-full flex flex-col items-center justify-start overflow-y-auto relative gap-y-3 pb-8">
             {/* Quest Banner */}
-            {quests.length > 0 && (
-                <div className="w-full px-4 pt-2">
-                    <button
-                        onClick={() => setIsQuestSheetOpen(true)}
-                        className={clsx(
-                            "w-full flex items-center justify-between px-3 py-1.5 rounded-lg",
-                            "active:scale-[0.98] transition-transform",
-                            claimableCount > 0
-                                ? "bg-[#007AFF] text-white"
-                                : "bg-[#007AFF]/10 border border-[#007AFF]/20"
-                        )}
-                    >
-                        <div className="flex items-center gap-2">
-                            <Gift className={clsx(
-                                "w-4 h-4",
-                                claimableCount > 0 ? "text-white" : "text-[#007AFF]"
-                            )} />
-                            <span className={clsx(
-                                "font-semibold text-xs font-k2d",
-                                claimableCount > 0 ? "text-white" : "text-[#007AFF]"
-                            )}>
-                                {claimableCount > 0
-                                    ? `Claim +${claimableAmount} BC`
-                                    : `${incompleteCount} Quest${incompleteCount > 1 ? "s" : ""}`}
-                            </span>
-                        </div>
-                        <ChevronRight className={clsx(
-                            "w-3.5 h-3.5",
-                            claimableCount > 0 ? "text-white" : "text-[#007AFF]"
-                        )} />
-                    </button>
-                </div>
-            )}
+            <QuestBanner onClick={() => setIsQuestSheetOpen(true)} />
 
             {/* Card Section */}
             <ProfileCardContent
@@ -264,7 +188,6 @@ export default function MyBaseCardProfile() {
                 quests={quests}
                 claimingQuest={claimingQuest}
                 onAction={handleQuestAction}
-                getButtonName={getButtonName}
             />
         </div>
     );
