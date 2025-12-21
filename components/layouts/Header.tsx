@@ -17,7 +17,7 @@ export default function Header() {
     };
 
     return (
-        <div className="fixed top-0 z-50 flex w-full max-w-[600px] mx-auto px-4 items-center justify-between border-b border-b-gray-200 bg-basecard-white h-[60px]">
+        <div className="fixed top-0 z-50 flex w-full max-w-xl mx-auto px-4 items-center justify-between border-b border-b-gray-200 bg-basecard-white h-[60px]">
             <div
                 onClick={handleLogoClick}
                 className="relative flex flex-shrink-0 h-10 cursor-pointer"

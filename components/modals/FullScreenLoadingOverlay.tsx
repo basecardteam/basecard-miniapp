@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { Loader } from "lucide-react";
+import { useEffect, useState } from "react";
 
 interface BaseLoadingModalProps {
     isOpen: boolean;
@@ -9,7 +9,7 @@ interface BaseLoadingModalProps {
     description?: string;
 }
 
-const FullScreenLoadingOverlay = ({ // 컴포넌트 이름 변경
+const FullScreenLoadingOverlay = ({ 
     isOpen,
     title = "Processing Transaction",
     description = "Please wait a moment",
@@ -25,14 +25,14 @@ const FullScreenLoadingOverlay = ({ // 컴포넌트 이름 변경
             document.body.style.overflow = 'unset';
             return () => clearTimeout(timer);
         }
-    }, [isOpen]);
+    }, [isOpen,]);
 
     if (!isOpen && !isVisible) return null;
 
     return (
         // Full Screen Overlay: z-index를 높게 설정하여 모든 요소를 덮음
         <div
-            className={`fixed inset-0 z-[100] flex flex-col items-center justify-center transition-opacity duration-300 ${
+            className={`fixed inset-0 z-[9999] flex flex-col items-center justify-center transition-opacity duration-300 ${
                 isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
             }`}
         >
@@ -44,16 +44,12 @@ const FullScreenLoadingOverlay = ({ // 컴포넌트 이름 변경
                 className={`relative flex flex-col items-center justify-center p-8 
                     transform transition-all duration-300 ease-out 
                     text-white max-w-sm text-center
-                    ${
-                        isOpen
-                            ? "scale-100 translate-y-0"
-                            : "scale-95 translate-y-4"
-                    }`}
+                    ${isOpen ? "scale-100 translate-y-0" : "scale-95 translate-y-4"}`}
             >
                 {/* Spinner: 심플하고 강력한 시각 효과 */}
                 <div className="flex items-center justify-center mb-6">
                     <Loader 
-                        className="w-12 h-12 text-[#60A5FA] animate-spin" // 밝은 하늘색(Sky-400) 계열
+                        className="w-12 h-12 text-basecard-blue animate-spin" // 밝은 하늘색(Sky-400) 계열
                     />
                 </div>
 
@@ -71,7 +67,7 @@ const FullScreenLoadingOverlay = ({ // 컴포넌트 이름 변경
             {/* 3. Footer Indicator (선택 사항: 로딩이 계속되고 있음을 시각화) */}
             <div className="absolute bottom-0 left-0 right-0 h-1">
                 <div 
-                    className="h-full bg-gradient-to-r from-transparent via-[#60A5FA] to-transparent animate-pulse"
+                    className="h-full bg-gradient-to-r from-transparent via-basecard-blue to-transparent animate-pulse"
                 />
             </div>
         </div>

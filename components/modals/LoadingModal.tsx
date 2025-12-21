@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { Loader } from "lucide-react"; // 깔끔한 스피너 아이콘 사용
+import { useEffect, useState } from "react";
 
 interface BaseLoadingModalProps {
     isOpen: boolean;
@@ -46,10 +46,10 @@ export const BaseLoadingModal = ({
                     shadow-2xl shadow-gray-500/30 border border-gray-100 
                     transform transition-all duration-300 ease-out 
                     ${
-                        isOpen
-                            ? "scale-100 opacity-100"
-                            : "scale-95 opacity-0"
-                    }`}
+        isOpen
+            ? "scale-100 opacity-100"
+            : "scale-95 opacity-0"
+        }`}
             >
                 {/* 1. Spinner Area: Loader 아이콘을 사용한 부드러운 회전 애니메이션 */}
                 <div className="flex items-center justify-center mb-6">

@@ -1,9 +1,9 @@
 "use client";
 
-import dynamic from "next/dynamic";
+import { ModalContainer } from "@/components/modals/BaseModal";
 import FrameProvider from "@/components/providers/FrameProvider";
 import { ToastContainer } from "@/components/ui/Toast";
-import { ModalContainer } from "@/components/modals/BaseModal";
+import dynamic from "next/dynamic";
 
 const WagmiProvider = dynamic(
     () => import("@/components/providers/WagmiProvider"),
@@ -24,7 +24,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
         <WagmiProvider>
             <FrameProvider>
                 <ErudaProvider />
-                <div className="max-w-[600px] mx-auto relative">
+                <div className="max-w-xl mx-auto relative">
                     {children}
                 </div>
                 <ToastContainer />

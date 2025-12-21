@@ -42,6 +42,11 @@
         overflow: hidden;
         touch-action: manipulation;
     }
+
+    button {
+        min-height: 40px;
+        min-width: 40px;
+    }
 }
 
 :root {
@@ -280,4 +285,21 @@
 
 .animate-fade-in {
     animation: fade-in 0.2s ease-out;
+}
+
+/* Claimable button gradient animation */
+@keyframes claimable-gradient {
+    0% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+.animate-claimable-gradient {
+    background: linear-gradient(90deg, #2563eb, #3b82f6, #2563eb, #3b82f6, #2563eb);
+    background-size: 300% 100%;
+    animation: claimable-gradient 2s linear infinite;
 }
