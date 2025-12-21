@@ -1,11 +1,11 @@
 "use client";
 
+import { useIsMobile } from "@/hooks/useIsMobile";
 import { ROOT_URL } from "@/minikit.config";
-import baseCardTypo from "@/public/baseCardTypo.png";
+import baseCardTypo from "@/public/assets/basecard-typo.png";
 import Image from "next/image";
 import { useMemo } from "react";
 import { FaArrowRight } from "react-icons/fa";
-import { useIsMobile } from "@/hooks/useIsMobile";
 
 const IOS_STORE_URL =
     "https://apps.apple.com/kr/app/coinbase-%EC%A7%80%EA%B0%91-nfts-%EC%95%94%ED%98%B8%ED%99%94%ED%8F%90/id1278383455";

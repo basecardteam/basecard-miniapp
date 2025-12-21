@@ -8,6 +8,7 @@ import { useAccount } from "wagmi";
 import ConfirmationModal from "@/components/modals/ConfirmationModal";
 import ErrorModal from "@/components/modals/ErrorModal";
 import LoadingModal from "@/components/modals/LoadingModal";
+import { useAuth } from "@/components/providers/AuthProvider";
 import { useToast } from "@/components/ui/Toast";
 import { useMyBaseCard } from "@/hooks/api/useMyBaseCard";
 import { createCollection } from "@/lib/api/collections";
@@ -20,6 +21,7 @@ export default function CardCollectionAdder({
     collectedCardId,
 }: CardCollectionAdderProps) {
     const router = useRouter();
+    const { isAuthenticated, accessToken } = useAuth();
     const { address } = useAccount();
     const { data: myCard, isLoading: isCardLoading } = useMyBaseCard();
     const { showToast } = useToast();
@@ -41,8 +43,13 @@ export default function CardCollectionAdder({
         return null;
     })();
 
-    const showConfirmModal = !isCardLoading && !validationError && !isConfirmDismissed && !isProcessing;
-    const showErrorModal = !isCardLoading && !!validationError && !isErrorDismissed;
+    const showConfirmModal =
+        !isCardLoading &&
+        !validationError &&
+        !isConfirmDismissed &&
+        !isProcessing;
+    const showErrorModal =
+        !isCardLoading && !!validationError && !isErrorDismissed;
 
     // -------------------------------------------------------------
     // 2. Collection logic (executed when confirm is clicked)
@@ -54,13 +61,18 @@ export default function CardCollectionAdder({
             return;
         }
 
+        if (!isAuthenticated || !accessToken) {
+            showToast(
+                "Please connect your wallet to collect this card.",
+                "error"
+            );
+            return;
+        }
+
         setIsProcessing(true);
 
         try {
-            await createCollection({
-                collectorAddress: address,
-                collectedAddress: collectedCardId,
-            });
+            await createCollection(accessToken, { collectedCardId });
 
             setIsProcessing(false);
             showToast("Card collected successfully!", "success");
@@ -68,7 +80,8 @@ export default function CardCollectionAdder({
         } catch (err: unknown) {
             setIsProcessing(false);
 
-            const errorMessage = err instanceof Error ? err.message : "Failed to collect card.";
+            const errorMessage =
+                err instanceof Error ? err.message : "Failed to collect card.";
             if (errorMessage.includes("already exists")) {
                 showToast("You have already collected this card.", "error");
             } else {
@@ -99,7 +112,9 @@ export default function CardCollectionAdder({
             {/* A. Loading modal */}
             <LoadingModal
                 isOpen={isCardLoading || isProcessing}
-                title={isCardLoading ? "Checking profile..." : "Collecting card..."}
+                title={
+                    isCardLoading ? "Checking profile..." : "Collecting card..."
+                }
                 description={
                     isCardLoading
                         ? "Verifying your card information."

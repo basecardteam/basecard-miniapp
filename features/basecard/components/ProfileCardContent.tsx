@@ -8,11 +8,15 @@ import FarcasterIcon from "@/components/icons/FarcasterIcon";
 import ShareBottomSheet from "@/components/modals/ShareBottomSheet";
 import { ShareModal } from "@/components/modals/ShareModal";
 import { useToast } from "@/components/ui/Toast";
+import { useConfig } from "@/hooks/api/useConfig";
 import { useUser } from "@/hooks/api/useUser";
 import { shareToFarcaster } from "@/lib/farcaster/share";
-import { resolveIpfsUrl } from "@/lib/ipfs";
-import { generateCardShareQRCode, generateCardShareURL } from "@/lib/qrCodeGenerator";
+import {
+    generateCardShareQRCode,
+    generateCardShareURL,
+} from "@/lib/qrCodeGenerator";
 import { Card } from "@/lib/types";
+import { resolveIpfsUrl } from "@/lib/utils";
 import BCLogo from "@/public/bc-icon.png";
 import { sdk } from "@farcaster/miniapp-sdk";
 import { useRouter } from "next/navigation";
@@ -66,6 +70,7 @@ export default function ProfileCardContent({
     const { data: user } = useUser();
     const { address } = useAccount();
     const { showToast } = useToast();
+    const { ipfsGatewayUrl } = useConfig();
     const router = useRouter();
 
     const handleNavigateToCollection = useCallback(() => {
@@ -113,14 +118,14 @@ export default function ProfileCardContent({
         if (!address) return;
         const shareUrl = generateCardShareURL(address);
         const imageUrl = card?.imageUri
-            ? resolveIpfsUrl(card.imageUri)
+            ? resolveIpfsUrl(card.imageUri, ipfsGatewayUrl)
             : undefined;
         await shareToFarcaster({
             text: `Check out my Basecard! Collect this and see all about me 🎉`,
             imageUrl,
             embedUrl: shareUrl,
         });
-    }, [address, card?.imageUri]);
+    }, [address, card?.imageUri, ipfsGatewayUrl]);
 
     const socialEntries: SocialEntry[] = useMemo(
         () => [
@@ -200,7 +205,10 @@ export default function ProfileCardContent({
                         <Image
                             src={
                                 user?.profileImage
-                                    ? resolveIpfsUrl(user.profileImage)
+                                    ? resolveIpfsUrl(
+                                          user.profileImage,
+                                          ipfsGatewayUrl
+                                      )
                                     : "/assets/default-profile.png"
                             }
                             alt={card.nickname || "User"}
@@ -241,10 +249,10 @@ export default function ProfileCardContent({
                                     disabled={!hasUrl || isSocialLoading}
                                     className={`w-10 h-10 rounded-full flex items-center justify-center border transition-all
                                         ${
-                                hasUrl
-                                    ? "bg-[#0455FF] border-[#3E7CFF] hover:opacity-90 cursor-pointer"
-                                    : "bg-gray-800/50 border-gray-600 opacity-50 cursor-not-allowed"
-                                }`}
+                                            hasUrl
+                                                ? "bg-[#0455FF] border-[#3E7CFF] hover:opacity-90 cursor-pointer"
+                                                : "bg-gray-800/50 border-gray-600 opacity-50 cursor-not-allowed"
+                                        }`}
                                     aria-label={label}
                                 >
                                     {icon}
@@ -285,7 +293,11 @@ export default function ProfileCardContent({
                     isOpen={isQRModalOpen}
                     onClose={() => setIsQRModalOpen(false)}
                     title="Share My Card"
-                    profileImageUrl={user?.profileImage ? resolveIpfsUrl(user.profileImage) : undefined}
+                    profileImageUrl={
+                        user?.profileImage
+                            ? resolveIpfsUrl(user.profileImage, ipfsGatewayUrl)
+                            : undefined
+                    }
                     name={card?.nickname || undefined}
                     subtitle={card?.role || undefined}
                     qrCodeDataURL={qrCodeDataURL}

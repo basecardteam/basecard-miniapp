@@ -1,21 +1,23 @@
 "use client";
 
+import { useAuth } from "@/components/providers/AuthProvider";
+import { useConfig } from "@/hooks/api/useConfig";
+import { useERC721Token } from "@/hooks/evm/useERC721Token";
+import { baseCardAbi } from "@/lib/abi/abi";
 import {
+    rollbackUpdate,
     updateBaseCard,
     UpdateBaseCardParams,
-    rollbackUpdate,
 } from "@/lib/api/basecards";
-import { baseCardAbi } from "@/lib/abi/abi";
-import { useCallback, useState } from "react";
-import { useContractConfig } from "@/hooks/useContractConfig";
-import { useWriteContract, useAccount, usePublicClient } from "wagmi";
 import { logger } from "@/lib/common/logger";
-import { useERC721Token } from "@/hooks/useERC721Token";
+import { useCallback, useState } from "react";
+import { useAccount, usePublicClient, useWriteContract } from "wagmi";
 
 export function useEditBaseCard() {
     const { address } = useAccount();
+    const { accessToken, isAuthenticated } = useAuth();
     const { writeContractAsync } = useWriteContract();
-    const { contractAddress } = useContractConfig();
+    const { contractAddress } = useConfig();
     const publicClient = usePublicClient();
     const { tokenId } = useERC721Token();
 
@@ -29,7 +31,12 @@ export function useEditBaseCard() {
             setIsSendingTransaction(false);
             setError(null);
 
-            let uploadedFiles: { s3Key: string; ipfsId: string } | undefined;
+            if (!isAuthenticated || !accessToken) {
+                setError("Please login first");
+                return { success: false, error: "Not authenticated" };
+            }
+
+            let uploadedFiles: { ipfsId: string } | undefined;
 
             try {
                 if (!address) {
@@ -44,7 +51,11 @@ export function useEditBaseCard() {
                 logger.info("Step 1: Preparing update via Backend API...");
                 setIsCreatingBaseCard(true);
 
-                const response = await updateBaseCard(address, input);
+                const response = await updateBaseCard(
+                    address,
+                    input,
+                    accessToken
+                );
                 const { card_data, social_keys, social_values } = response;
                 uploadedFiles = response.uploadedFiles;
 
@@ -101,18 +112,19 @@ export function useEditBaseCard() {
 
                 logger.debug(rawMessage);
 
-                // Rollback if files were uploaded but transaction failed/rejected
-                if (uploadedFiles && address) {
-                    logger.info("↺ Rolling back uploaded files...");
-                    rollbackUpdate(address, uploadedFiles).catch(
-                        (rollbackErr) => {
-                            logger.error("Failed to rollback:", rollbackErr);
-                        }
-                    );
-                }
-
                 // User rejected the transaction
                 if (rawMessage.includes("User rejected")) {
+                    // Rollback IPFS upload if files were uploaded
+                    if (uploadedFiles && address) {
+                        logger.info("↺ Rolling back uploaded IPFS files...");
+                        rollbackUpdate(
+                            address,
+                            uploadedFiles,
+                            accessToken
+                        ).catch((rollbackErr: unknown) => {
+                            logger.error("Failed to rollback:", rollbackErr);
+                        });
+                    }
                     // Don't set error for user rejection - it's intentional
                     return { success: false, error: "User rejected" };
                 }
@@ -126,7 +138,14 @@ export function useEditBaseCard() {
                 };
             }
         },
-        [address, tokenId, writeContractAsync, publicClient, contractAddress]
+        [
+            address,
+            accessToken,
+            tokenId,
+            writeContractAsync,
+            publicClient,
+            contractAddress,
+        ]
     );
 
     return {

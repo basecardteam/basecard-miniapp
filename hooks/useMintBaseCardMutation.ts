@@ -32,7 +32,7 @@ export function useMintBaseCardMutation() {
             // 2. Wait for Transaction Receipt
             if (publicClient && result.hash) {
                 await publicClient.waitForTransactionReceipt({
-                    hash: `0x${result.hash}`,
+                    hash: result.hash as `0x${string}`,
                 });
             }
 

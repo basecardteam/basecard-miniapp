@@ -1,6 +1,7 @@
 "use client";
 
-import { useContractConfig } from "@/hooks/useContractConfig";
+import { useAuth } from "@/components/providers/AuthProvider";
+import { useConfig } from "@/hooks/api/useConfig";
 import { baseCardAbi } from "@/lib/abi/abi";
 import {
     createBaseCard,
@@ -14,8 +15,9 @@ import { useAccount, usePublicClient, useWriteContract } from "wagmi";
 
 export function useMintBaseCard() {
     const { address } = useAccount();
+    const { accessToken, isAuthenticated } = useAuth();
     const { writeContractAsync } = useWriteContract();
-    const { contractAddress } = useContractConfig();
+    const { contractAddress } = useConfig();
     const publicClient = usePublicClient();
     const [isCreatingBaseCard, setIsCreatingBaseCard] = useState(false);
     const [isSendingTransaction, setIsSendingTransaction] = useState(false);
@@ -27,13 +29,18 @@ export function useMintBaseCard() {
             setIsSendingTransaction(false);
             setError(null);
 
+            if (!isAuthenticated || !accessToken) {
+                setError("Please login first");
+                return { success: false, error: "Not authenticated" };
+            }
+
             try {
                 // 1. Backend API 호출: BaseCard 데이터 생성
                 logger.info("Step 1: Creating BaseCard via Backend API...");
                 setIsCreatingBaseCard(true);
 
                 const { card_data, social_keys, social_values } =
-                    await createBaseCard(address!, input);
+                    await createBaseCard(address!, input, accessToken);
 
                 setIsCreatingBaseCard(false);
 
@@ -89,16 +96,18 @@ export function useMintBaseCard() {
 
                 // User rejected the transaction
                 if (rawMessage.includes("User rejected")) {
-                    deleteBaseCard(address!).catch(logger.warn);
+                    deleteBaseCard(address!, accessToken).catch(logger.warn);
                     // Don't set error for user rejection - it's intentional
                     return { success: false, error: "User rejected" };
                 }
 
                 // AlreadyMinted - 이미 카드가 있는 경우
                 if (rawMessage.includes("AlreadyMinted")) {
-                    logger.info("User already has a card, fetching existing card...");
+                    logger.info(
+                        "User already has a card, fetching existing card..."
+                    );
                     try {
-                        const card = await fetchCardByAddress(address!);
+                        const card = await fetchCardByAddress(accessToken);
                         if (card?.txHash) {
                             return {
                                 success: true,
@@ -114,11 +123,16 @@ export function useMintBaseCard() {
                 }
 
                 // RPC 에러 등 - 서버에서 민팅 상태 확인
-                logger.warn("Transaction may have succeeded despite error, checking server...");
+                logger.warn(
+                    "Transaction may have succeeded despite error, checking server..."
+                );
                 try {
-                    const card = await fetchCardByAddress(address!);
+                    const card = await fetchCardByAddress(accessToken);
                     if (card?.txHash) {
-                        logger.info("✅ Mint confirmed via server. Hash:", card.txHash);
+                        logger.info(
+                            "✅ Mint confirmed via server. Hash:",
+                            card.txHash
+                        );
                         return {
                             success: true,
                             hash: card.txHash,
@@ -137,7 +151,13 @@ export function useMintBaseCard() {
                 };
             }
         },
-        [address, writeContractAsync, publicClient, contractAddress]
+        [
+            address,
+            accessToken,
+            writeContractAsync,
+            publicClient,
+            contractAddress,
+        ]
     );
 
     return {

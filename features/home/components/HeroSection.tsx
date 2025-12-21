@@ -17,6 +17,7 @@ export default function HeroSection({ onMintClick }: HeroSectionProps) {
                 alt="landing-page-background-image"
                 className="absolute inset-0 bg-no-repeat responsive-bg object-fill w-full"
                 fill
+                priority
             />
             {/* Title Section */}
             <div className="text-left">
@@ -37,15 +38,18 @@ export default function HeroSection({ onMintClick }: HeroSectionProps) {
                     draggable={false}
                     onDragStart={(e) => e.preventDefault()}
                     className="object-contain z-50 select-none pointer-events-none"
-                    style={{ width: "auto", imageRendering:"auto", userSelect:'none', msUserSelect:'none', MozUserSelect:'none' }}
+                    style={{
+                        width: "auto",
+                        imageRendering: "auto",
+                        userSelect: "none",
+                        msUserSelect: "none",
+                        MozUserSelect: "none",
+                    }}
                 />
-            </div> 
+            </div>
 
             {/* Mint Button */}
-            <BaseButton
-                onClick={onMintClick}
-                className="z-20 w-full"
-            >
+            <BaseButton onClick={onMintClick} className="z-20 w-full">
                 Mint Your Card
             </BaseButton>
 

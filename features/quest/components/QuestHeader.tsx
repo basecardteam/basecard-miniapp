@@ -2,7 +2,7 @@
 
 import UserProfileAvatar from "@/components/avatars/UserProfileAvatar";
 import { useUser } from "@/hooks/api/useUser";
-import BaseCardLogoTypo from "@/public/baseCardTypo.png";
+import baseCardTypo from "@/public/assets/basecard-typo.png";
 import Image from "next/image";
 
 export default function QuestHeader() {
@@ -13,7 +13,7 @@ export default function QuestHeader() {
             {/* Logo */}
             <div className="relative flex flex-shrink-0 h-10">
                 <Image
-                    src={BaseCardLogoTypo}
+                    src={baseCardTypo}
                     alt="logo typo"
                     height={40}
                     className="object-contain brightness-0 invert" // Make logo white if it's black, assuming typo is black text

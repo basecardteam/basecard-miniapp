@@ -1,16 +1,18 @@
 import { config } from "@/lib/common/config";
 import { ApiResponse, User } from "@/lib/types/api";
+import { createHeaders } from "../utils";
 
 /**
  * Get or Create User by wallet address
  */
-export async function fetchUser(walletAddress: string): Promise<User> {
+export async function fetchUser(
+    address: string,
+    accessToken: string
+): Promise<User> {
     const response = await fetch(`${config.BACKEND_API_URL}/v1/users`, {
         method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ walletAddress }),
+        headers: createHeaders(accessToken),
+        body: JSON.stringify({ walletAddress: address }),
     });
 
     if (!response.ok) {

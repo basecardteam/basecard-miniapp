@@ -42,8 +42,6 @@ export interface Card {
     bio: string | null;
     imageUri: string | null;
     socials: Record<string, string> | null;
-    createdAt: string;
-    updatedAt: string;
 }
 
 export interface Quest {
