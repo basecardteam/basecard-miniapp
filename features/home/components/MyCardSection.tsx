@@ -1,18 +1,18 @@
 "use client";
 
-import { useMyBaseCard } from "@/hooks/useMyBaseCard";
-import Image from "next/image";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { CardShareModal } from "./CardShareModal";
-import { getIPFSUrl } from "@/lib/utils";
 import BaseButton from "@/components/buttons/BaseButton";
-import { QrCode } from "lucide-react";
 import {
     CardConnectWalletState,
     CardEmptyState,
     CardLoadingState,
 } from "@/components/CardStates";
+import { useMyBaseCard } from "@/hooks/api/useMyBaseCard";
+import { getIPFSUrl } from "@/lib/utils";
+import { QrCode } from "lucide-react";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { CardShareModal } from "./CardShareModal";
 
 export default function MyCardSection() {
     const router = useRouter();
@@ -20,7 +20,7 @@ export default function MyCardSection() {
     const [showShareFloating, setShowShareFloating] = useState(false);
 
     const handleMyCardClick = () => {
-        router.push("/mybasecard");
+        router.push("/basecard");
     };
 
     const handleShareClick = () => {
@@ -34,12 +34,10 @@ export default function MyCardSection() {
     };
 
     return (
-        <div className="relative w-full px-4 sm:px-6 md:px-8 flex flex-col justify-center items-center py-3 sm:py-4 gap-4 sm:gap-6">
+        <div className="relative w-full px-4 sm:px-6 flex flex-col justify-center items-center py-2 gap-4">
             {/* Title Section */}
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-k2d font-bold text-left tracking-tighter leading-tight">
-                Onchain social
-                <br />
-                Business Card
+            <h1 className="text-3xl sm:text-4xl font-k2d font-bold text-left tracking-tighter leading-tight">
+                Onchain social ID Card
             </h1>
 
             {/* Card Image Section - Takes up remaining space */}
@@ -52,7 +50,7 @@ export default function MyCardSection() {
                     <CardEmptyState />
                 ) : card ? (
                     // Card found - Display image (clickable)
-                    <div className="flex flex-col gap-6 w-full">
+                    <div className="flex flex-col w-full">
                         <div className="drop-shadow-xl p-2">
                             <div
                                 onClick={handleMyCardClick}
@@ -70,7 +68,7 @@ export default function MyCardSection() {
                             </div>
                         </div>
                         {/* Buttons Section */}
-                        <div className="w-full flex gap-x-3 px-2">
+                        <div className="w-full flex gap-x-3 px-2 my-5">
                             <BaseButton
                                 onClick={handleShareClick}
                                 disabled={!card}

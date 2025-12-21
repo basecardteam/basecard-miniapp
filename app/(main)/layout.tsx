@@ -9,7 +9,7 @@ export default function MainLayout({
     children: React.ReactNode;
 }) {
     return (
-        <div className="w-full flex flex-col h-dvh overflow-hidden">
+        <div className="w-full flex flex-col h-dvh overflow-hidden max-w-[600px] mx-auto">
             <Header />
             <main className="scroll-container scrollbar-hide pt-[var(--header-h,60px)] pb-[var(--bottom-nav-h,64px)]">
                 {children}

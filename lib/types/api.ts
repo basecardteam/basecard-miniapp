@@ -18,6 +18,10 @@ export interface CreateCardResponse {
     };
     social_keys: string[];
     social_values: string[];
+    uploadedFiles?: {
+        s3Key: string;
+        ipfsId: string;
+    };
 }
 
 export interface User {
@@ -38,8 +42,6 @@ export interface Card {
     bio: string | null;
     imageUri: string | null;
     socials: Record<string, string> | null;
-    createdAt: string;
-    updatedAt: string;
 }
 
 export interface Quest {
@@ -52,9 +54,11 @@ export interface Quest {
 }
 
 export interface VerifyQuestResponse {
-    verified: boolean;
-    rewarded: number;
-    newTotalPoints: number;
+    verified?: boolean;
+    rewarded?: number;
+    newTotalPoints?: number;
+    success?: boolean;
+    updated?: { questId: string; status: string }[];
 }
 
 export interface Collection {

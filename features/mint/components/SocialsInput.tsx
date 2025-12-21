@@ -1,9 +1,8 @@
 "use client";
 
+import FarcasterIcon from "@/components/icons/FarcasterIcon";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import FacasterGrayLogo from "@/public/logo/FacasterGrayLogo.png";
-import Image from "next/image";
 import { memo } from "react";
 import { FieldError, UseFormRegisterReturn } from "react-hook-form";
 import { FaGithub, FaLinkedin, FaSquareXTwitter } from "react-icons/fa6";
@@ -40,15 +39,7 @@ const SOCIAL_CONFIG = [
     {
         id: "farcaster",
         label: "Farcaster",
-        icon: (
-            <Image
-                src={FacasterGrayLogo}
-                alt="Farcaster"
-                width={20}
-                height={20}
-                className="object-contain text-gray-200"
-            />
-        ),
+        icon: <FarcasterIcon size={20} className="text-gray-400" />,
         placeholder: "@username",
         registerKey: "farcaster" as const,
     },
@@ -80,39 +71,40 @@ export const SocialsInput = memo(function SocialsInput({
     };
 
     return (
-        <div className="w-full space-y-4">
+        <div className="w-full">
             <label className="text-lg font-semibold text-basecard-black">
                 Social Links
             </label>
 
-            <div className="space-y-4">
-                {/* Base Name Section */}
-                <div className="space-y-2">
-                    <Label
-                        htmlFor="base_name_input"
-                        className="text-sm font-medium text-gray-700"
-                    >
+            {/* Base Name Section */}
+            <div className="space-y-1 mb-5">
+                <Label
+                    htmlFor="base_name_input"
+                    className="text-sm font-medium text-gray-700"
+                >
                         Base Name
-                    </Label>
-                    <Input
-                        id="base_name_input"
-                        type="text"
-                        value={baseName || ""}
-                        disabled
-                        placeholder="Auto-filled from your wallet"
-                        className="h-12 text-base rounded-xl border-2 border-gray-200 bg-basecard-white text-basecard-gray cursor-not-allowed"
-                    />
-                    <p className="text-sm text-basecard-gray italic">
+                </Label>
+                <Input
+                    id="base_name_input"
+                    type="text"
+                    value={baseName || ""}
+                    disabled
+                    placeholder="Auto-filled from your wallet"
+                    className="h-12 text-base rounded-xl border-2 border-gray-200 bg-basecard-white text-basecard-gray cursor-not-allowed"
+                />
+                <p className="text-sm text-basecard-gray italic">
                         Automatically synced from your Base wallet
-                    </p>
-                </div>
+                </p>
+            </div>
+
+            <div className="space-y-3">
                 {SOCIAL_CONFIG.map((social) => {
                     const register = registers[social.registerKey];
                     const error = errors[social.registerKey];
                     const hasError = !!error;
 
                     return (
-                        <div key={social.id} className="space-y-2">
+                        <div key={social.id} className="space-y-1">
                             <Label
                                 htmlFor={social.id}
                                 className="text-sm font-medium text-gray-700"

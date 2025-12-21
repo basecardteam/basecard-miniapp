@@ -1,16 +1,15 @@
 import { config } from "@/lib/common/config";
 import { ApiResponse, Quest, VerifyQuestResponse } from "@/lib/types/api";
 import { logger } from "../common/logger";
+import { createHeaders } from "../utils";
 
 /**
- * Fetch all quests (without user status)
+ * Fetch all quests (without user status) - requires auth
  */
-export async function fetchQuests(): Promise<Quest[]> {
+export async function fetchQuests(accessToken: string): Promise<Quest[]> {
     const response = await fetch(`${config.BACKEND_API_URL}/v1/quests`, {
         method: "GET",
-        headers: {
-            "Content-Type": "application/json",
-        },
+        headers: createHeaders(accessToken),
     });
 
     if (!response.ok) {
@@ -27,16 +26,38 @@ export async function fetchQuests(): Promise<Quest[]> {
 }
 
 /**
+ * Fetch active quests (public, no auth required)
+ */
+export async function fetchActiveQuests(): Promise<Quest[]> {
+    const response = await fetch(`${config.BACKEND_API_URL}/v1/quests/active`, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+        },
+    });
+
+    if (!response.ok) {
+        throw new Error("Failed to fetch active quests");
+    }
+
+    const data: ApiResponse<Quest[]> = await response.json();
+
+    if (!data.success || !data.result) {
+        throw new Error(data.error || "Failed to fetch active quests");
+    }
+
+    return data.result;
+}
+
+/**
  * Fetch user's quests with completion status from userQuests table
  */
-export async function fetchUserQuests(address: string): Promise<Quest[]> {
+export async function fetchUserQuests(accessToken: string): Promise<Quest[]> {
     const response = await fetch(
-        `${config.BACKEND_API_URL}/v1/user-quests/user/${address}`,
+        `${config.BACKEND_API_URL}/v1/user-quests/me`,
         {
             method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-            },
+            headers: createHeaders(accessToken),
         }
     );
 
@@ -57,17 +78,15 @@ export async function fetchUserQuests(address: string): Promise<Quest[]> {
  * Claim a quest reward after on-chain verification
  */
 export async function claimQuest(
-    address: string,
-    questId: string
+    questId: string,
+    accessToken: string
 ): Promise<VerifyQuestResponse> {
     const response = await fetch(
         `${config.BACKEND_API_URL}/v1/user-quests/claim`,
         {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ address, questId }),
+            headers: createHeaders(accessToken),
+            body: JSON.stringify({ questId }),
         }
     );
 
@@ -89,6 +108,33 @@ export async function claimQuest(
     }
 
     logger.debug("Claimed quest: ", data.result);
+
+    return data.result;
+}
+
+/**
+ * Request manual verification for a quest
+ */
+export async function verifyQuest(
+    accessToken: string
+): Promise<VerifyQuestResponse> {
+    const response = await fetch(
+        `${config.BACKEND_API_URL}/v1/user-quests/verify`,
+        {
+            method: "POST",
+            headers: createHeaders(accessToken),
+        }
+    );
+
+    if (!response.ok) {
+        throw new Error("Failed to verify quest");
+    }
+
+    const data: ApiResponse<VerifyQuestResponse> = await response.json();
+
+    if (!data.success || !data.result) {
+        throw new Error(data.error || "Failed to verify quest");
+    }
 
     return data.result;
 }

@@ -35,7 +35,7 @@ export const ALL_SKILLS = [
     "Marketing",
 ] as const;
 
-export const ROLES = ["Developer", "Designer", "Marketer"] as const;
+export const ROLES = ["Developer", "Designer", "Marketer", "Founder", "BD", "PM"] as const;
 
 export type Role = (typeof ROLES)[number];
 export type Skill = (typeof ALL_SKILLS)[number];

@@ -7,10 +7,19 @@
         border-color: var(--border);
     }
 
+    img {
+        -webkit-user-drag: none;
+        -khtml-user-drag: none;
+        -moz-user-drag: none;
+        -o-user-drag: none;
+        user-drag: none;
+        pointer-events: none;
+    }
+
     body {
         background-color: var(--background);
         color: var(--foreground);
-        font-family: var(--font-sans), system-ui, sans-serif;
+        font-family: var(--font-k2d), system-ui, sans-serif;
     }
 
     html,
@@ -160,14 +169,14 @@
     input,
     select,
     textarea {
-        min-height: 44px;
-        min-width: 44px;
+        min-height: 40px;
+        min-width: 40px;
     }
 
     /* Larger touch targets for small screens */
     .touch-target {
-        min-height: 48px;
-        min-width: 48px;
+        min-height: 44px;
+        min-width: 44px;
     }
 }
 

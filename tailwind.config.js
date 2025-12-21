@@ -12,7 +12,7 @@ module.exports = {
     theme: {
         extend: {
             fontFamily: {
-                sans: ["var(--font-sans)", "system-ui", "sans-serif"],
+                sans: ["var(--font-k2d)", "system-ui", "sans-serif"],
                 k2d: ["var(--font-k2d)", "system-ui", "sans-serif"],
             },
             colors: {
@@ -71,10 +71,14 @@ module.exports = {
                 "basecard-black": "#303030",
                 "basecard-gray": "#62748D",
             },
-            borderRadius: {
-                lg: "var(--radius-lg)",
-                md: "var(--radius-md)",
-                sm: "var(--radius-sm)",
+            keyframes: {
+                "toast-slide-in": {
+                    "0%": { opacity: "0", transform: "translateY(-20px)" },
+                    "100%": { opacity: "1", transform: "translateY(0)" },
+                },
+            },
+            animation: {
+                "toast-slide-in": "toast-slide-in 0.3s ease-out",
             },
         },
     },

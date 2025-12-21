@@ -1,11 +1,13 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import ShareModal from "@/components/modals/ShareModal";
+import { useFrameContext } from "@/components/providers/FrameProvider";
 import { generateCardShareQRCode } from "@/lib/qrCodeGenerator";
 import { Card } from "@/lib/types";
-import { getIPFSUrl } from "@/lib/utils";
 import BCLogo from "@/public/bc-icon.png";
-import ShareModal from "@/components/modals/ShareModal";
+import { MiniAppContext } from "@farcaster/miniapp-core/dist/context";
+import { useCallback, useEffect, useState } from "react";
+import { useAccount } from "wagmi";
 
 interface CardShareModalProps {
     isVisible: boolean;
@@ -24,14 +26,17 @@ export const CardShareModal: React.FC<CardShareModalProps> = ({
 }) => {
     const [qrCodeDataURL, setQrCodeDataURL] = useState<string>("");
     const [isLoading, setIsLoading] = useState(false);
+    const { address } = useAccount();
+    const frameContext = useFrameContext();
+    const user = (frameContext?.context as MiniAppContext)?.user;
 
     /** Generate QR code when modal opens */
     const generateQRCode = useCallback(async () => {
-        if (!card || !isVisible) return;
+        if (!address || !isVisible) return;
 
         setIsLoading(true);
         try {
-            const qrCode = await generateCardShareQRCode(card.id.toString(), {
+            const qrCode = await generateCardShareQRCode(address, {
                 width: 250,
                 margin: 2,
                 color: {
@@ -46,7 +51,7 @@ export const CardShareModal: React.FC<CardShareModalProps> = ({
         } finally {
             setIsLoading(false);
         }
-    }, [card, isVisible]);
+    }, [address, isVisible]);
 
     useEffect(() => {
         if (isVisible) {
@@ -59,15 +64,13 @@ export const CardShareModal: React.FC<CardShareModalProps> = ({
             isOpen={isVisible}
             onClose={onClose}
             title="Share My Card"
-            profileImageUrl={getIPFSUrl(card?.imageUri || undefined)}
-            profileImageAlt={`${card?.nickname}'s profile`}
+            profileImageUrl={user?.pfpUrl??undefined}
             name={card?.nickname || undefined}
             subtitle={card?.role || undefined}
             qrCodeDataURL={qrCodeDataURL}
             isLoadingQR={isLoading}
             qrErrorMessage="QR 코드 생성 실패"
             logoSrc={BCLogo.src}
-            buttonText="Close"
         />
     );
 };

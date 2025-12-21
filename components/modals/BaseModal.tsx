@@ -1,16 +1,163 @@
 "use client";
 
 import BaseButton from "@/components/buttons/BaseButton";
-import { useEffect, useState } from "react";
-import { IoClose } from "react-icons/io5";
+import { atom, useAtom, useSetAtom } from "jotai";
+import { useCallback, useEffect, useState } from "react";
 
+type ModalVariant = "success" | "error" | "default";
+
+interface ModalState {
+    isOpen: boolean;
+    title: string;
+    description: string;
+    buttonText: string;
+    variant: ModalVariant;
+    onButtonClick?: () => void;
+    linkText?: string;
+    onLinkClick?: () => void;
+}
+
+interface ShowModalOptions {
+    title: string;
+    description: string;
+    buttonText?: string;
+    variant?: ModalVariant;
+    onButtonClick?: () => void;
+    linkText?: string;
+    onLinkClick?: () => void;
+}
+
+const initialState: ModalState = {
+    isOpen: false,
+    title: "",
+    description: "",
+    buttonText: "Okay",
+    variant: "default",
+};
+
+// Jotai atom for modal state
+const modalAtom = atom<ModalState>(initialState);
+
+// Hook to control modal
+export function useModal() {
+    const setModal = useSetAtom(modalAtom);
+
+    const showModal = useCallback(
+        (options: ShowModalOptions) => {
+            setModal({
+                isOpen: true,
+                title: options.title,
+                description: options.description,
+                buttonText: options.buttonText || "Okay",
+                variant: options.variant || "default",
+                onButtonClick: options.onButtonClick,
+                linkText: options.linkText,
+                onLinkClick: options.onLinkClick,
+            });
+        },
+        [setModal]
+    );
+
+    const closeModal = useCallback(() => {
+        setModal((prev) => ({ ...prev, isOpen: false }));
+    }, [setModal]);
+
+    return { showModal, closeModal };
+}
+
+// Modal Container (place once in app via providers)
+export function ModalContainer() {
+    const [modal, setModal] = useAtom(modalAtom);
+
+    const handleClose = useCallback(() => {
+        setModal((prev) => ({ ...prev, isOpen: false }));
+    }, [setModal]);
+
+    if (!modal.isOpen) return null;
+
+    const titleColor = {
+        success: "text-[#007aff]",
+        error: "text-red-400",
+        default: "text-[#60A5FA]",
+    }[modal.variant];
+
+    const handleButtonClick = () => {
+        if (modal.onButtonClick) {
+            modal.onButtonClick();
+        }
+        handleClose();
+    };
+
+    return (
+        <div
+            className={`fixed inset-0 z-[999] flex flex-col items-center justify-center ${
+                modal.isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+            } transition-opacity duration-300 `}
+        >
+            {/* Backdrop */}
+            <div
+                className="absolute inset-0 bg-gray-900/80 backdrop-blur-md"
+                onClick={handleClose}
+            />
+
+            {/* Content */}
+            <div
+                className={`relative w-full h-full flex flex-col items-center justify-center p-5
+                    transform transition-all duration-300 ease-out
+                    text-white max-w-sm text-center
+                    ${
+        modal.isOpen
+            ? "scale-100 translate-y-0"
+            : "scale-95 translate-y-4"
+        }`}
+                onClick={(e) => e.stopPropagation()}
+            >
+                <div className="flex flex-col justify-center items-center mt-auto">
+                    {/* Title */}
+                    <h2
+                        className={`text-2xl font-extrabold mb-3 leading-snug ${titleColor}`}
+                    >
+                        {modal.title}
+                    </h2>
+
+                    {/* Description */}
+                    <p className="text-base font-medium text-gray-300 mb-6 whitespace-pre-line">
+                        {modal.description}
+                    </p>
+
+                    {/* Optional Link */}
+                    {modal.linkText && modal.onLinkClick && (
+                        <button
+                            onClick={modal.onLinkClick}
+                            className="flex items-center gap-1 border-b border-[#60A5FA] pb-0.5 mb-6 hover:opacity-80 transition-opacity"
+                        >
+                            <span className="text-sm font-semibold text-[#60A5FA]">
+                                {modal.linkText}
+                            </span>
+                            <span className="text-xs text-[#60A5FA]">→</span>
+                        </button>
+                    )}
+                </div>
+                {/* Primary Button */}
+                <BaseButton
+                    onClick={handleButtonClick}
+                    className="mt-auto w-full h-14 bg-white hover:bg-gray-100 text-gray-900 rounded-lg text-base font-semibold"
+                >
+                    {modal.buttonText}
+                </BaseButton>
+            </div>
+        </div>
+    );
+}
+
+// Legacy component for backwards compatibility
 interface BaseModalProps {
     isOpen: boolean;
     onClose: () => void;
     title: string;
     description: string;
     buttonText?: string;
-    variant?: "success" | "error" | "default";
+    variant?: ModalVariant;
     onButtonClick?: () => void;
     linkText?: string;
     onLinkClick?: () => void;
@@ -32,8 +179,10 @@ export const BaseModal = ({
     useEffect(() => {
         if (isOpen) {
             setIsVisible(true);
+            document.body.style.overflow = "hidden";
         } else {
             const timer = setTimeout(() => setIsVisible(false), 300);
+            document.body.style.overflow = "unset";
             return () => clearTimeout(timer);
         }
     }, [isOpen]);
@@ -41,79 +190,67 @@ export const BaseModal = ({
     if (!isOpen && !isVisible) return null;
 
     const titleColor = {
-        success: "text-[#0050FF]", // Fixed Blue
-        error: "text-[#EF4444]", // Red-500
-        default: "text-[#0050FF]",
+        success: "text-[#60A5FA]",
+        error: "text-red-400",
+        default: "text-[#60A5FA]",
     }[variant];
 
     return (
         <div
-            className={`fixed inset-0 z-[100] flex items-center justify-center transition-opacity duration-300 ${
-                isOpen ? "opacity-100" : "opacity-0"
+            className={`fixed inset-0 z-[9999] flex flex-col items-center justify-center transition-opacity duration-300 ${
+                isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
             }`}
         >
             {/* Backdrop */}
             <div
-                className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+                className="absolute inset-0 bg-gray-900/80 backdrop-blur-md"
                 onClick={onClose}
             />
 
-            {/* Modal Content - Fixed Size 320x300 */}
+            {/* Content */}
             <div
-                className={`relative w-[320px] h-[300px] bg-[#F9F9FF] rounded-[8px] flex flex-col items-center shadow-[0px_4px_6px_rgba(225,228,230,0.15)] transform transition-all duration-300 ${
-                    isOpen
-                        ? "scale-100 translate-y-0"
-                        : "scale-95 translate-y-4"
-                }`}
+                className={`relative w-full h-full flex flex-col items-center justify-center p-8
+                    transform transition-all duration-300 ease-out
+                    text-white max-w-sm text-center
+                    ${
+        isOpen
+            ? "scale-100 translate-y-0"
+            : "scale-95 translate-y-4"
+        }`}
                 onClick={(e) => e.stopPropagation()}
             >
-                {/* Close Button - Top 16px Right 16px */}
-                <button
-                    onClick={onClose}
-                    className="absolute top-[16px] right-[16px] w-[24px] h-[24px] flex items-center justify-center text-[#B0B0B0] hover:text-[#808080] transition-colors"
+                {/* Title */}
+                <h2
+                    className={`text-2xl font-extrabold mb-3 leading-snug ${titleColor}`}
                 >
-                    <IoClose size={24} />
-                </button>
+                    {title}
+                </h2>
 
-                {/* Content Container - Starts at top 87px roughly, centered horizontally */}
-                <div className="flex flex-col items-center mt-[87px] gap-[12px] w-[261px]">
-                    {/* Title */}
-                    <h2
-                        className={`text-[17px] leading-[26px] font-semibold font-k2d text-center ${titleColor}`}
+                {/* Description */}
+                <p className="text-base font-medium text-gray-300 mb-6 whitespace-pre-line">
+                    {description}
+                </p>
+
+                {/* Optional Link */}
+                {linkText && onLinkClick && (
+                    <button
+                        onClick={onLinkClick}
+                        className="flex items-center gap-1 border-b border-[#60A5FA] pb-0.5 mb-6 hover:opacity-80 transition-opacity"
                     >
-                        {title}
-                    </h2>
+                        <span className="text-sm font-semibold text-[#60A5FA]">
+                            {linkText}
+                        </span>
+                        <span className="text-xs text-[#60A5FA]">→</span>
+                    </button>
+                )}
 
-                    {/* Description */}
-                    <p className="text-[14px] leading-[20px] font-normal font-k2d text-[#252423] text-center w-full">
-                        {description}
-                    </p>
-
-                    {/* Optional Link */}
-                    {linkText && onLinkClick && (
-                        <button
-                            onClick={onLinkClick}
-                            className="flex items-center gap-[4px] border-b border-[#0050FF] pb-[2px] hover:opacity-80 transition-opacity"
-                        >
-                            <span className="text-[12px] leading-[14px] font-semibold font-k2d text-[#0050FF] tracking-tight">
-                                {linkText}
-                            </span>
-                            <span className="text-[10px] text-[#0050FF]">
-                                →
-                            </span>
-                        </button>
-                    )}
-                </div>
-
-                {/* Primary Button - Positioned at bottom area (top 246px per spec, but flexbox push down is better) */}
-                <div className="absolute top-[246px] w-[300px]">
-                    <BaseButton
-                        onClick={onButtonClick || onClose}
-                        className="w-full h-[41px] bg-[#303030] hover:bg-[#202020] text-[#F5F5F5] rounded-[8px] text-[16px] font-semibold font-k2d p-0"
-                    >
-                        {buttonText}
-                    </BaseButton>
-                </div>
+                {/* Primary Button */}
+                <BaseButton
+                    onClick={onButtonClick || onClose}
+                    className="max-w-[280px] absolute bottom-5 w-full h-12 bg-white hover:bg-gray-100 text-gray-900 rounded-xl text-base font-semibold"
+                >
+                    {buttonText}
+                </BaseButton>
             </div>
         </div>
     );

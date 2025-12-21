@@ -1,10 +1,5 @@
 export const ROOT_URL = process.env.NEXT_PUBLIC_URL || "http://localhost:3000";
 
-const ACCOUNT_HEADER = process.env.FARCASTER_HEADER || "";
-const ACCOUNT_PAYLOAD = process.env.FARCASTER_PAYLOAD || "";
-const ACCOUNT_SIGNATURE = process.env.FARCASTER_SIGNATURE || "";
-const ALLOWED_ADDRESSES_STRING = process.env.ALLOWED_BUILDER_ADDRESSES || "";
-
 /**
  * MiniApp configuration object. Must follow the Farcaster MiniApp specification.
  *
@@ -12,67 +7,35 @@ const ALLOWED_ADDRESSES_STRING = process.env.ALLOWED_BUILDER_ADDRESSES || "";
  */
 export const minikitConfig = {
     accountAssociation: {
-        header: ACCOUNT_HEADER,
-        payload: ACCOUNT_PAYLOAD,
-        signature: ACCOUNT_SIGNATURE,
-    },
-    baseBuilder: {
-        allowedAddresses: [
-            "0xE0Ab3848E1D00DD970085F10923C45646DbA181D",
-            "0x1b8902178e313aEC2Dee0e2B707de71E3B85d632",
-        ],
+        header: "eyJmaWQiOi0xLCJ0eXBlIjoiYXV0aCIsImtleSI6IjB4M2QxNThjYjg2Zjg5OUZmMEIyNzM0RDEwODMyMzVDYTA0NzZFNTc0YSJ9",
+        payload: "eyJkb21haW4iOiJtaW5pYXBwLmJhc2VjYXJkLm9yZyJ9",
+        signature:
+            "AAAAAAAAAAAAAAAAyhG94Fl3s2MRZwKIYr4qFzl2yhEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAALAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAiSCrVbLAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAAul7REO_bo9AFv8iC11NYrLu4WEIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAASQ_-6NvAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAAe-csx_0z0dxGexkP1bWTTK13ZRIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAPhSELIcxQMC9He6VmhtIBncm2etAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABBj7BWZdVyJEHTIG1PHGzdh4kh8Ff1rTal573LkA1FS1g5DKNO3U3S-COydNca7Zx3_pWTsDQmTJOlvqevv51yyRwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAZJJkkmSSZJJkkmSSZJJkkmSSZJJkkmSSZJJkkmSSZJI",
     },
     miniapp: {
         version: "1",
         name: "BaseCard",
-        subtitle: "Builder Identity on Base",
-        description:
-            "Stop repeating your pitch. Mint your verified, onchain builder profile card (SBT). Search for talent and connect directly",
-        screenshotUrls: [`${ROOT_URL}/screenshot-portrait.png`],
+        homeUrl: ROOT_URL,
         iconUrl: `${ROOT_URL}/bc-icon.png`,
-        imageUrl: "https://basecard.vercel.app/image.png",
         splashImageUrl: `${ROOT_URL}/bc-icon.png`,
         splashBackgroundColor: "#ffffff",
-        homeUrl: ROOT_URL,
+        webhookUrl: `${ROOT_URL}/api/webhook`,
+        subtitle: "Builder Identity on Base",
+        description:
+            "Stop repeating your pitch. Mint your verified, onchain ID card, BaseCard! And, find people who share your interests.",
+        // screenshotUrls: [`${ROOT_URL}/screenshot-portrait.png`],
         primaryCategory: "social",
-        tags: ["builder", "networking", "sbt", "base", "identity"],
-        heroImageUrl: `${ROOT_URL}/blue-hero.png`,
-        tagline: "",
-        ogTitle: "BaseCard",
-        ogDescription: "",
-        ogImageUrl: `${ROOT_URL}/blue-hero.png`,
-        buttonTitle: "Open BaseCard",
+        tags: ["baseapp", "miniapp", "social", "identity", "earn"],
+        heroImageUrl: `${ROOT_URL}/bc-hero.png`,
+        // TODO: ...
+        // tagline
+        // ogTitle
+        // ogDescriptionaa
+        // ogImageUrl
+        noindex: false,
+
+        // metadata in the layout
+        embedImageUrl: `${ROOT_URL}/bc-embed-image.png`,
+        buttonTitle: "Launch BaseCard",
     },
 } as const;
-
-// {
-//   "frame": {
-//     "name": "BaseCard",
-//     "version": "1",
-//     "iconUrl": "https://miniapp.basecard.org/icon.png",
-//     "homeUrl": "https://miniapp.basecard.org",
-//     "imageUrl": "https://miniapp.basecard.org/image.png",
-//     "buttonTitle": "Open My BaseCard",
-//     "splashImageUrl": "https://miniapp.basecard.org/splash.png",
-//     "splashBackgroundColor": "#F0F0F0",
-//     "subtitle": "Builder Identity on Base",
-//     "description": "Stop repeating your pitch. Mint your verified, onchain builder profile card (SBT). Search for talent and connect directly",
-//     "screenshotUrls": [
-//       "https://miniapp.basecard.org/screenshot-portrait.png"
-//     ],
-//     "primaryCategory": "social",
-//     "tags": [
-//       "builder",
-//       "networking",
-//       "sbt",
-//       "base",
-//       "social"
-//     ],
-//     "heroImageUrl": "https://miniapp.basecard.org/hero.png"
-//   },
-//   "accountAssociation": {
-//     "header": "",
-//     "payload": "",
-//     "signature": ""
-//   }
-// }

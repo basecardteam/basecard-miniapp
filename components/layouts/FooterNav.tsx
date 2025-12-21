@@ -1,13 +1,12 @@
 "use client";
 
+import { Coins, Home, IdCard } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { IdCard, Home, ScrollText, Coins } from "lucide-react";
 
 const navItems = [
-    { href: "/mybasecard", label: "My Card", icon: IdCard },
+    { href: "/basecard", label: "My Card", icon: IdCard },
     { href: "/", label: "Home", icon: Home },
-    { href: "/quest", label: "Quest", icon: ScrollText },
     { href: "/earn", label: "Earn", icon: Coins },
 ];
 
@@ -15,7 +14,7 @@ export default function FooterNav() {
     const pathname = usePathname();
 
     const footerClasses =
-        "flex-none fixed bottom-0 left-0 right-0 border-t bg-white z-50";
+        "absolute bottom-0 left-0 right-0 border-t bg-white z-50";
 
     const footerStyle = {
         height: "var(--bottom-nav-h, 64px)",

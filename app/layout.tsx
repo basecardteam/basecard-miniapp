@@ -1,11 +1,10 @@
+import PreventPullToRefresh from "@/components/utils/PreventPullToRefresh";
 import { minikitConfig } from "@/minikit.config";
-import { SafeArea } from "@coinbase/onchainkit/minikit";
 import type { Metadata } from "next";
 import { Viewport } from "next";
 import { Inter, K2D } from "next/font/google";
 import "./globals.css";
 import { Providers } from "./providers";
-import PreventPullToRefresh from "@/components/utils/PreventPullToRefresh";
 
 const inter = Inter({
     variable: "--font-sans",
@@ -28,16 +27,30 @@ export const viewport: Viewport = {
     userScalable: false,
 };
 
-export const metadata: Metadata = {
-    title: minikitConfig.miniapp.name,
-    openGraph: {
-        title: minikitConfig.miniapp.name,
-        description: minikitConfig.miniapp.description,
-        images: [minikitConfig.miniapp.imageUrl],
-        url: minikitConfig.miniapp.homeUrl,
-        siteName: minikitConfig.miniapp.name,
-    },
-};
+export async function generateMetadata(): Promise<Metadata> {
+    return {
+        other: {
+            // prod: "base:app_id": "6943ae91d77c069a945bdfec",
+            // dev: "base:app_id": "69434d13d19763ca26ddc3cb",
+            "base:app_id": "69434d13d19763ca26ddc3cb",
+            "fc:miniapp": JSON.stringify({
+                version: "next",
+                imageUrl: minikitConfig.miniapp.embedImageUrl,
+                button: {
+                    title: minikitConfig.miniapp.buttonTitle,
+                    action: {
+                        type: "launch_miniapp",
+                        name: minikitConfig.miniapp.name,
+                        url: minikitConfig.miniapp.homeUrl,
+                        splashImageUrl: minikitConfig.miniapp.splashImageUrl,
+                        splashBackgroundColor:
+                            minikitConfig.miniapp.splashBackgroundColor,
+                    },
+                },
+            }),
+        },
+    };
+}
 
 export default function RootLayout({
     children,
@@ -49,7 +62,7 @@ export default function RootLayout({
             <body>
                 <Providers>
                     <PreventPullToRefresh />
-                    <SafeArea>{children}</SafeArea>
+                    {children}
                 </Providers>
             </body>
         </html>

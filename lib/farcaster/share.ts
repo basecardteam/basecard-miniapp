@@ -17,6 +17,8 @@ export interface ShareToFarcasterOptions {
     text?: string;
     /** URL to embed (will show as Mini App embed if the page has fc:miniapp meta tags) */
     embedUrl?: string;
+    /** Image URL to embed directly in the cast */
+    imageUrl?: string;
     /** Close the compose window after posting (default: false) */
     closeAfterPost?: boolean;
 }
@@ -60,7 +62,20 @@ export async function isInMiniApp(): Promise<boolean> {
 export async function shareToFarcaster(
     options: ShareToFarcasterOptions
 ): Promise<ShareResult> {
-    const { text = "", embedUrl } = options;
+    const { text = "", embedUrl, imageUrl } = options;
+
+    // Build embeds tuple: image first (shows as main image), then URL
+    // SDK expects tuple of max 2 elements
+    type EmbedsTuple = [] | [string] | [string, string];
+    let embeds: EmbedsTuple | undefined;
+
+    if (imageUrl && embedUrl) {
+        embeds = [imageUrl, embedUrl];
+    } else if (imageUrl) {
+        embeds = [imageUrl];
+    } else if (embedUrl) {
+        embeds = [embedUrl];
+    }
 
     try {
         // Check if we're in a Mini App context
@@ -70,7 +85,7 @@ export async function shareToFarcaster(
             // Use SDK's composeCast action for native experience
             const result = await sdk.actions.composeCast({
                 text,
-                embeds: embedUrl ? [embedUrl] : undefined,
+                embeds,
             });
 
             // composeCast returns the cast details on success
@@ -88,7 +103,7 @@ export async function shareToFarcaster(
             };
         } else {
             // Fallback to Warpcast intent URL for browser
-            openWarpcastCompose(text, embedUrl);
+            openWarpcastCompose(text, imageUrl, embedUrl);
             return {
                 success: true, // We can't know if user actually posted
             };
@@ -97,7 +112,7 @@ export async function shareToFarcaster(
         console.error("Failed to share to Farcaster:", error);
 
         // Fallback to Warpcast intent URL
-        openWarpcastCompose(text, embedUrl);
+        openWarpcastCompose(text, imageUrl, embedUrl);
         return {
             success: true, // Opened fallback
             error: "Used fallback (Warpcast intent URL)",
@@ -108,10 +123,14 @@ export async function shareToFarcaster(
 /**
  * Open Warpcast compose intent URL (fallback for non-Mini App context)
  */
-export function openWarpcastCompose(text: string, embedUrl?: string): void {
+export function openWarpcastCompose(text: string, imageUrl?: string, embedUrl?: string): void {
     const encodedText = encodeURIComponent(text);
     let url = `https://warpcast.com/~/compose?text=${encodedText}`;
 
+    // Add image first, then embed URL
+    if (imageUrl) {
+        url += `&embeds[]=${encodeURIComponent(imageUrl)}`;
+    }
     if (embedUrl) {
         url += `&embeds[]=${encodeURIComponent(embedUrl)}`;
     }

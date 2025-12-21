@@ -1,23 +1,18 @@
 "use client";
 
-import { OnchainKitProvider } from "@coinbase/onchainkit";
+import { getConfig } from "@/lib/wagmi";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { WagmiProvider } from "wagmi";
-import { activeChain, getConfig } from "@/lib/wagmi";
-import { NetworkChecker } from "../feedback/NetworkChecker";
 
 export default function Provider({ children }: { children: React.ReactNode }) {
-    // QueryClient 최적화: 미니앱 환경에 맞춘 캐싱 전략
     const [queryClient] = useState(
         () =>
             new QueryClient({
                 defaultOptions: {
                     queries: {
-                        staleTime: 5 * 60 * 1000, // 5분
-                        gcTime: 10 * 60 * 1000, // 10분 (기존 cacheTime)
-                        refetchOnWindowFocus: false, // 미니앱에서는 불필요
-                        retry: 1, // 실패 시 1번만 재시도
+                        refetchOnWindowFocus: false,
+                        retry: 1,
                     },
                 },
             })
@@ -26,27 +21,37 @@ export default function Provider({ children }: { children: React.ReactNode }) {
 
     return (
         <WagmiProvider config={wagmiConfig}>
-            <OnchainKitProvider
-                apiKey={process.env.NEXT_PUBLIC_ONCHAINKIT_API_KEY}
-                chain={activeChain}
-                config={{
-                    appearance: {
-                        mode: "auto",
-                    },
-                    wallet: {
-                        display: "modal",
-                    },
-                }}
-                miniKit={{
-                    enabled: true,
-                    autoConnect: true,
-                }}
-            >
-                <NetworkChecker />
-                <QueryClientProvider client={queryClient}>
-                    {children}
-                </QueryClientProvider>
-            </OnchainKitProvider>
+            <QueryClientProvider client={queryClient}>
+                {children}
+            </QueryClientProvider>
         </WagmiProvider>
+        // TODO: minikit나 onchainkit에 따라서 저거 설정이 달라짐.
+        // Ref:
+        //  https://github.com/Vicolee/frames-v2-demo/blob/main/src/components/providers/wagmi-provider.tsx
+        //  https://docs.base.org/onchainkit/latest/components/minikit/hooks/useMiniKit
+        //  https://docs.base.org/onchainkit/latest/components/minikit/provider-and-initialization
+        // <WagmiProvider config={wagmiConfig}>
+        //     <OnchainKitProvider
+        //         apiKey={process.env.NEXT_PUBLIC_ONCHAINKIT_API_KEY}
+        //         chain={activeChain}
+        //         config={{
+        //             appearance: {
+        //                 mode: "auto",
+        //             },
+        //             wallet: {
+        //                 display: "modal",
+        //             },
+        //         }}
+        //         miniKit={{
+        //             enabled: true,
+        //             autoConnect: true,
+        //         }}
+        //     >
+        //         <NetworkChecker />
+        //         <QueryClientProvider client={queryClient}>
+        //             {children}
+        //         </QueryClientProvider>
+        //     </OnchainKitProvider>
+        // </WagmiProvider>
     );
 }
