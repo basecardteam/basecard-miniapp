@@ -37,6 +37,29 @@ export const addCollection = async (
     }
 };
 
+export const deleteCollection = async (
+    accessToken: string,
+    basecardId: string
+): Promise<void> => {
+    const response = await fetch(
+        `${config.BACKEND_API_URL}/v1/collections/${basecardId}`,
+        {
+            method: "DELETE",
+            headers: createHeaders(accessToken),
+        }
+    );
+
+    if (!response.ok) {
+        throw new Error("Failed to remove from collection");
+    }
+
+    const data: ApiResponse<null> = await response.json();
+
+    if (!data.success) {
+        throw new Error(data.error || "Failed to remove from collection");
+    }
+};
+
 export const fetchCollections = async (
     accessToken: string
 ): Promise<Card[] | null> => {

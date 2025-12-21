@@ -4,9 +4,11 @@ import { fetchActiveQuests, fetchUserQuests } from "@/lib/api/quests";
 import { Quest, VerifyQuestResponse } from "@/lib/types/api";
 import { useQuery } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
+import { useAccount } from "wagmi";
 
 export function useQuests() {
     const { accessToken, isAuthenticated } = useAuth();
+    const { address } = useAccount();
     const [claimingQuest, setClaimingQuest] = useState<string | null>(null);
 
     // User quests (authenticated) - fetch user's quest progress
@@ -49,7 +51,7 @@ export function useQuests() {
 
     const handleClaim = useCallback(
         async (quest: Quest): Promise<VerifyQuestResponse | null> => {
-            if (!isAuthenticated || !accessToken) {
+            if (!isAuthenticated || !accessToken || !address) {
                 throw new Error("Please sign in to claim quests");
             }
 
@@ -59,6 +61,7 @@ export function useQuests() {
                 const result = await claimMutate({
                     questId: quest.id,
                     accessToken,
+                    address,
                 });
                 return result;
             } catch (err) {
@@ -67,7 +70,7 @@ export function useQuests() {
                 setClaimingQuest(null);
             }
         },
-        [claimMutate, accessToken, isAuthenticated]
+        [claimMutate, accessToken, isAuthenticated, address]
     );
 
     return {

@@ -61,7 +61,10 @@ export default function MintSuccessModal({
                 </div>
 
                 {/* Buttons */}
-                <div className="mt-auto w-full flex flex-col gap-3">
+                <div
+                    className="mt-auto w-full flex flex-col gap-3"
+                    style={{ marginBottom: "calc(20px + env(safe-area-inset-bottom, 0px))" }}
+                >
                     {/* Primary Button - View My Card */}
                     <BaseButton
                         onClick={onViewCard}

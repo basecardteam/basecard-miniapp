@@ -24,7 +24,6 @@ import { Suspense, useCallback, useEffect, useState } from "react";
 import { useAccount } from "wagmi";
 import { useEditProfileForm } from "./hooks/useEditProfileForm";
 
-import { useModal } from "@/components/modals/BaseModal";
 import { processProfileImage } from "@/lib/processProfileImage";
 import { useEditBaseCard } from "./hooks/useEditBaseCard";
 
@@ -61,9 +60,6 @@ export default function EditProfileScreen() {
         error: editError,
     } = useEditBaseCard();
 
-    // Modal hook
-    const { showModal } = useModal();
-
     const username = (frameContext?.context as MiniAppContext)?.user?.username;
     // Default image if no card data
     const defaultProfileUrl =
@@ -94,7 +90,6 @@ export default function EditProfileScreen() {
     // Populate form when cardData is available
     useEffect(() => {
         if (cardData) {
-            console.log("Populating form with card data:", cardData);
             reset({
                 name: cardData.nickname || "",
                 role: (cardData.role as any) || undefined, // Type cast if necessary
@@ -188,7 +183,7 @@ export default function EditProfileScreen() {
 
     return (
         <main className="bg-white text-basecard-black scroll-container scrollbar-hide overscroll-y-none pb-20">
-            <div className="relative flex items-center h-14">
+            <div className="relative flex items-center h-12">
                 <BackButton />
                 <h1 className="text-lg font-medium ml-12">Edit Profile</h1>
             </div>
@@ -210,7 +205,7 @@ export default function EditProfileScreen() {
                 <div className="w-full space-y-1">
                     <Label
                         htmlFor="name"
-                        className="text-base font-semibold text-basecard-black"
+                        className="text-base font-semibold text-basecard-black gap-0"
                     >
                         Your Name<span className="text-red-500">*</span>
                     </Label>

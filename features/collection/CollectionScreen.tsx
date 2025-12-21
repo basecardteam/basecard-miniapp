@@ -1,9 +1,9 @@
 import BackButton from "@/components/buttons/BackButton";
+import IOSCardList from "@/features/home/components/IOSCardList";
 import { useCollectionPage } from "@/hooks/useCollectionPage";
 import { CollectionEmpty } from "./components/CollectionEmpty";
 import { CollectionError } from "./components/CollectionError";
 import { CollectionFilter } from "./components/CollectionFilter";
-import { CollectionList } from "./components/CollectionList";
 import { CollectionLoading } from "./components/CollectionLoading";
 
 export default function CollectionScreen() {
@@ -42,17 +42,15 @@ export default function CollectionScreen() {
             return <CollectionEmpty hasCards={hasCards} />;
         }
 
-        return <CollectionList cards={filteredCards} />;
+        return <IOSCardList cards={filteredCards} />;
     };
 
     return (
         <div className="relative">
             {/* Header */}
-            <div className="flex gap-x-2 h-12 mb-5 items-center">
-                <BackButton className="relative top-0 left-0" />
-                <div className="text-3xl font-k2d font-bold text-black">
-                    My Collection
-                </div>
+            <div className="flex gap-x-2 h-12 mb-5 items-center justify-start text-3xl font-k2d font-bold text-black">
+                <BackButton className="relative m-0 top-0 left-0" />
+                My Collection
             </div>
 
             {/* Content */}

@@ -65,8 +65,11 @@ const FullScreenLoadingOverlay = ({
             </div>
             
             {/* 3. Footer Indicator (선택 사항: 로딩이 계속되고 있음을 시각화) */}
-            <div className="absolute bottom-0 left-0 right-0 h-1">
-                <div 
+            <div
+                className="absolute left-0 right-0 h-1"
+                style={{ bottom: "env(safe-area-inset-bottom, 0px)" }}
+            >
+                <div
                     className="h-full bg-gradient-to-r from-transparent via-basecard-blue to-transparent animate-pulse"
                 />
             </div>

@@ -79,14 +79,15 @@ export async function fetchUserQuests(accessToken: string): Promise<Quest[]> {
  */
 export async function claimQuest(
     questId: string,
-    accessToken: string
+    accessToken: string,
+    address: string
 ): Promise<VerifyQuestResponse> {
     const response = await fetch(
         `${config.BACKEND_API_URL}/v1/user-quests/claim`,
         {
             method: "POST",
             headers: createHeaders(accessToken),
-            body: JSON.stringify({ questId }),
+            body: JSON.stringify({ questId, address }),
         }
     );
 

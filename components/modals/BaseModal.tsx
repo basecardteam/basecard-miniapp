@@ -142,6 +142,7 @@ export function ModalContainer() {
                 <BaseButton
                     onClick={handleButtonClick}
                     className="mt-auto w-full h-14 bg-white hover:bg-gray-100 text-gray-900 rounded-lg text-base font-semibold"
+                    style={{ marginBottom: "calc(20px + env(safe-area-inset-bottom, 0px))" }}
                 >
                     {modal.buttonText}
                 </BaseButton>
@@ -247,7 +248,8 @@ export const BaseModal = ({
                 {/* Primary Button */}
                 <BaseButton
                     onClick={onButtonClick || onClose}
-                    className="max-w-[280px] absolute bottom-5 w-full h-12 bg-white hover:bg-gray-100 text-gray-900 rounded-xl text-base font-semibold"
+                    className="max-w-[280px] absolute w-full h-12 bg-white hover:bg-gray-100 text-gray-900 rounded-xl text-base font-semibold"
+                    style={{ bottom: "calc(20px + env(safe-area-inset-bottom, 0px))" }}
                 >
                     {buttonText}
                 </BaseButton>

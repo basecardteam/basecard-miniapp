@@ -177,8 +177,9 @@ export default function ShareBottomSheet({
             {/* Bottom Sheet Container */}
             <div
                 ref={sheetRef}
-                className="absolute bottom-0 left-0 right-0 px-3 pb-8 z-10"
+                className="absolute bottom-0 left-0 right-0 px-3 z-10"
                 style={{
+                    paddingBottom: "calc(12px + var(--bottom-nav-h, 64px) + env(safe-area-inset-bottom, 0px))",
                     transform: (isDragging || closingWithDrag) ? `translateY(${dragY}px)` : undefined,
                     animation:
                         isDragging || closingWithDrag

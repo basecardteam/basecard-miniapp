@@ -8,11 +8,13 @@ export function useClaimQuestMutation() {
         mutationFn: async ({
             accessToken,
             questId,
+            address,
         }: {
             accessToken: string;
             questId: string;
+            address: string;
         }) => {
-            const result = await claimQuest(accessToken, questId);
+            const result = await claimQuest(questId, accessToken, address);
             return result;
         },
         onSuccess: async (result) => {
@@ -20,7 +22,7 @@ export function useClaimQuestMutation() {
                 // Update both quests and user points
                 await Promise.all([
                     queryClient.invalidateQueries({
-                        queryKey: ["quests"],
+                        queryKey: ["userQuests"],
                     }),
                     queryClient.invalidateQueries({
                         queryKey: ["user"],
@@ -42,7 +44,7 @@ export function useVerifyQuestMutation() {
         onSuccess: async (result) => {
             if (result.success) {
                 await queryClient.invalidateQueries({
-                    queryKey: ["quests"],
+                    queryKey: ["userQuests"],
                 });
             }
         },

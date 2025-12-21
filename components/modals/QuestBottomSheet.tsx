@@ -191,7 +191,10 @@ export default function QuestBottomSheet({
                     {/* Quest List */}
                     <div
                         className="overflow-y-auto overscroll-y-contain px-4 py-3"
-                        style={{ maxHeight: "calc(80vh - 72px)" }}
+                        style={{
+                            maxHeight: "calc(80vh - 72px)",
+                            paddingBottom: "calc(12px + var(--bottom-nav-h, 64px) + env(safe-area-inset-bottom, 0px))"
+                        }}
                     >
                         <QuestList
                             quests={quests}
@@ -199,7 +202,6 @@ export default function QuestBottomSheet({
                             onAction={onAction}
                             className="flex flex-col gap-2.5"
                         />
-                        <div className="h-4" />
                     </div>
                 </div>
 

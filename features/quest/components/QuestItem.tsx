@@ -109,10 +109,11 @@ export default function QuestItem({
                 /* Pending: Action button + disabled reward */
                 <div className="flex flex-row items-center gap-2 w-full mt-0.5">
                     <button
+                        type="button"
                         onClick={() => {
                             onAction?.();
                         }}
-                        className="flex-1 flex justify-center items-center px-2 rounded-md text-sm font-medium bg-white border border-gray-300 text-gray-700 active:bg-gray-50 transition-colors"
+                        className="flex-1 flex justify-center items-center h-10 px-2 rounded-md text-sm font-medium bg-white border border-gray-300 text-gray-700 active:bg-gray-50 transition-colors"
                     >
                         <span>{buttonName}</span>
                     </button>

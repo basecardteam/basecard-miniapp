@@ -106,8 +106,11 @@ export function useEditBaseCard() {
                 logger.info("✅ Transaction sent. Hash:", hash);
                 setIsSendingTransaction(false);
 
-                // Invalidate and refetch myBaseCard query
-                await queryClient.invalidateQueries({ queryKey: ["myBaseCard", address] });
+                // Invalidate and refetch myBaseCard query + userQuests (profile changes may complete quests)
+                await Promise.all([
+                    queryClient.invalidateQueries({ queryKey: ["myBaseCard", address] }),
+                    queryClient.invalidateQueries({ queryKey: ["userQuests"] }),
+                ]);
                 await queryClient.refetchQueries({ queryKey: ["myBaseCard", address] });
 
                 setIsSendingTransaction(false);

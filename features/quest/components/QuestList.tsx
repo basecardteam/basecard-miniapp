@@ -7,16 +7,32 @@ import QuestItem from "./QuestItem";
 import QuestItemSkeleton from "./QuestItemSkeleton";
 
 const BUTTON_LABELS: Record<string, string> = {
-    MINT: "Mint",
-    SHARE: "Share",
-    FOLLOW: "Follow",
-    NOTIFICATION: "Enable",
-    LINK_BASENAME: "Link",
-    LINK_FARCASTER: "Link",
-    LINK_GITHUB: "Link",
-    LINK_LINKEDIN: "Link",
-    LINK_TWITTER: "Link",
-    LINK_WEBSITE: "Link",
+    // Farcaster
+    FC_LINK: "Link",
+    FC_SHARE: "Share",
+    FC_FOLLOW: "Follow",
+    FC_POST_HASHTAG: "Post",
+    // Twitter
+    X_LINK: "Link",
+    X_FOLLOW: "Follow",
+    // App
+    APP_NOTIFICATION: "Enable",
+    APP_DAILY_CHECKIN: "Check In",
+    APP_BASECARD_MINT: "Mint",
+    APP_ADD_MINIAPP: "Add",
+    APP_REFERRAL: "Invite",
+    APP_BIO_UPDATE: "Update",
+    APP_SKILL_TAG: "Add",
+    APP_VOTE: "Vote",
+    APP_MANUAL: "Complete",
+    // GitHub
+    GH_LINK: "Link",
+    // LinkedIn
+    LI_LINK: "Link",
+    // Basename
+    BASE_LINK_NAME: "Link",
+    // Website
+    WEB_LINK: "Link",
 };
 
 function getButtonName(quest: Quest): string {

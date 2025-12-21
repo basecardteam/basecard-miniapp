@@ -2,12 +2,13 @@ import Image from "next/image";
 import { useCallback, useMemo, useState } from "react";
 import { FaGithub, FaGlobe, FaLinkedin, FaTwitter } from "react-icons/fa";
 import { HiOutlinePencil } from "react-icons/hi";
-import { IoCheckmarkCircle, IoClose, IoShareOutline } from "react-icons/io5";
+import { IoClose, IoShareOutline, IoTrashOutline } from "react-icons/io5";
 import { MdOutlineBookmarkAdd } from "react-icons/md";
 
 import FarcasterIcon from "@/components/icons/FarcasterIcon";
 import ShareBottomSheet from "@/components/modals/ShareBottomSheet";
 import { ShareModal } from "@/components/modals/ShareModal";
+import { useFrameContext } from "@/components/providers/FrameProvider";
 import { useToast } from "@/components/ui/Toast";
 import { useConfig } from "@/hooks/api/useConfig";
 import { useUser } from "@/hooks/api/useUser";
@@ -35,6 +36,7 @@ interface ProfileCardContentProps {
     onClose?: () => void;
     isCollected?: boolean;
     onCollect?: () => void;
+    onRemove?: () => void;
 }
 
 type SocialEntry = {
@@ -113,9 +115,11 @@ export default function ProfileCardContent({
     onClose,
     isCollected = false,
     onCollect,
+    onRemove,
 }: ProfileCardContentProps) {
     const router = useRouter();
     const openUrl = sdk.actions.openUrl;
+    const frameContext = useFrameContext();
     const { data: user } = useUser();
     const { address } = useAccount();
     const { showToast } = useToast();
@@ -162,9 +166,17 @@ export default function ProfileCardContent({
         (key: string, rawValue: string) => {
             const url = valueToUrl(key, rawValue);
             if (url.length === 0) return;
-            openUrl(url);
+            if (frameContext?.isInMiniApp) {
+                try {
+                    openUrl({ url });
+                } catch {
+                    window.open(url, "_blank");
+                }
+            } else {
+                window.open(url, "_blank");
+            }
         },
-        [openUrl]
+        [openUrl, frameContext]
     );
 
     const handleCopyLink = useCallback(async () => {
@@ -236,7 +248,14 @@ export default function ProfileCardContent({
                         label="Edit Profile"
                     />
                 )}
-                {isViewer && onClose && (
+                {isViewer && isCollected && onRemove && (
+                    <CardActionButton
+                        onClick={onRemove}
+                        icon={<IoTrashOutline className="text-white" size={20} />}
+                        label="Remove"
+                    />
+                )}
+                {isViewer && !isCollected && onClose && (
                     <CardActionButton
                         onClick={onClose}
                         icon={<IoClose className="text-white" size={22} />}
@@ -322,38 +341,19 @@ export default function ProfileCardContent({
                                 Share
                             </span>
                         </button>
-                    ) : (
+                    ) : isCollected ? null : (
                         <button
-                            onClick={isCollected ? undefined : onCollect}
-                            disabled={isCollected}
-                            className={`mt-4 w-full h-12 rounded-lg flex items-center justify-center gap-2 transition-colors
-                                ${
-                                    isCollected
-                                        ? "bg-gray-400 cursor-not-allowed"
-                                        : "bg-[#0455FF] hover:bg-[#0344CC]"
-                                }`}
+                            onClick={onCollect}
+                            className="mt-4 w-full h-12 rounded-lg flex items-center justify-center gap-2 transition-colors
+                                bg-[#0455FF] hover:bg-[#0344CC]"
                         >
-                            {isCollected ? (
-                                <>
-                                    <IoCheckmarkCircle
-                                        className="text-white"
-                                        size={20}
-                                    />
-                                    <span className="font-medium text-base text-white">
-                                        Collected
-                                    </span>
-                                </>
-                            ) : (
-                                <>
-                                    <MdOutlineBookmarkAdd
-                                        className="text-white"
-                                        size={20}
-                                    />
-                                    <span className="font-medium text-base text-white">
-                                        Collect
-                                    </span>
-                                </>
-                            )}
+                            <MdOutlineBookmarkAdd
+                                className="text-white"
+                                size={20}
+                            />
+                            <span className="font-medium text-base text-white">
+                                Collect
+                            </span>
                         </button>
                     )}
                 </div>

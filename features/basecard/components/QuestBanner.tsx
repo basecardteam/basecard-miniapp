@@ -4,7 +4,6 @@ import QuestBottomSheet from "@/components/modals/QuestBottomSheet";
 import SuccessModal from "@/components/modals/SuccessModal";
 import { useQuestHandler } from "@/features/quest/hooks/useQuestHandler";
 import { useQuests } from "@/hooks/api/useQuests";
-import { Quest } from "@/lib/types/api";
 import clsx from "clsx";
 import { ChevronRight, Gift } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -37,27 +36,6 @@ export default function QuestBanner() {
     );
 
     const hasClaimable = claimableCount > 0;
-
-    // Handlers
-    const getButtonName = (quest: Quest) => {
-        if (quest.status === "completed") return "Claimed";
-        if (quest.status === "claimable") return "Claim!";
-
-        const buttonLabels: Record<string, string> = {
-            MINT: "Mint",
-            SHARE: "Share",
-            FOLLOW: "Follow",
-            NOTIFICATION: "Enable",
-            LINK_BASENAME: "Link",
-            LINK_FARCASTER: "Link",
-            LINK_GITHUB: "Link",
-            LINK_LINKEDIN: "Link",
-            LINK_TWITTER: "Link",
-            LINK_WEBSITE: "Link",
-        };
-
-        return buttonLabels[quest.actionType] || quest.actionType;
-    };
 
     // Loading skeleton
     if (isLoading) {
@@ -101,8 +79,8 @@ export default function QuestBanner() {
                             {hasClaimable
                                 ? `Claim +${claimableAmount} BC`
                                 : `${incompleteCount} Quest${
-                                      incompleteCount > 1 ? "s" : ""
-                                  }`}
+                                    incompleteCount > 1 ? "s" : ""
+                                }`}
                         </span>
                     </div>
                     <ChevronRight
@@ -132,7 +110,6 @@ export default function QuestBanner() {
                 quests={quests}
                 claimingQuest={claimingQuest}
                 onAction={handleQuestAction}
-                getButtonName={getButtonName}
             />
         </>
     );

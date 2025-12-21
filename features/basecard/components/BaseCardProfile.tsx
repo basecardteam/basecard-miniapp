@@ -1,3 +1,4 @@
+import BackButton from "@/components/buttons/BackButton";
 import { BaseModal } from "@/components/modals/BaseModal";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useToast } from "@/components/ui/Toast";
@@ -5,7 +6,7 @@ import { useBaseCard } from "@/hooks/api/useBaseCard";
 import { useMyBaseCard } from "@/hooks/api/useMyBaseCard";
 import { useMyCollections } from "@/hooks/api/useMyCollections";
 import { useERC721Token } from "@/hooks/evm/useERC721Token";
-import { addCollection } from "@/lib/api/collections";
+import { addCollection, deleteCollection } from "@/lib/api/collections";
 import { Card } from "@/lib/types/api";
 import { useQueryClient } from "@tanstack/react-query";
 import clsx from "clsx";
@@ -130,7 +131,7 @@ export default function MyBaseCardProfile({
         try {
             await addCollection(accessToken, cardId);
             setLocalCollected(true); // Immediately update UI
-            queryClient.invalidateQueries({ queryKey: ["collections"] }); // Refetch in background
+            queryClient.invalidateQueries({ queryKey: ["collectedCards"] }); // Refetch in background
             setIsCollectSuccessModalOpen(true); // Show success modal
         } catch (error) {
             const message =
@@ -153,8 +154,30 @@ export default function MyBaseCardProfile({
         showToast,
         queryClient,
         isCollected,
-
     ]);
+
+    const handleRemove = useCallback(async () => {
+        if (!cardId) return;
+
+        if (!isAuthenticated || !accessToken) {
+            showToast("Please login to remove this card.", "error");
+            return;
+        }
+
+        try {
+            await deleteCollection(accessToken, cardId);
+            setLocalCollected(false);
+            queryClient.invalidateQueries({ queryKey: ["collectedCards"] });
+            showToast("Removed from collection", "success");
+            router.back();
+        } catch (error) {
+            const message =
+                error instanceof Error
+                    ? error.message
+                    : "Failed to remove card";
+            showToast(message, "error");
+        }
+    }, [cardId, isAuthenticated, accessToken, showToast, queryClient, router]);
 
     // ==========================================================================
     // Styles
@@ -219,8 +242,12 @@ export default function MyBaseCardProfile({
                 {/* [PROFILE ONLY] Quest Banner */}
                 {isProfile && <QuestBanner />}
 
-                {/* [VIEWER ONLY] Top Spacer */}
-                {isViewer && <div className="h-4" />}
+                {/* [VIEWER ONLY] Back Button */}
+                {isViewer && (
+                    <div className="w-full relative h-12 flex items-center justify-start">
+                        <BackButton size={40} className="text-gray-600 relative m-0 left-0 top-0" />
+                    </div>
+                )}
 
                 {/* Card Section - Both modes */}
                 <ProfileCardContent
@@ -231,6 +258,7 @@ export default function MyBaseCardProfile({
                     onClose={isViewer ? handleClose : undefined}
                     isCollected={isViewer ? isCollected : undefined}
                     onCollect={isViewer ? handleCollect : undefined}
+                    onRemove={isViewer ? handleRemove : undefined}
                 />
 
                 {/* [PROFILE ONLY] Action Buttons Row */}
