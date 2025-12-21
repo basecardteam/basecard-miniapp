@@ -7,7 +7,10 @@
         "build": "next build",
         "start": "next start",
         "lint": "next lint",
-        "run-docker-local": "docker compose -f docker-compose.local.yml up --build"
+        "run-docker-local": "docker compose -f docker-compose.local.yml up --build",
+        "deploy:remote": "./scripts/deploy.sh remote",
+        "deploy:remote:status": "./scripts/deploy.sh remote:status",
+        "deploy:remote:logs": "./scripts/deploy.sh remote:logs"
     },
     "dependencies": {
         "@base-org/account": "^2.5.0",
