@@ -1,17 +1,53 @@
 import { config } from "@/lib/common/config";
 import { ApiResponse, Card, CreateCardResponse } from "@/lib/types/api";
 import { logger } from "../common/logger";
+import { Socials } from "../types";
 
 /**
- * Fetch card data by wallet address
- * Uses GET /v1/basecards/address/:address endpoint
- * Returns null if card not found instead of throwing error
+ * Helper to create headers with optional auth token
  */
-export async function fetchCardByAddress(
-    address: string
-): Promise<Card | null> {
+function createHeaders(
+    accessToken?: string,
+    includeContentType: boolean = false
+): HeadersInit {
+    const headers: HeadersInit = {};
+    if (includeContentType) {
+        headers["Content-Type"] = "application/json";
+    }
+    if (accessToken && accessToken.length > 0) {
+        headers["Authorization"] = `Bearer ${accessToken}`;
+    }
+    return headers;
+}
+
+/**
+ * Fetch all basecards
+ * Uses GET /v1/basecards endpoint
+ */
+export async function fetchAllBaseCards(): Promise<Card[]> {
+    const response = await fetch(`${config.BACKEND_API_URL}/v1/basecards`);
+
+    if (!response.ok) {
+        throw new Error("Failed to fetch cards");
+    }
+
+    const data: ApiResponse<Card[]> = await response.json();
+
+    if (!data.success || !data.result) {
+        throw new Error(data.error || "Failed to fetch cards");
+    }
+
+    return data.result;
+}
+
+/**
+ * Fetch card data by card ID
+ * Uses GET /v1/basecards/:id endpoint
+ * Returns null if card not found
+ */
+export async function fetchBaseCardById(cardId: string): Promise<Card | null> {
     const response = await fetch(
-        `${config.BACKEND_API_URL}/v1/basecards/address/${address}`
+        `${config.BACKEND_API_URL}/v1/basecards/${cardId}`
     );
 
     if (!response.ok) {
@@ -23,28 +59,55 @@ export async function fetchCardByAddress(
 
     const data: ApiResponse<Card | null> = await response.json();
 
-    // Standard API response: { success: true, result: Card | null, error: null }
+    if (!data.success) {
+        throw new Error(data.error || "Failed to fetch card");
+    }
+
+    return data.result;
+}
+
+/**
+ * Fetch card data by wallet address
+ * Uses GET /v1/basecards/address/me endpoint
+ * Returns null if card not found instead of throwing error
+ */
+export async function fetchCardByAddress(
+    accessToken: string
+): Promise<Card | null> {
+    const response = await fetch(`${config.BACKEND_API_URL}/v1/basecards/me`, {
+        headers: createHeaders(accessToken),
+    });
+
+    if (!response.ok) {
+        if (response.status === 404) {
+            return null;
+        }
+        throw new Error("Failed to fetch card");
+    }
+
+    const data: ApiResponse<Card | null> = await response.json();
+
     if (!data.success) {
         throw new Error(data.error || "Failed to fetch card");
     }
 
     logger.debug("Fetched basecard: ", data.result);
 
-    // Return null if no card found, otherwise return the card
     return data.result;
 }
 
 export interface CreateBaseCardParams {
     nickname: string;
     role: string;
-    bio?: string;
+    bio: string;
     profileImageFile: File;
-    socials?: Record<string, string>;
+    socials: Socials;
 }
 
 export async function createBaseCard(
     address: string,
-    params: CreateBaseCardParams
+    params: CreateBaseCardParams,
+    accessToken: string
 ): Promise<CreateCardResponse> {
     const formData = new FormData();
     formData.append("address", address);
@@ -55,8 +118,14 @@ export async function createBaseCard(
     if (params.socials)
         formData.append("socials", JSON.stringify(params.socials));
 
+    const headers: HeadersInit = {};
+    if (accessToken && accessToken.length > 0) {
+        headers["Authorization"] = `Bearer ${accessToken}`;
+    }
+
     const response = await fetch(`${config.BACKEND_API_URL}/v1/basecards`, {
         method: "POST",
+        headers,
         body: formData,
     });
 
@@ -74,62 +143,36 @@ export async function createBaseCard(
     return data.result;
 }
 
-export async function updateCardTokenId(
-    address: string,
-    tokenId: number | null,
-    txHash?: string
-): Promise<void> {
-    const response = await fetch(
-        `${config.BACKEND_API_URL}/v1/basecards/${address}`,
-        {
-            method: "PUT",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ tokenId, txHash }),
-        }
-    );
-
-    if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to update tokenId");
-    }
-}
-
 export interface UpdateBaseCardParams {
-    nickname?: string;
-    role?: string;
-    bio?: string;
-    socials?: Record<string, string>;
-    profileImageFile?: File;
+    nickname: string;
+    role: string;
+    bio: string;
+    socials: Socials;
+    profileImageFile: File;
 }
 
 export async function updateBaseCard(
     address: string,
-    params: UpdateBaseCardParams
+    params: UpdateBaseCardParams,
+    accessToken: string
 ): Promise<CreateCardResponse> {
     const formData = new FormData();
 
-    if (params.nickname) formData.append("nickname", params.nickname);
-    if (params.role) formData.append("role", params.role);
-    if (params.bio !== undefined) formData.append("bio", params.bio);
-    if (params.socials)
-        formData.append("socials", JSON.stringify(params.socials));
-    if (params.profileImageFile)
-        formData.append("profileImageFile", params.profileImageFile);
+    // Always send all fields - empty string means "clear/delete"
+    formData.append("nickname", params.nickname);
+    formData.append("role", params.role);
+    formData.append("bio", params.bio);
+    formData.append("socials", JSON.stringify(params.socials));
+    formData.append("profileImageFile", params.profileImageFile);
 
-    // Debug: log what's being sent
-    logger.debug("Update card request - address:", address);
-    logger.debug("Update card request - params:", params);
-    logger.debug(
-        "Update card request - formData entries:",
-        Object.fromEntries(formData.entries())
-    );
+    const headers: HeadersInit = {};
+    headers["Authorization"] = `Bearer ${accessToken}`;
 
     const response = await fetch(
         `${config.BACKEND_API_URL}/v1/basecards/${address}`,
         {
             method: "PATCH",
+            headers,
             body: formData,
         }
     );
@@ -147,7 +190,6 @@ export async function updateBaseCard(
         throw new Error(errorMessage);
     }
 
-    // Response format: { success: true, result: { card_data, social_keys, social_values } }
     const data: ApiResponse<CreateCardResponse> = await response.json();
     logger.debug("Update card response:", data);
 
@@ -160,32 +202,33 @@ export async function updateBaseCard(
 
 export async function rollbackUpdate(
     address: string,
-    uploadedFiles: { s3Key: string; ipfsId: string }
+    uploadedFiles: { ipfsId: string },
+    accessToken: string
 ): Promise<void> {
     const response = await fetch(
         `${config.BACKEND_API_URL}/v1/basecards/${address}/rollback`,
         {
             method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
+            headers: createHeaders(accessToken, true),
             body: JSON.stringify(uploadedFiles),
         }
     );
 
     if (!response.ok) {
-        // Rollback failure is critical but we can only log it here
         const textBody = await response.text().catch(() => "");
         logger.error("Failed to rollback:", textBody);
-        // We don't throw error here to avoid masking the original error that caused rollback
     }
 }
 
-export async function deleteBaseCard(address: string): Promise<void> {
+export async function deleteBaseCard(
+    address: string,
+    accessToken: string
+): Promise<void> {
     const response = await fetch(
         `${config.BACKEND_API_URL}/v1/basecards/${address}`,
         {
             method: "DELETE",
+            headers: createHeaders(accessToken),
         }
     );
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { ModalContainer } from "@/components/modals/BaseModal";
+import AuthProvider from "@/components/providers/AuthProvider";
 import FrameProvider from "@/components/providers/FrameProvider";
 import { ToastContainer } from "@/components/ui/Toast";
 import dynamic from "next/dynamic";
@@ -23,12 +24,14 @@ export function Providers({ children }: { children: React.ReactNode }) {
     return (
         <WagmiProvider>
             <FrameProvider>
-                <ErudaProvider />
-                <div className="max-w-xl mx-auto relative">
-                    {children}
-                </div>
-                <ToastContainer />
-                <ModalContainer />
+                <AuthProvider>
+                    <ErudaProvider />
+                    <div className="max-w-xl mx-auto relative">
+                        {children}
+                    </div>
+                    <ToastContainer />
+                    <ModalContainer />
+                </AuthProvider>
             </FrameProvider>
         </WagmiProvider>
     );

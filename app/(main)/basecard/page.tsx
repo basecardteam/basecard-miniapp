@@ -1,4 +1,4 @@
-import MyBaseCardScreen from "@/features/my-base-card/MyBaseCardScreen";
+import MyBaseCardScreen from "@/features/basecard/BaseCardScreen";
 import { Suspense } from "react";
 
 const CardSkeleton = () => (
@@ -9,10 +9,10 @@ const CardSkeleton = () => (
     </div>
 );
 
-export default function MyCardPage() {
+export default function BaseCardPage() {
     return (
         <Suspense fallback={<CardSkeleton />}>
-            <MyBaseCardScreen />
+            <MyBaseCardScreen mode="profile" />
         </Suspense>
     );
 }

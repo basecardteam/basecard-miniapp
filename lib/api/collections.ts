@@ -1,9 +1,9 @@
 import { config } from "@/lib/common/config";
 import { ApiResponse, Card } from "@/lib/types/api";
+import { createHeaders } from "../utils";
 
-interface CreateCollectionParams {
-    collectorAddress: string;
-    collectedAddress: string;
+interface AddCollectionParams {
+    basecardId: string;
 }
 
 interface CollectionResponse {
@@ -20,38 +20,43 @@ interface CollectionResponse {
     updatedAt: string;
 }
 
-export const createCollection = async (
-    params: CreateCollectionParams
+export const addCollection = async (
+    accessToken: string,
+    basecardId: string
 ): Promise<void> => {
     const response = await fetch(`${config.BACKEND_API_URL}/v1/collections`, {
         method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify(params),
+        headers: createHeaders(accessToken),
+        body: JSON.stringify({ basecardId }),
     });
 
     if (!response.ok) {
-        throw new Error("Failed to create collection");
+        throw new Error("Failed to add to collection");
     }
 
     const data: ApiResponse<null> = await response.json();
 
     if (!data.success) {
-        throw new Error(data.error || "Failed to create collection");
+        throw new Error(data.error || "Failed to add to collection");
     }
 };
 
-export const getCollections = async (address: string): Promise<Card[]> => {
+export const fetchCollections = async (
+    accessToken: string
+): Promise<Card[] | null> => {
     const response = await fetch(
-        `${config.BACKEND_API_URL}/v1/collections?address=${address}`
+        `${config.BACKEND_API_URL}/v1/collections/me`,
+        {
+            method: "GET",
+            headers: createHeaders(accessToken),
+        }
     );
 
     if (!response.ok) {
         throw new Error("Failed to fetch collections");
     }
 
-    const data: ApiResponse<Card[]> = await response.json();
+    const data: ApiResponse<Card[] | null> = await response.json();
 
     if (!data.success || !data.result) {
         throw new Error(data.error || "Failed to fetch collections");

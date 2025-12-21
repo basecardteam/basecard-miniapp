@@ -1,8 +1,8 @@
-import { useAccount, useReadContract } from "wagmi";
+import { useConfig } from "@/hooks/api/useConfig";
 import baseCardAbi from "@/lib/abi/BaseCard.json";
-import { useContractConfig } from "@/hooks/useContractConfig";
-import { useMemo } from "react";
 import { logger } from "@/lib/common/logger";
+import { useMemo } from "react";
+import { useAccount, useReadContract } from "wagmi";
 
 export interface SocialLink {
     key: string;
@@ -24,7 +24,7 @@ export interface BaseCardMetadata {
  */
 export function useERC721Token() {
     const { address } = useAccount();
-    const { contractAddress } = useContractConfig();
+    const { contractAddress } = useConfig();
 
     logger.debug(`contract address: ${contractAddress}`);
 

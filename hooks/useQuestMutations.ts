@@ -1,32 +1,29 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { claimQuest, verifyQuest } from "@/lib/api/quests";
-import { VerifyQuestResponse } from "@/lib/types/api";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 export function useClaimQuestMutation() {
     const queryClient = useQueryClient();
 
     return useMutation({
         mutationFn: async ({
-            address,
+            accessToken,
             questId,
-            fid,
         }: {
-            address: string;
+            accessToken: string;
             questId: string;
-            fid?: number;
         }) => {
-            const result = await claimQuest(address, questId, fid);
+            const result = await claimQuest(accessToken, questId);
             return result;
         },
-        onSuccess: async (result, variables) => {
+        onSuccess: async (result) => {
             if (result.verified) {
                 // Update both quests and user points
                 await Promise.all([
                     queryClient.invalidateQueries({
-                        queryKey: ["quests", variables.address],
+                        queryKey: ["quests"],
                     }),
                     queryClient.invalidateQueries({
-                        queryKey: ["user", variables.address],
+                        queryKey: ["user"],
                     }),
                 ]);
             }
@@ -38,20 +35,14 @@ export function useVerifyQuestMutation() {
     const queryClient = useQueryClient();
 
     return useMutation({
-        mutationFn: async ({
-            address,
-            fid,
-        }: {
-            address: string;
-            fid?: number;
-        }) => {
-            const result = await verifyQuest(address, fid);
+        mutationFn: async ({ accessToken }: { accessToken: string }) => {
+            const result = await verifyQuest(accessToken);
             return result;
         },
-        onSuccess: async (result, variables) => {
+        onSuccess: async (result) => {
             if (result.success) {
                 await queryClient.invalidateQueries({
-                    queryKey: ["quests", variables.address],
+                    queryKey: ["quests"],
                 });
             }
         },

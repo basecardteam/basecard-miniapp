@@ -1,14 +1,19 @@
 "use client";
 
-import { useAccount, useConnect, useDisconnect, useSwitchChain } from "wagmi";
 import BaseButton from "@/components/buttons/BaseButton";
-import ConnectedUserDisplay from "./ConnectedUserDisplay";
 import { activeChain } from "@/lib/wagmi";
 import { useCallback, useState } from "react";
+import { useAccount, useConnect, useDisconnect, useSwitchChain } from "wagmi";
+import ConnectedUserDisplay from "./ConnectedUserDisplay";
 
 export default function BrowserWalletConnect() {
-    const { address, isConnected, } = useAccount();
-    const { connectors, connectAsync, isPending: isConnectPending, reset: resetConnect } = useConnect();
+    const { address, isConnected } = useAccount();
+    const {
+        connectors,
+        connectAsync,
+        isPending: isConnectPending,
+        reset: resetConnect,
+    } = useConnect();
     const { disconnect } = useDisconnect();
     const { switchChainAsync } = useSwitchChain();
     const [isConnecting, setIsConnecting] = useState(false);
@@ -32,19 +37,20 @@ export default function BrowserWalletConnect() {
                 // 1. Connect wallet with timeout
                 const result = await Promise.race([
                     connectAsync({ connector }),
-                    timeout
+                    timeout,
                 ]);
                 // 2. Check if on correct chain, if not switch
                 if (result.chainId !== activeChain.id) {
                     try {
                         await Promise.race([
                             switchChainAsync({ chainId: activeChain.id }),
-                            timeout
+                            timeout,
                         ]);
                     } catch (switchError) {
                         console.warn("Failed to switch chain:", switchError);
                     }
                 }
+                // Auth will be handled by AuthProvider's auto-login useEffect
             } catch (error: any) {
                 console.error("Failed to connect:", error);
                 // Reset connection state on error
@@ -53,7 +59,13 @@ export default function BrowserWalletConnect() {
                 setIsConnecting(false);
             }
         },
-        [connectAsync, switchChainAsync, isConnecting, isConnectPending, resetConnect]
+        [
+            connectAsync,
+            switchChainAsync,
+            isConnecting,
+            isConnectPending,
+            resetConnect,
+        ]
     );
 
     if (isConnected && address) {

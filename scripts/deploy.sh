@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+# Load user profile for non-interactive SSH
+export PATH="$HOME/.bun/bin:$HOME/.nvm/versions/node/$(ls $HOME/.nvm/versions/node 2>/dev/null | tail -1)/bin:/usr/local/bin:$PATH"
+
 # ============================================================
 # BaseCard Miniapp 배포 스크립트 (PM2 + Bun)
 # ============================================================
@@ -10,6 +13,9 @@ APP_DIR="/home/basecard/src/basecard-miniapp"
 LOG_DIR="/home/basecard/logs"
 REPO_URL="git@github-miniapp:basecardteam/basecard-miniapp.git"
 BRANCH="main"
+
+# SSH 설정 (로컬에서 리모트 배포 시 사용)
+SSH_HOST="p-home-seoul-api-basecard-backend"
 
 # 색상 정의
 GREEN='\033[0;32m'
@@ -128,7 +134,7 @@ rollback() {
 }
 
 # ============================================================
-# 메인 실행
+# 메인 실행 (서버에서 직접 실행)
 # ============================================================
 main() {
     log_info "🚀 배포 시작: $APP_NAME"
@@ -147,8 +153,39 @@ main() {
     fi
 }
 
+# ============================================================
+# 리모트 배포 (로컬에서 SSH로 서버 배포)
+# ============================================================
+deploy_remote() {
+    log_info "🌐 리모트 배포 시작: $SSH_HOST"
+    log_info "📡 $APP_DIR 에서 배포 실행..."
+    
+    ssh "$SSH_HOST" "cd $APP_DIR && git pull origin $BRANCH && ./scripts/deploy.sh deploy"
+    
+    log_info "🎉 리모트 배포 완료!"
+}
+
+remote_status() {
+    log_info "📊 리모트 상태 확인: $SSH_HOST"
+    ssh "$SSH_HOST" "cd $APP_DIR && pm2 status && pm2 logs $APP_NAME --lines 20"
+}
+
+remote_logs() {
+    log_info "📜 리모트 로그 확인: $SSH_HOST"
+    ssh "$SSH_HOST" "pm2 logs $APP_NAME --lines 100"
+}
+
+remote_rollback() {
+    log_info "🔙 리모트 롤백: $SSH_HOST"
+    ssh "$SSH_HOST" "cd $APP_DIR && ./scripts/deploy.sh rollback"
+}
+
+# ============================================================
 # 명령어 분기
-case "${1:-deploy}" in
+# ============================================================
+CMD=${1:-deploy}
+
+case "$CMD" in
     deploy)
         main
         ;;
@@ -162,8 +199,33 @@ case "${1:-deploy}" in
     logs)
         pm2 logs "$APP_NAME" --lines 100
         ;;
+    # 리모트 명령어 (로컬에서 실행)
+    remote)
+        deploy_remote
+        ;;
+    remote:status)
+        remote_status
+        ;;
+    remote:logs)
+        remote_logs
+        ;;
+    remote:rollback)
+        remote_rollback
+        ;;
     *)
-        echo "Usage: $0 {deploy|rollback|status|logs}"
+        echo "Usage: $0 {deploy|rollback|status|logs|remote|remote:status|remote:logs|remote:rollback}"
+        echo ""
+        echo "서버에서 직접 실행:"
+        echo "  deploy    - 배포 실행"
+        echo "  rollback  - 이전 버전으로 롤백"
+        echo "  status    - PM2 상태 확인"
+        echo "  logs      - 로그 확인"
+        echo ""
+        echo "로컬에서 리모트 배포:"
+        echo "  remote          - SSH로 리모트 서버에 배포"
+        echo "  remote:status   - 리모트 서버 상태 확인"
+        echo "  remote:logs     - 리모트 서버 로그 확인"
+        echo "  remote:rollback - 리모트 서버 롤백"
         exit 1
         ;;
 esac

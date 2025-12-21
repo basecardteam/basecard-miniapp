@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const navItems = [
-    { href: "/my-base-card", label: "My Card", icon: IdCard },
+    { href: "/basecard", label: "My Card", icon: IdCard },
     { href: "/", label: "Home", icon: Home },
     { href: "/earn", label: "Earn", icon: Coins },
 ];
@@ -34,10 +34,10 @@ export default function FooterNav() {
                             href={item.href}
                             className={`flex flex-col items-center p-2 text-xs transition-colors text-center flex-1 
                                 ${
-                        pathname === item.href
-                            ? "text-basecard-blue font-bold"
-                            : "text-gray-500 hover:text-gray-800"
-                        }`}
+                                    pathname === item.href
+                                        ? "text-basecard-blue font-bold"
+                                        : "text-gray-500 hover:text-gray-800"
+                                }`}
                         >
                             <IconComponent className="text-xl" />
                             <span className="mt-1">{item.label}</span>

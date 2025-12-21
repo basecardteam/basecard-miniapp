@@ -1,5 +1,6 @@
 "use client";
 
+import { useAuth } from "@/components/providers/AuthProvider";
 import { fetchCardByAddress } from "@/lib/api/basecards";
 import { logger } from "@/lib/common/logger";
 import { Card } from "@/lib/types/api";
@@ -10,20 +11,22 @@ import { useAccount } from "wagmi";
  * Custom hook to get user's card data
  */
 export function useMyBaseCard() {
-    const { address, isConnected } = useAccount();
+    const { isAuthenticated, accessToken } = useAuth();
+    const { isConnected } = useAccount();
 
     return useQuery<Card | null, Error>({
-        queryKey: ["myBaseCard", address],
+        queryKey: ["myBaseCard", accessToken],
         queryFn: async () => {
-            if (!address) {
+            if (!accessToken) {
                 return null;
             }
             logger.debug("Fetching myBaseCard data");
-            const card = await fetchCardByAddress(address);
+            const card = await fetchCardByAddress(accessToken);
             // React Query doesn't allow undefined, ensure we return null
             return card ?? null;
         },
-        enabled: isConnected && !!address,
+        // Only fetch when connected, have address, AND authenticated
+        enabled: isAuthenticated && !!accessToken && isConnected,
         staleTime: 1000 * 30, // 30 seconds
         retry: 1,
     });

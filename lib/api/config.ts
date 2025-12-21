@@ -3,6 +3,7 @@ import { config } from "@/lib/common/config";
 export interface AppConfigResult {
     contractAddress: string;
     chainId: number;
+    ipfsGatewayUrl: string;
 }
 
 interface ConfigResponse {

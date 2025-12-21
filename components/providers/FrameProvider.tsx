@@ -1,7 +1,13 @@
 "use client";
 
 import { sdk } from "@farcaster/miniapp-sdk";
-import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import {
+    createContext,
+    useCallback,
+    useContext,
+    useEffect,
+    useState,
+} from "react";
 
 const NOTIFICATION_PROMPT_SHOWN_KEY = "basecard_notification_prompt_shown";
 
@@ -37,6 +43,7 @@ export interface MiniAppContext {
 type FrameContextType = {
     context: MiniAppContext | Record<string, unknown> | null;
     isInMiniApp: boolean;
+    isContextReady: boolean; // True when SDK initialization is complete
     requestNotificationPermission: () => Promise<{
         success: boolean;
         notificationDetails?: { url: string; token: string } | null;
@@ -54,8 +61,11 @@ export default function FrameProvider({
 }: {
     children: React.ReactNode;
 }) {
-    const [context, setContext] = useState<MiniAppContext | Record<string, unknown> | null>(null);
+    const [context, setContext] = useState<
+        MiniAppContext | Record<string, unknown> | null
+    >(null);
     const [isInMiniApp, setIsInMiniApp] = useState(false);
+    const [isContextReady, setIsContextReady] = useState(false);
     const [isNotificationLoading, setIsNotificationLoading] = useState(false);
 
     const requestNotificationPermission = useCallback(async () => {
@@ -73,7 +83,10 @@ export default function FrameProvider({
             setIsNotificationLoading(false);
 
             if (response.notificationDetails) {
-                return { success: true, notificationDetails: response.notificationDetails };
+                return {
+                    success: true,
+                    notificationDetails: response.notificationDetails,
+                };
             } else {
                 return { success: true, notificationDetails: null };
             }
@@ -85,7 +98,8 @@ export default function FrameProvider({
     }, []);
 
     const promptNotificationOnce = useCallback(async () => {
-        const hasPrompted = localStorage.getItem(NOTIFICATION_PROMPT_SHOWN_KEY) === "true";
+        const hasPrompted =
+            localStorage.getItem(NOTIFICATION_PROMPT_SHOWN_KEY) === "true";
 
         if (hasPrompted) {
             return;
@@ -105,6 +119,7 @@ export default function FrameProvider({
                 const inMiniApp = await sdk.isInMiniApp();
                 setContext(ctx);
                 setIsInMiniApp(inMiniApp);
+                setIsContextReady(true);
 
                 // Prompt notification on first launch
                 if (inMiniApp) {
@@ -113,6 +128,7 @@ export default function FrameProvider({
             } catch {
                 setContext({ error: "Failed to initialize" });
                 setIsInMiniApp(false);
+                setIsContextReady(true); // Still mark as ready even on error
             }
         };
 
@@ -122,6 +138,7 @@ export default function FrameProvider({
     const frameContext: FrameContextType = {
         context,
         isInMiniApp,
+        isContextReady,
         requestNotificationPermission,
         isNotificationLoading,
     };

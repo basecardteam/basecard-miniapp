@@ -26,7 +26,7 @@ const CardItem = React.memo(function CardItem({
     } satisfies React.CSSProperties;
 
     const handleCardClick = () => {
-        router.push(`/card/${card.id}`);
+        router.push(`/basecard/${card.id}`);
     };
 
     return (
@@ -53,7 +53,6 @@ const CardItem = React.memo(function CardItem({
                     priority={isActive}
                     style={{ objectFit: "cover" }}
                     className="object-cover aspect-[5/3] transition-transform duration-500 ease-out "
-                    unoptimized={card.imageUri?.startsWith("data:") || false}
                     onError={(e) => {
                         e.currentTarget.src = "/assets/default-profile.png";
                     }}
