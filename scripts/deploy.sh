@@ -156,23 +156,27 @@ main() {
 # ============================================================
 # 리모트 배포 (로컬에서 SSH로 서버 배포)
 # ============================================================
+
+# SSH에서 사용할 PATH 설정
+REMOTE_PATH_SETUP='export PATH="$HOME/.bun/bin:$HOME/.nvm/versions/node/$(ls $HOME/.nvm/versions/node 2>/dev/null | tail -1)/bin:/usr/local/bin:$PATH"'
+
 deploy_remote() {
     log_info "🌐 리모트 배포 시작: $SSH_HOST"
     log_info "📡 $APP_DIR 에서 배포 실행..."
     
-    ssh "$SSH_HOST" "cd $APP_DIR && git pull origin $BRANCH && ./scripts/deploy.sh deploy"
+    ssh "$SSH_HOST" "$REMOTE_PATH_SETUP && cd $APP_DIR && git pull origin $BRANCH && ./scripts/deploy.sh deploy"
     
     log_info "🎉 리모트 배포 완료!"
 }
 
 remote_status() {
     log_info "📊 리모트 상태 확인: $SSH_HOST"
-    ssh "$SSH_HOST" "cd $APP_DIR && pm2 status && pm2 logs $APP_NAME --lines 20"
+    ssh "$SSH_HOST" "$REMOTE_PATH_SETUP && pm2 status && pm2 logs $APP_NAME --lines 20"
 }
 
 remote_logs() {
     log_info "📜 리모트 로그 확인: $SSH_HOST"
-    ssh "$SSH_HOST" "pm2 logs $APP_NAME --lines 100"
+    ssh "$SSH_HOST" "$REMOTE_PATH_SETUP && pm2 logs $APP_NAME --lines 100"
 }
 
 remote_rollback() {
