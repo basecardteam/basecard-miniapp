@@ -21,7 +21,7 @@ import {
     generateCardShareQRCode,
     generateCardShareURL,
 } from "@/lib/qrCodeGenerator";
-import { Card, SocialKey } from "@/lib/types";
+import { BaseCard, SocialKey } from "@/lib/types";
 import { resolveIpfsUrl } from "@/lib/utils";
 import defaultProfileImage from "@/public/assets/default-profile.png";
 import BCLogo from "@/public/bc-icon.png";
@@ -34,8 +34,9 @@ import { useAccount } from "wagmi";
 // =============================================================================
 
 interface ProfileCardContentProps {
-    card: Card;
+    card: BaseCard;
     mode?: "profile" | "viewer";
+    ownerPfpUrl?: string; // For viewer mode - fetched from Neynar
     onClose?: () => void;
     isCollected?: boolean;
     onCollect?: () => void;
@@ -112,6 +113,7 @@ const valueToUrl = (key: string, raw: string): string => {
 export default function ProfileCardContent({
     card,
     mode = "profile",
+    ownerPfpUrl,
     onClose,
     isCollected = false,
     onCollect,
@@ -136,9 +138,14 @@ export default function ProfileCardContent({
     const socials = card.socials || {};
     logger.info("socials", socials);
     const profileImageUrl = useMemo(() => {
+        // Viewer mode: use owner's Farcaster pfp_url if available
+        if (isViewer && ownerPfpUrl) {
+            return ownerPfpUrl;
+        }
+        // Profile mode: use current user's pfp from frame context
         const pfpUrl = (frameContext?.context as MiniAppContext)?.user?.pfpUrl;
         return pfpUrl || defaultProfileImage.src;
-    }, [frameContext?.context]);
+    }, [isViewer, ownerPfpUrl, frameContext?.context]);
 
     // =========================================================================
     // Modal States

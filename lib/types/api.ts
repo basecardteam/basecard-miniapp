@@ -58,16 +58,41 @@ export interface User {
     wallets?: UserWallet[];
 }
 
-export interface Card {
+/**
+ * Farcaster profile from Neynar API
+ */
+export interface FarcasterProfile {
+    fid: number;
+    username: string;
+    display_name: string;
+    pfp_url: string;
+}
+
+/**
+ * BaseCard list item (used in lists, collections)
+ */
+export interface BaseCard {
     id: string;
     userId: string;
-    tokenId: number | null;
-    txHash: string | null;
     nickname: string | null;
     role: string | null;
     bio: string | null;
-    imageUri: string | null;
     socials: Socials | null;
+    tokenId: number | null;
+    txHash: string | null;
+    imageUri: string | null;
+    createdAt?: string | null;
+    updatedAt?: string | null;
+}
+
+/**
+ * Extended response type for single basecard (findOne)
+ * Includes user address, FID, and Farcaster profile
+ */
+export interface BaseCardDetail extends BaseCard {
+    address: string;
+    fid: number | null;
+    farcasterProfile: FarcasterProfile | null;
 }
 
 export interface Quest {

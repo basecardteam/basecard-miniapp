@@ -1,10 +1,10 @@
 import { fetchAllBaseCards } from "@/lib/api/basecards";
 import { logger } from "@/lib/common/logger";
-import { Card } from "@/lib/types/api";
+import { BaseCard } from "@/lib/types/api";
 import { useQuery } from "@tanstack/react-query";
 
 export function useBaseCards() {
-    const query = useQuery<Card[], Error>({
+    const query = useQuery<BaseCard[], Error>({
         queryKey: ["basecards"],
         queryFn: async () => {
             logger.debug("Fetching all basecards");

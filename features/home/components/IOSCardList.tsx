@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useCallback, useEffect, useRef } from "react";
-import { Card } from "@/lib/types/api";
 import CardItem from "@/features/collection/components/CardItem";
+import { BaseCard } from "@/lib/types/api";
+import { useCallback, useEffect, useRef } from "react";
 
 interface IOSCardListProps {
-    cards: Card[];
+    cards: BaseCard[];
 }
 
 /**
@@ -38,7 +38,9 @@ export default function IOSCardList({ cards }: IOSCardListProps) {
     }, []);
 
     const updateAllTransforms = useCallback(() => {
-        const scrollContainer = document.querySelector(".scroll-container") as HTMLElement | null;
+        const scrollContainer = document.querySelector(
+            ".scroll-container"
+        ) as HTMLElement | null;
         if (!scrollContainer) return;
 
         const scrollTop = scrollContainer.scrollTop;
@@ -48,7 +50,7 @@ export default function IOSCardList({ cards }: IOSCardListProps) {
         const viewportHeight = scrollContainer.clientHeight;
 
         const headerHeight = 60; // --header-h
-        const bottomTabHeight =63;
+        const bottomTabHeight = 63;
         const bottomPadding = 40;
 
         const hiddenThreshold = 1.1;
@@ -68,7 +70,12 @@ export default function IOSCardList({ cards }: IOSCardListProps) {
             if (originalTop === undefined) return;
 
             // 원래 위치 기준으로 뷰포트 내 위치 계산
-            const cardTopInViewport = originalTop - scrollTop + headerHeight + bottomTabHeight + bottomPadding;
+            const cardTopInViewport =
+                originalTop -
+                scrollTop +
+                headerHeight +
+                bottomTabHeight +
+                bottomPadding;
             const positionRatio = cardTopInViewport / viewportHeight;
 
             let scale = 1;
@@ -76,9 +83,9 @@ export default function IOSCardList({ cards }: IOSCardListProps) {
             let opacity = 1;
 
             // 애니메이션 구간
-            const animationStart = 0.8;  // 애니메이션 시작
-            const scaleEnd = 1.0;        // scale 변화 끝 (1→0.8)
-            const fadeStart = 1.0;       // opacity 페이드 시작
+            const animationStart = 0.8; // 애니메이션 시작
+            const scaleEnd = 1.0; // scale 변화 끝 (1→0.8)
+            const fadeStart = 1.0; // opacity 페이드 시작
             const finalScale = 0.8;
             const slowMotionFactor = 0.1; // 10% 속도로 천천히 이동
 
@@ -92,36 +99,48 @@ export default function IOSCardList({ cards }: IOSCardListProps) {
 
                 // Scale: 0.8~1.0 구간에서 1 → 0.8, 이후 0.8 유지
                 if (positionRatio < scaleEnd) {
-                    const scaleProgress = (positionRatio - animationStart) / (scaleEnd - animationStart);
+                    const scaleProgress =
+                        (positionRatio - animationStart) /
+                        (scaleEnd - animationStart);
                     scale = 1 - (1 - finalScale) * scaleProgress;
                 } else {
                     scale = finalScale;
                 }
 
                 // 슬로우 모션: 천천히 내려가는 것처럼 보임
-                translateY = -(positionRatio - animationStart) * (1 - slowMotionFactor) * viewportHeight;
+                translateY =
+                    -(positionRatio - animationStart) *
+                    (1 - slowMotionFactor) *
+                    viewportHeight;
 
                 // Opacity: 1.0 ~ 1.1 구간에서 1 → 0 (겹쳐진 상태에서 페이드아웃)
                 if (positionRatio >= fadeStart) {
-                    const fadeProgress = (positionRatio - fadeStart) / (hiddenThreshold - fadeStart);
+                    const fadeProgress =
+                        (positionRatio - fadeStart) /
+                        (hiddenThreshold - fadeStart);
                     opacity = 1 - fadeProgress;
                 }
             } else {
                 // 1.1+: 완전히 숨김
                 scale = finalScale;
-                translateY = -(hiddenThreshold - animationStart) * (1 - slowMotionFactor) * viewportHeight;
+                translateY =
+                    -(hiddenThreshold - animationStart) *
+                    (1 - slowMotionFactor) *
+                    viewportHeight;
                 opacity = 0;
             }
 
             // 값 반올림으로 미세 떨림 방지 + translate3d로 GPU 가속
-            el.style.transform = `translate3d(0, ${Math.round(translateY)}px, 0) scale(${scale.toFixed(2)})`;
+            el.style.transform = `translate3d(0, ${Math.round(
+                translateY
+            )}px, 0) scale(${scale.toFixed(2)})`;
             el.style.opacity = String(opacity);
         });
     }, [cards]);
 
     // cards가 변경될 때 Map 정리 (태그 필터 변경 시)
     useEffect(() => {
-        const currentCardIds = new Set(cards.map(c => c.id));
+        const currentCardIds = new Set(cards.map((c) => c.id));
 
         // 현재 cards에 없는 id들 제거
         cardRefs.current.forEach((_, id) => {
@@ -172,7 +191,10 @@ export default function IOSCardList({ cards }: IOSCardListProps) {
     if (!cards.length) return null;
 
     return (
-        <div ref={containerRef} className="flex flex-col gap-2 pt-4 pb-40 overflow-hidden">
+        <div
+            ref={containerRef}
+            className="flex flex-col gap-2 pt-4 pb-40 overflow-hidden"
+        >
             {cards.map((card, index) => (
                 <div
                     key={card.id}

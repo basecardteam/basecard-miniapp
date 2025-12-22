@@ -1,4 +1,4 @@
-import { Card } from "@/lib/types/api";
+import { BaseCard } from "@/lib/types/api";
 
 export type CollectionFilterTag =
     | "All"
@@ -20,7 +20,7 @@ export const COLLECTION_FILTER_TAGS: CollectionFilterTag[] = [
 ];
 
 interface FilterResult {
-    filteredCards: Card[];
+    filteredCards: BaseCard[];
     tags: CollectionFilterTag[];
 }
 
@@ -28,7 +28,7 @@ interface FilterResult {
  * Filter collections by tag and search term
  */
 export function filterCollections(
-    cards: Card[] | null | undefined,
+    cards: BaseCard[] | null | undefined,
     selectedTag: CollectionFilterTag,
     searchTerm?: string
 ): FilterResult {
