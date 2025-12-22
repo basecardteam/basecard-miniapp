@@ -1,6 +1,6 @@
 import { useFrameContext } from "@/components/providers/FrameProvider";
 import { useToast } from "@/components/ui/Toast";
-import { useQuests } from "@/hooks/api/useQuests";
+import { useMyQuests } from "@/hooks/api/useMyQuests";
 import { useERC721Token } from "@/hooks/evm/useERC721Token";
 import { shareToFarcaster } from "@/lib/farcaster/share";
 import { Quest } from "@/lib/types/api";
@@ -28,7 +28,7 @@ interface UseQuestHandlerResult {
 export function useQuestHandler(): UseQuestHandlerResult {
     const router = useRouter();
     const { address } = useAccount();
-    const { claim } = useQuests();
+    const { claim } = useMyQuests();
     const { showToast } = useToast();
     const frameContext = useFrameContext();
     const { metadata } = useERC721Token();
