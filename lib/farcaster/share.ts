@@ -123,7 +123,11 @@ export async function shareToFarcaster(
 /**
  * Open Warpcast compose intent URL (fallback for non-Mini App context)
  */
-export function openWarpcastCompose(text: string, imageUrl?: string, embedUrl?: string): void {
+export function openWarpcastCompose(
+    text: string,
+    imageUrl?: string,
+    embedUrl?: string
+): void {
     const encodedText = encodeURIComponent(text);
     let url = `https://warpcast.com/~/compose?text=${encodedText}`;
 
@@ -136,24 +140,4 @@ export function openWarpcastCompose(text: string, imageUrl?: string, embedUrl?: 
     }
 
     window.open(url, "_blank", "noopener,noreferrer");
-}
-
-/**
- * Generate the share URL for a BaseCard
- * This URL should have fc:miniapp meta tags for proper embed rendering
- */
-export function getBaseCardShareUrl(address: string): string {
-    const baseUrl =
-        process.env.NEXT_PUBLIC_APP_URL || "https://app.basecard.org";
-    return `${baseUrl}/card/${address}`;
-}
-
-/**
- * Default share message for BaseCard
- */
-export function getDefaultShareMessage(nickname?: string): string {
-    if (nickname) {
-        return `Check out ${nickname}'s BaseCard! 🎉`;
-    }
-    return "I just minted my BaseCard! Collect this and check all about myself 🎉";
 }

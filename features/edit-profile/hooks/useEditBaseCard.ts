@@ -12,14 +12,13 @@ import {
 import { logger } from "@/lib/common/logger";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useState } from "react";
-import { useAccount, usePublicClient, useWriteContract } from "wagmi";
+import { useAccount, useWriteContract } from "wagmi";
 
 export function useEditBaseCard() {
     const { address } = useAccount();
     const { accessToken, isAuthenticated } = useAuth();
     const { writeContractAsync } = useWriteContract();
     const { contractAddress } = useConfig();
-    const publicClient = usePublicClient();
     const queryClient = useQueryClient();
     const { tokenId } = useERC721Token();
 
@@ -36,11 +35,6 @@ export function useEditBaseCard() {
             if (!isAuthenticated || !accessToken) {
                 setError("Please login first");
                 return { success: false, error: "Not authenticated" };
-            }
-
-            if (!publicClient) {
-                setError("Public client not initialized");
-                return { success: false, error: "Public client not initialized" };
             }
 
             if (!contractAddress) {
@@ -81,12 +75,10 @@ export function useEditBaseCard() {
                     throw new Error("Contract address not found");
                 }
 
-                // Simulate first
-                const { request } = await publicClient.simulateContract({
+                const hash = await writeContractAsync({
                     address: contractAddress as `0x${string}`,
                     abi: baseCardAbi,
                     functionName: "editBaseCard",
-                    account: address,
                     args: [
                         BigInt(tokenId),
                         [
@@ -99,16 +91,17 @@ export function useEditBaseCard() {
                         social_values,
                     ],
                 });
-                logger.info("✅ Simulation successful", request);
-
-                const hash = await writeContractAsync(request);
 
                 logger.info("✅ Transaction sent. Hash:", hash);
                 setIsSendingTransaction(false);
 
                 // Invalidate and refetch myBaseCard query
-                await queryClient.invalidateQueries({ queryKey: ["myBaseCard", address] });
-                await queryClient.refetchQueries({ queryKey: ["myBaseCard", address] });
+                await queryClient.invalidateQueries({
+                    queryKey: ["myBaseCard", address],
+                });
+                await queryClient.refetchQueries({
+                    queryKey: ["myBaseCard", address],
+                });
 
                 setIsSendingTransaction(false);
 
@@ -143,7 +136,6 @@ export function useEditBaseCard() {
                     return { success: false, error: "User rejected" };
                 }
 
-
                 // Other errors
                 logger.error("❌ Edit error:", err);
                 setError(rawMessage);
@@ -158,7 +150,6 @@ export function useEditBaseCard() {
             accessToken,
             tokenId,
             writeContractAsync,
-            publicClient,
             contractAddress,
             isAuthenticated,
             queryClient,
