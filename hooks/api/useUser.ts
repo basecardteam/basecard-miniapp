@@ -3,26 +3,23 @@ import { fetchUser } from "@/lib/api/users";
 import { logger } from "@/lib/common/logger";
 import { User } from "@/lib/types/api";
 import { useQuery } from "@tanstack/react-query";
-import { useAccount } from "wagmi";
 
 export function useUser() {
-    const { address, isConnected } = useAccount();
     const { accessToken, isAuthenticated } = useAuth();
 
     const query = useQuery<User | null, Error>({
-        queryKey: ["user", address, accessToken],
+        queryKey: ["user", accessToken],
         queryFn: async () => {
-            if (!address || !accessToken) {
+            if (!accessToken) {
                 return null;
             }
             logger.debug("Fetching user data", {
-                address,
                 hasToken: !!accessToken,
             });
-            const user = await fetchUser(address, accessToken);
+            const user = await fetchUser(accessToken);
             return user ?? null;
         },
-        enabled: isConnected && !!address && isAuthenticated && !!accessToken, // Only fetch when authenticated AND token available
+        enabled: isAuthenticated && !!accessToken,
         staleTime: 1000 * 60 * 5, // 5 minutes
         retry: 1,
     });

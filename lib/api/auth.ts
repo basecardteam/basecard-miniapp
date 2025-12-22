@@ -24,7 +24,11 @@ interface RawAuthResponse {
  * Login with Farcaster Quick Auth token
  * Backend verifies the JWT using @farcaster/quick-auth
  */
-export async function loginWithFarcaster(token: string): Promise<AuthResponse> {
+export async function loginWithFarcaster(
+    token: string,
+    clientFid: number,
+    loginAddress: string
+): Promise<AuthResponse> {
     const response = await fetch(
         `${config.BACKEND_API_URL}/v1/auth/login/farcaster`,
         {
@@ -32,7 +36,7 @@ export async function loginWithFarcaster(token: string): Promise<AuthResponse> {
             headers: {
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({ token }),
+            body: JSON.stringify({ token, clientFid, loginAddress }),
         }
     );
 

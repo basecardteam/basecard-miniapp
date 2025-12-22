@@ -2,6 +2,7 @@
 
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useConfig } from "@/hooks/api/useConfig";
+import { useUser } from "@/hooks/api/useUser";
 import { baseCardAbi } from "@/lib/abi/abi";
 import {
     createBaseCard,
@@ -16,6 +17,7 @@ import { useAccount, useWriteContract } from "wagmi";
 export function useMintBaseCard() {
     const { address } = useAccount();
     const { accessToken, isAuthenticated } = useAuth();
+    const { data: user } = useUser();
     const { writeContractAsync } = useWriteContract();
     const { contractAddress } = useConfig();
     const [isCreatingBaseCard, setIsCreatingBaseCard] = useState(false);
@@ -43,12 +45,18 @@ export function useMintBaseCard() {
 
                 setIsCreatingBaseCard(false);
 
-                // 2. Contract 호출: NFT 민팅 트랜잭션 전송
+                // 2. 연결된 지갑 주소들을 initialDelegates로 설정
+                const initialDelegates = (user?.wallets || []).map(
+                    (w) => w.walletAddress as `0x${string}`
+                );
+
+                // 3. Contract 호출: NFT 민팅 트랜잭션 전송
                 logger.info("Step 2: Sending mint transaction...");
                 logger.info("Contract Address:", contractAddress);
                 logger.info("Card Data:", card_data);
                 logger.info("Social Keys:", social_keys);
                 logger.info("Social Values:", social_values);
+                logger.info("Initial Delegates:", initialDelegates);
                 setIsSendingTransaction(true);
 
                 const hash = await writeContractAsync({
@@ -64,6 +72,7 @@ export function useMintBaseCard() {
                         ],
                         social_keys,
                         social_values,
+                        initialDelegates,
                     ],
                 });
 
@@ -145,6 +154,7 @@ export function useMintBaseCard() {
             writeContractAsync,
             contractAddress,
             isAuthenticated,
+            user,
         ]
     );
 
