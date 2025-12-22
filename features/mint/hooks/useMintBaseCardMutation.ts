@@ -1,3 +1,4 @@
+import { useAuth } from "@/components/providers/AuthProvider";
 import { CreateBaseCardParams } from "@/lib/api/basecards";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAccount, usePublicClient } from "wagmi";
@@ -5,6 +6,7 @@ import { useMintBaseCard } from "./useMintBaseCard";
 
 export function useMintBaseCardMutation() {
     const { address } = useAccount();
+    const { accessToken } = useAuth();
     const queryClient = useQueryClient();
     const publicClient = usePublicClient();
     const {
@@ -37,16 +39,16 @@ export function useMintBaseCardMutation() {
             }
 
             // 3. Invalidate Queries
-            if (address) {
+            if (accessToken) {
                 await Promise.all([
                     queryClient.invalidateQueries({
-                        queryKey: ["user", address],
+                        queryKey: ["user", accessToken],
                     }),
                     queryClient.invalidateQueries({
-                        queryKey: ["quests", address],
+                        queryKey: ["userQuests", accessToken],
                     }),
                     queryClient.invalidateQueries({
-                        queryKey: ["myBaseCard", address],
+                        queryKey: ["myBaseCard", accessToken],
                     }),
                 ]);
             }

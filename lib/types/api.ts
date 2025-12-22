@@ -1,6 +1,13 @@
 /**
- * Generic API Response
- * spec.md에 정의된 표준 응답 포맷
+ * Shared type definitions for BaseCard
+ */
+
+// =============================================================================
+// API Response Types
+// =============================================================================
+
+/**
+ * Generic API Response - spec.md에 정의된 표준 응답 포맷
  */
 export interface ApiResponse<T> {
     success: boolean;
@@ -8,21 +15,28 @@ export interface ApiResponse<T> {
     error: string | null;
 }
 
-export interface CreateCardResponse {
-    profile_image: string;
-    card_data: {
-        nickname: string;
-        role: string;
-        bio: string;
-        imageUri: string;
-    };
-    social_keys: string[];
-    social_values: string[];
-    uploadedFiles?: {
-        s3Key: string;
-        ipfsId: string;
-    };
-}
+// =============================================================================
+// Social Types
+// =============================================================================
+
+/**
+ * Allowed social keys
+ */
+export const SOCIAL_KEYS = [
+    "x",
+    "farcaster",
+    "website",
+    "github",
+    "linkedin",
+    "basename",
+] as const;
+
+export type SocialKey = (typeof SOCIAL_KEYS)[number];
+export type Socials = Partial<Record<SocialKey, string>>;
+
+// =============================================================================
+// Entity Types
+// =============================================================================
 
 export interface User {
     walletAddress: string;
@@ -41,7 +55,7 @@ export interface Card {
     role: string | null;
     bio: string | null;
     imageUri: string | null;
-    socials: Record<string, string> | null;
+    socials: Socials | null;
 }
 
 export interface Quest {
@@ -51,14 +65,6 @@ export interface Quest {
     rewardAmount: number;
     actionType: string;
     status?: "pending" | "claimable" | "completed";
-}
-
-export interface VerifyQuestResponse {
-    verified?: boolean;
-    rewarded?: number;
-    newTotalPoints?: number;
-    success?: boolean;
-    updated?: { questId: string; status: string }[];
 }
 
 export interface Collection {
@@ -72,4 +78,32 @@ export interface PointLog {
     amount: number;
     type: "QUEST_REWARD" | "MINT_BONUS" | "REFERRAL" | "ADMIN_ADJUST";
     referenceId: string | null;
+}
+
+// =============================================================================
+// API Request/Response Types
+// =============================================================================
+
+export interface CreateCardResponse {
+    profile_image: string;
+    card_data: {
+        nickname: string;
+        role: string;
+        bio: string;
+        imageUri: string;
+    };
+    social_keys: string[];
+    social_values: string[];
+    uploadedFiles?: {
+        s3Key: string;
+        ipfsId: string;
+    };
+}
+
+export interface VerifyQuestResponse {
+    verified?: boolean;
+    rewarded?: number;
+    newTotalPoints?: number;
+    success?: boolean;
+    updated?: { questId: string; status: string }[];
 }

@@ -45,6 +45,10 @@ export function useMintBaseCard() {
 
                 // 2. Contract 호출: NFT 민팅 트랜잭션 전송
                 logger.info("Step 2: Sending mint transaction...");
+                logger.info("Contract Address:", contractAddress);
+                logger.info("Card Data:", card_data);
+                logger.info("Social Keys:", social_keys);
+                logger.info("Social Values:", social_values);
                 setIsSendingTransaction(true);
 
                 const hash = await writeContractAsync({
