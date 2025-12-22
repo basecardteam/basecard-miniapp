@@ -38,12 +38,24 @@ export type Socials = Partial<Record<SocialKey, string>>;
 // Entity Types
 // =============================================================================
 
-export interface User {
+export interface UserWallet {
+    id: string;
+    userId: string;
     walletAddress: string;
+    clientType: "farcaster" | "baseapp";
+    clientFid: number;
+    createdAt: string;
+}
+
+export interface User {
+    id: string;
+    walletAddress: string;
+    fid?: number;
     totalPoints: number;
     isNewUser: boolean;
     hasMintedCard: boolean;
-    profileImage: string;
+    profileImage?: string;
+    wallets?: UserWallet[];
 }
 
 export interface Card {
@@ -94,6 +106,7 @@ export interface CreateCardResponse {
     };
     social_keys: string[];
     social_values: string[];
+    initial_delegates: string[];
     uploadedFiles?: {
         s3Key: string;
         ipfsId: string;

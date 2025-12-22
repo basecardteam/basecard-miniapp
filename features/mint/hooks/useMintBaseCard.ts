@@ -38,8 +38,12 @@ export function useMintBaseCard() {
                 logger.info("Step 1: Creating BaseCard via Backend API...");
                 setIsCreatingBaseCard(true);
 
-                const { card_data, social_keys, social_values } =
-                    await createBaseCard(address!, input, accessToken);
+                const {
+                    card_data,
+                    social_keys,
+                    social_values,
+                    initial_delegates,
+                } = await createBaseCard(address!, input, accessToken);
 
                 setIsCreatingBaseCard(false);
 
@@ -49,6 +53,7 @@ export function useMintBaseCard() {
                 logger.info("Card Data:", card_data);
                 logger.info("Social Keys:", social_keys);
                 logger.info("Social Values:", social_values);
+                logger.info("Initial Delegates:", initial_delegates);
                 setIsSendingTransaction(true);
 
                 const hash = await writeContractAsync({
@@ -64,6 +69,7 @@ export function useMintBaseCard() {
                         ],
                         social_keys,
                         social_values,
+                        initial_delegates as `0x${string}`[],
                     ],
                 });
 

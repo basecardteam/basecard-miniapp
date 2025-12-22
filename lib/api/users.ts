@@ -3,16 +3,12 @@ import { ApiResponse, User } from "@/lib/types/api";
 import { createHeaders } from "../utils";
 
 /**
- * Get or Create User by wallet address
+ * Get current user info by JWT token
  */
-export async function fetchUser(
-    address: string,
-    accessToken: string
-): Promise<User> {
-    const response = await fetch(`${config.BACKEND_API_URL}/v1/users`, {
-        method: "POST",
+export async function fetchUser(accessToken: string): Promise<User> {
+    const response = await fetch(`${config.BACKEND_API_URL}/v1/users/me`, {
+        method: "GET",
         headers: createHeaders(accessToken),
-        body: JSON.stringify({ walletAddress: address }),
     });
 
     if (!response.ok) {

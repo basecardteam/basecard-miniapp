@@ -27,6 +27,7 @@ interface AuthContextType {
     authUser: AuthUser | null;
     accessToken: string | null;
     loginWithMetaMask: (connectedAddress?: string) => Promise<void>;
+    refreshAuth: () => Promise<void>;
     logout: () => void;
 }
 
@@ -74,8 +75,13 @@ export default function AuthProvider({
     const hasRestoredAuth = useRef(false);
 
     // Refs to store latest function references (prevents useEffect re-runs)
-    const performFarcasterAuthRef = useRef<((isInitialLogin?: boolean) => Promise<void>) | null>(null);
-    const performMetaMaskAuthRef = useRef<((walletAddress: string, isInitialLogin?: boolean) => Promise<void>) | null>(null);
+    const performFarcasterAuthRef = useRef<
+        ((isInitialLogin?: boolean) => Promise<void>) | null
+    >(null);
+    const performMetaMaskAuthRef = useRef<
+        | ((walletAddress: string, isInitialLogin?: boolean) => Promise<void>)
+        | null
+    >(null);
 
     const frameContext = useFrameContext();
     const isInMiniApp = frameContext?.isInMiniApp ?? false;
@@ -145,7 +151,22 @@ export default function AuthProvider({
                 );
 
                 const { token } = await sdk.quickAuth.getToken();
-                const response = await loginWithFarcaster(token);
+                const clientFid = (
+                    frameContext?.context as { client?: { clientFid?: number } }
+                )?.client?.clientFid;
+
+                logger.info("[Farcaster Auth] Preparing login request:", {
+                    hasToken: !!token,
+                    clientFid,
+                    address,
+                    frameContext: frameContext?.context,
+                });
+
+                const response = await loginWithFarcaster(
+                    token,
+                    clientFid!,
+                    address!
+                );
                 saveAuthState(response);
 
                 logger.info(
@@ -159,15 +180,15 @@ export default function AuthProvider({
                 const errorDetails =
                     error instanceof Error
                         ? {
-                            message: error.message,
-                            name: error.name,
-                            stack: error.stack,
-                        }
+                              message: error.message,
+                              name: error.name,
+                              stack: error.stack,
+                          }
                         : {
-                            raw: String(error),
-                            typeof: typeof error,
-                            json: JSON.stringify(error),
-                        };
+                              raw: String(error),
+                              typeof: typeof error,
+                              json: JSON.stringify(error),
+                          };
 
                 logger.error(
                     isInitialLogin
@@ -185,7 +206,7 @@ export default function AuthProvider({
                 }
             }
         },
-        [saveAuthState, logout]
+        [saveAuthState, logout, frameContext, address]
     );
 
     // Unified MetaMask auth (for both initial login and refresh)
@@ -267,7 +288,10 @@ export default function AuthProvider({
         if (hasRestoredAuth.current) {
             // Wallet connected after initial restore - verify address match
             if (!isInMiniApp && isConnected && address && authUser) {
-                if (authUser.walletAddress?.toLowerCase() !== address.toLowerCase()) {
+                if (
+                    authUser.walletAddress?.toLowerCase() !==
+                    address.toLowerCase()
+                ) {
                     logger.debug(
                         "Connected wallet address mismatch, clearing auth...",
                         { stored: authUser.walletAddress, connected: address }
@@ -288,10 +312,16 @@ export default function AuthProvider({
                 // For browser wallet: check if stored wallet matches connected wallet
                 // Skip this check in MiniApp (uses Farcaster auth) or if wallet not yet connected
                 if (!isInMiniApp && isConnected && address) {
-                    if (parsedUser.walletAddress?.toLowerCase() !== address.toLowerCase()) {
+                    if (
+                        parsedUser.walletAddress?.toLowerCase() !==
+                        address.toLowerCase()
+                    ) {
                         logger.debug(
                             "Stored wallet address mismatch, clearing auth...",
-                            { stored: parsedUser.walletAddress, connected: address }
+                            {
+                                stored: parsedUser.walletAddress,
+                                connected: address,
+                            }
                         );
                         logout();
                         setIsAuthLoading(false);
@@ -343,13 +373,19 @@ export default function AuthProvider({
         if (!isInMiniApp || isAuthenticated) {
             return;
         }
-        logger.debug(
-            "Context ready, isInMiniApp:",
-            isInMiniApp,
-            "triggering Farcaster auth..."
-        );
+        // Wait for wallet to be connected (address available)
+        if (!address) {
+            logger.debug("Waiting for wallet address before Farcaster auth...");
+            return;
+        }
         performFarcasterAuth(true);
-    }, [isContextReady, isInMiniApp, isAuthenticated, performFarcasterAuth]);
+    }, [
+        isContextReady,
+        isInMiniApp,
+        isAuthenticated,
+        address,
+        performFarcasterAuth,
+    ]);
 
     // Browser wallet auto-login: if wallet is already connected but not authenticated
     // Uses hasAttemptedAutoLogin ref to prevent re-triggering
@@ -389,9 +425,18 @@ export default function AuthProvider({
             authUser,
             accessToken,
             loginWithMetaMask,
+            refreshAuth: () => performFarcasterAuth(false),
             logout,
         }),
-        [isAuthenticated, isAuthLoading, authUser, accessToken, loginWithMetaMask, logout]
+        [
+            isAuthenticated,
+            isAuthLoading,
+            authUser,
+            accessToken,
+            loginWithMetaMask,
+            performFarcasterAuth,
+            logout,
+        ]
     );
 
     return (
