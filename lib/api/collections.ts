@@ -26,13 +26,9 @@ export const addCollection = async (
         body: JSON.stringify({ basecardId }),
     });
 
-    if (!response.ok) {
-        throw new Error("Failed to add to collection");
-    }
-
     const data: ApiResponse<null> = await response.json();
 
-    if (!data.success) {
+    if (!response.ok || !data.success) {
         throw new Error(data.error || "Failed to add to collection");
     }
 };

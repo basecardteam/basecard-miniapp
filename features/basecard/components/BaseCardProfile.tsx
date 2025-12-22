@@ -118,6 +118,8 @@ export default function MyBaseCardProfile({
     const [isCollecting, setIsCollecting] = useState(false);
     const [isCollectSuccessModalOpen, setIsCollectSuccessModalOpen] =
         useState(false);
+    const [isMintRequiredModalOpen, setIsMintRequiredModalOpen] =
+        useState(false);
 
     const handleCollect = useCallback(async () => {
         if (!cardId || isCollected) return;
@@ -141,6 +143,12 @@ export default function MyBaseCardProfile({
             if (message.includes("already exists")) {
                 showToast("You have already collected this card.", "error");
                 setLocalCollected(true); // Already collected
+            } else if (
+                message.includes("must have your own BaseCard") ||
+                message.includes("before collecting")
+            ) {
+                // User doesn't have a basecard - show mint required modal
+                setIsMintRequiredModalOpen(true);
             } else {
                 showToast(message, "error");
             }
@@ -349,6 +357,25 @@ export default function MyBaseCardProfile({
                         onButtonClick={() => {
                             setIsCollectSuccessModalOpen(false);
                             router.push("/collection");
+                        }}
+                    />
+                )}
+
+                {/* [VIEWER ONLY] Mint Required Modal */}
+                {isViewer && (
+                    <BaseModal
+                        isOpen={isMintRequiredModalOpen}
+                        onClose={() => {
+                            setIsMintRequiredModalOpen(false);
+                            router.push("/");
+                        }}
+                        title="Create Your BaseCard First"
+                        description="You must have your own BaseCard before collecting others."
+                        variant="error"
+                        buttonText="Go to Home"
+                        onButtonClick={() => {
+                            setIsMintRequiredModalOpen(false);
+                            router.push("/");
                         }}
                     />
                 )}
