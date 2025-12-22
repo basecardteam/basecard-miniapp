@@ -8,13 +8,12 @@ import { FieldError, UseFormRegisterReturn } from "react-hook-form";
 import { FaGithub, FaLinkedin, FaSquareXTwitter } from "react-icons/fa6";
 
 interface SocialsInputProps {
-    baseName?: string | null;
-    twitterRegister: UseFormRegisterReturn;
+    xRegister: UseFormRegisterReturn;
     githubRegister: UseFormRegisterReturn;
     farcasterRegister: UseFormRegisterReturn;
     linkedinRegister: UseFormRegisterReturn;
     errors: {
-        twitter?: FieldError;
+        x?: FieldError;
         github?: FieldError;
         farcaster?: FieldError;
         linkedin?: FieldError;
@@ -23,11 +22,11 @@ interface SocialsInputProps {
 
 const SOCIAL_CONFIG = [
     {
-        id: "twitter",
-        label: "Twitter / X",
+        id: "x",
+        label: "X (Twitter)",
         icon: <FaSquareXTwitter className="w-5 h-5" />,
         placeholder: "@username",
-        registerKey: "twitter" as const,
+        registerKey: "x" as const,
     },
     {
         id: "github",
@@ -56,15 +55,14 @@ const SOCIAL_CONFIG = [
  * 소셜 링크 입력 컴포넌트 - 모던한 아이콘 디자인
  */
 export const SocialsInput = memo(function SocialsInput({
-    baseName,
-    twitterRegister,
+    xRegister,
     githubRegister,
     farcasterRegister,
     linkedinRegister,
     errors,
 }: SocialsInputProps) {
     const registers = {
-        twitter: twitterRegister,
+        x: xRegister,
         github: githubRegister,
         farcaster: farcasterRegister,
         linkedin: linkedinRegister,
@@ -75,27 +73,6 @@ export const SocialsInput = memo(function SocialsInput({
             <label className="text-lg font-semibold text-basecard-black">
                 Social Links
             </label>
-
-            {/* Base Name Section */}
-            <div className="space-y-1 mb-5">
-                <Label
-                    htmlFor="base_name_input"
-                    className="text-sm font-medium text-gray-700"
-                >
-                        Base Name
-                </Label>
-                <Input
-                    id="base_name_input"
-                    type="text"
-                    value={baseName || ""}
-                    disabled
-                    placeholder="Auto-filled from your wallet"
-                    className="h-12 text-base rounded-xl border-2 border-gray-200 bg-basecard-white text-basecard-gray cursor-not-allowed"
-                />
-                <p className="text-sm text-basecard-gray italic">
-                        Automatically synced from your Base wallet
-                </p>
-            </div>
 
             <div className="space-y-3">
                 {SOCIAL_CONFIG.map((social) => {

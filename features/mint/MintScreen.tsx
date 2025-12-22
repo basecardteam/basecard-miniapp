@@ -9,8 +9,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/Toast";
-import { useMintBaseCardMutation } from "@/hooks/useMintBaseCardMutation";
-import { useMintForm } from "@/hooks/useMintForm";
+import { useMintBaseCardMutation } from "@/features/mint/hooks/useMintBaseCardMutation";
+import { useMintForm } from "@/features/mint/hooks/useMintForm";
+import { logger } from "@/lib/common/logger";
 import { MAX_WEBSITES, type Role } from "@/lib/constants/mint";
 import { shareToFarcaster } from "@/lib/farcaster/share";
 import { processProfileImage } from "@/lib/processProfileImage";
@@ -94,11 +95,7 @@ export default function MintScreen() {
     const onSubmit = useCallback(
         async (data: MintFormData) => {
             // Process profile image: use uploaded file or fallback to default URL
-            const profileImage = await processProfileImage(
-                data.profileImageFile ?? undefined,
-                null, // No existing card image for new mint
-                defaultProfileUrl as string
-            );
+            const profileImage = await processProfileImage(defaultProfileUrl);
 
             if (!profileImage) {
                 showToast("Please upload a profile image.", "error");
@@ -113,13 +110,20 @@ export default function MintScreen() {
                     bio: data.bio || "",
                     profileImageFile: profileImage,
                     socials: {
-                        twitter: data.twitter || "",
+                        x: data.x || "",
                         github: data.github || "",
                         farcaster: data.farcaster || "",
                     },
                 });
 
                 if (result.success) {
+                    logger.info("mint result:", result);
+                    logger.info("result.imageUri (raw):", result.imageUri);
+                    logger.info(
+                        "result.imageUri (resolved):",
+                        resolveIpfsUrl(result.imageUri)
+                    );
+
                     // Clear all cached storage data for fresh start
                     if (typeof window !== "undefined") {
                         localStorage.clear();
@@ -129,7 +133,7 @@ export default function MintScreen() {
                     setSuccessModal({
                         isOpen: true,
                         txHash: result.hash || "",
-                        imageUri: result.imageUri || "",
+                        imageUri: resolveIpfsUrl(result.imageUri) || "",
                         isExisting: result.isExisting || false,
                     });
                 }
@@ -274,13 +278,12 @@ export default function MintScreen() {
 
                 {/* 소셜 링크 입력 */}
                 <SocialsInput
-                    baseName={username}
-                    twitterRegister={register("twitter")}
+                    xRegister={register("x")}
                     githubRegister={register("github")}
                     farcasterRegister={register("farcaster")}
                     linkedinRegister={register("linkedin")}
                     errors={{
-                        twitter: errors.twitter,
+                        x: errors.x,
                         github: errors.github,
                         farcaster: errors.farcaster,
                         linkedin: errors.linkedin,
@@ -385,14 +388,9 @@ export default function MintScreen() {
                     router.push("/");
                 }}
                 onShare={async () => {
-                    const shareUrl = `${process.env.NEXT_PUBLIC_URL}/card/${address}`;
-                    const imageUrl = successModal.imageUri
-                        ? resolveIpfsUrl(successModal.imageUri)
-                        : undefined;
                     await shareToFarcaster({
                         text: "I just minted my Basecard! Collect this and check all about myself",
-                        imageUrl,
-                        embedUrl: shareUrl,
+                        embedUrl: successModal.imageUri,
                     });
                     router.push("/");
                 }}

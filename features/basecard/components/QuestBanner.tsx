@@ -3,7 +3,7 @@
 import QuestBottomSheet from "@/components/modals/QuestBottomSheet";
 import SuccessModal from "@/components/modals/SuccessModal";
 import { useQuestHandler } from "@/features/quest/hooks/useQuestHandler";
-import { useQuests } from "@/hooks/api/useQuests";
+import { useMyQuests } from "@/hooks/api/useMyQuests";
 import clsx from "clsx";
 import { ChevronRight, Gift } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -12,7 +12,7 @@ export default function QuestBanner() {
     const [isQuestSheetOpen, setIsQuestSheetOpen] = useState(false);
 
     // Quest hooks
-    const { quests, claimingQuest, isLoading } = useQuests();
+    const { quests, claimingQuest, isLoading } = useMyQuests();
     const { handleQuestAction, successModalState, setSuccessModalState } =
         useQuestHandler();
 

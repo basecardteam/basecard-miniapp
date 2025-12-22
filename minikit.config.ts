@@ -16,7 +16,7 @@ export const minikitConfig = {
         "name": "BaseCard",
         "iconUrl": `${ROOT_URL}/bc-icon.png`,
         "homeUrl": `${ROOT_URL}`,
-        "imageUrl": `${ROOT_URL}/image.png`,
+        "imageUrl": `${ROOT_URL}/bc-icon.png`,
         "buttonTitle": "Launch BaseCard",
         "splashImageUrl": `${ROOT_URL}/bc-icon.png`,
         "splashBackgroundColor": "#ffffff",
@@ -24,7 +24,7 @@ export const minikitConfig = {
         "subtitle": "Builder Identity on Base",
         "description": "Stop repeating your pitch. Mint your verified, onchain ID card, BaseCard! And, find people who share your interests.",
         "primaryCategory": "social",
-        "heroImageUrl": `${ROOT_URL}/bc-hero.png`,
+        "heroImageUrl": `${ROOT_URL}/bc-hero.webp`,
         "ogImageUrl": `${ROOT_URL}/bc-embed-image.png`,
         "ogTitle": "BaseCard",
         "tags": [

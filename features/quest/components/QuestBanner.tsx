@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuests } from "@/hooks/api/useQuests";
+import { useMyQuests } from "@/hooks/api/useMyQuests";
 import clsx from "clsx";
 import { ChevronRight, Gift } from "lucide-react";
 import { useMemo } from "react";
@@ -10,14 +10,18 @@ interface QuestBannerProps {
 }
 
 export default function QuestBanner({ onClick }: QuestBannerProps) {
-    const { quests } = useQuests();
+    const { quests } = useMyQuests();
 
     const { claimableCount, claimableAmount, incompleteCount } = useMemo(() => {
         const claimable = quests.filter((q) => q.status === "claimable");
         return {
             claimableCount: claimable.length,
-            claimableAmount: claimable.reduce((sum, q) => sum + q.rewardAmount, 0),
-            incompleteCount: quests.filter((q) => q.status !== "completed").length,
+            claimableAmount: claimable.reduce(
+                (sum, q) => sum + q.rewardAmount,
+                0
+            ),
+            incompleteCount: quests.filter((q) => q.status !== "completed")
+                .length,
         };
     }, [quests]);
 
@@ -52,7 +56,9 @@ export default function QuestBanner({ onClick }: QuestBannerProps) {
                     >
                         {hasClaimable
                             ? `Claim +${claimableAmount} BC`
-                            : `${incompleteCount} Quest${incompleteCount > 1 ? "s" : ""}`}
+                            : `${incompleteCount} Quest${
+                                  incompleteCount > 1 ? "s" : ""
+                              }`}
                     </span>
                 </div>
                 <ChevronRight

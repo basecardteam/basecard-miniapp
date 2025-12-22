@@ -8,10 +8,14 @@ import { MdOutlineBookmarkAdd } from "react-icons/md";
 import FarcasterIcon from "@/components/icons/FarcasterIcon";
 import ShareBottomSheet from "@/components/modals/ShareBottomSheet";
 import { ShareModal } from "@/components/modals/ShareModal";
-import { useFrameContext } from "@/components/providers/FrameProvider";
+import {
+    MiniAppContext,
+    useFrameContext,
+} from "@/components/providers/FrameProvider";
 import { useToast } from "@/components/ui/Toast";
 import { useConfig } from "@/hooks/api/useConfig";
 import { useUser } from "@/hooks/api/useUser";
+import { logger } from "@/lib/common/logger";
 import { shareToFarcaster } from "@/lib/farcaster/share";
 import {
     generateCardShareQRCode,
@@ -19,6 +23,7 @@ import {
 } from "@/lib/qrCodeGenerator";
 import { Card } from "@/lib/types";
 import { resolveIpfsUrl } from "@/lib/utils";
+import defaultProfileImage from "@/public/assets/default-profile.png";
 import BCLogo from "@/public/bc-icon.png";
 import { sdk } from "@farcaster/miniapp-sdk";
 import { useRouter } from "next/navigation";
@@ -30,8 +35,6 @@ import { useAccount } from "wagmi";
 
 interface ProfileCardContentProps {
     card: Card;
-    socials?: Record<string, string>;
-    isSocialLoading?: boolean;
     mode?: "profile" | "viewer";
     onClose?: () => void;
     isCollected?: boolean;
@@ -51,7 +54,6 @@ type SocialEntry = {
 
 const SOCIAL_PREFIXES: Record<string, string> = {
     x: "https://x.com/",
-    twitter: "https://x.com/",
     farcaster: "https://farcaster.xyz/",
     github: "https://github.com/",
     website: "",
@@ -75,7 +77,7 @@ const SOCIAL_ENTRIES: SocialEntry[] = [
     },
     {
         key: "x",
-        label: "Twitter",
+        label: "X",
         icon: <FaTwitter className="text-white" size={24} />,
     },
     {
@@ -109,8 +111,6 @@ const valueToUrl = (key: string, raw: string): string => {
 
 export default function ProfileCardContent({
     card,
-    socials = {},
-    isSocialLoading = false,
     mode = "profile",
     onClose,
     isCollected = false,
@@ -132,18 +132,13 @@ export default function ProfileCardContent({
     const isProfile = mode === "profile";
     const isViewer = mode === "viewer";
 
-    // Use card.socials as fallback if socials prop is empty
-    const effectiveSocials = useMemo(() => {
-        if (socials && Object.keys(socials).length > 0) return socials;
-        return card.socials || {};
-    }, [socials, card.socials]);
-
+    // Use card.socials directly
+    const socials = card.socials || {};
+    logger.info("socials", socials);
     const profileImageUrl = useMemo(() => {
-        if (user?.profileImage) {
-            return resolveIpfsUrl(user.profileImage, ipfsGatewayUrl);
-        }
-        return "/assets/default-profile.png";
-    }, [user?.profileImage, ipfsGatewayUrl]);
+        const pfpUrl = (frameContext?.context as MiniAppContext)?.user?.pfpUrl;
+        return pfpUrl || defaultProfileImage.src;
+    }, [frameContext?.context]);
 
     // =========================================================================
     // Modal States
@@ -294,7 +289,7 @@ export default function ProfileCardContent({
                     {/* Social Icons */}
                     <div className="mt-4 flex items-center gap-3">
                         {SOCIAL_ENTRIES.map(({ key, icon, label }) => {
-                            const rawValue = effectiveSocials?.[key] ?? "";
+                            const rawValue = socials?.[key] ?? "";
                             const value = rawValue.trim();
                             const hasUrl = value.length > 0;
 
@@ -307,13 +302,13 @@ export default function ProfileCardContent({
                                         e.stopPropagation();
                                         if (hasUrl) handleOpenUrl(key, value);
                                     }}
-                                    disabled={!hasUrl || isSocialLoading}
+                                    disabled={!hasUrl}
                                     className={`w-10 h-10 rounded-full flex items-center justify-center border transition-all
                                         ${
-                                            hasUrl
-                                                ? "bg-[#0455FF] border-[#3E7CFF] hover:opacity-90 cursor-pointer"
-                                                : "bg-gray-800/50 border-gray-600 opacity-50 cursor-not-allowed"
-                                        }`}
+                                hasUrl
+                                    ? "bg-[#0455FF] border-[#3E7CFF] hover:opacity-90 cursor-pointer"
+                                    : "bg-gray-800/50 border-gray-600 opacity-50 cursor-not-allowed"
+                                }`}
                                     aria-label={label}
                                 >
                                     {icon}

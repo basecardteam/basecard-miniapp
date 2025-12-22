@@ -1,4 +1,5 @@
 import { getIPFSUrl } from "@/lib/utils";
+import { StaticImageData } from "next/image";
 
 /**
  * URL에서 이미지를 가져와 File 객체로 변환
@@ -28,20 +29,15 @@ export async function fetchImageAsFile(imageUrl: string): Promise<File> {
  * - 없으면 기존 URL에서 가져와서 File로 변환
  */
 export async function processProfileImage(
-    newFile: File | null | undefined,
-    existingImageUrl: string | null | undefined,
-    defaultImageUrl: string
+    profileImage: File | string | StaticImageData
 ): Promise<File> {
-    // 새 파일이 있으면 그대로 사용
-    if (newFile) {
-        return newFile;
+    // File이면 그대로 반환
+    if (profileImage instanceof File) {
+        return profileImage;
     }
 
-    // 기존 이미지 URL이 있으면 fetch해서 File로 변환
-    if (existingImageUrl) {
-        return fetchImageAsFile(existingImageUrl);
-    }
-
-    // 둘 다 없으면 기본 이미지 사용
-    return fetchImageAsFile(defaultImageUrl);
+    // string 또는 StaticImageData면 URL을 추출해서 fetch
+    const imageUrl =
+        typeof profileImage === "string" ? profileImage : profileImage.src;
+    return fetchImageAsFile(imageUrl);
 }

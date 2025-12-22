@@ -5,8 +5,7 @@ import { useToast } from "@/components/ui/Toast";
 import { useBaseCard } from "@/hooks/api/useBaseCard";
 import { useMyBaseCard } from "@/hooks/api/useMyBaseCard";
 import { useMyCollections } from "@/hooks/api/useMyCollections";
-import { useERC721Token } from "@/hooks/evm/useERC721Token";
-import { addCollection, deleteCollection } from "@/lib/api/collections";
+import { addCollection } from "@/lib/api/collections";
 import { Card } from "@/lib/types/api";
 import { useQueryClient } from "@tanstack/react-query";
 import clsx from "clsx";
@@ -72,7 +71,6 @@ export default function MyBaseCardProfile({
         isViewer ? cardId : undefined
     );
     const { data: collections } = useMyCollections();
-    const { metadata, isLoading: isTokenLoading } = useERC721Token();
 
     // ==========================================================================
     // Derived States
@@ -85,18 +83,7 @@ export default function MyBaseCardProfile({
         return null;
     }, [isProfile, isViewer, myCard, viewerCard]);
 
-    // Socials: from on-chain token (profile) or from card data (viewer)
-    const socials = useMemo(() => {
-        if (isViewer) return card?.socials ?? {};
-        if (!metadata?.socials) return {};
-        return metadata.socials.reduce((acc, curr) => {
-            acc[curr.key] = curr.value;
-            return acc;
-        }, {} as Record<string, string>);
-    }, [isViewer, card, metadata]);
-
     const isLoading = isProfile ? isMyCardLoading : isViewerCardLoading;
-    const isSocialLoading = isProfile ? isTokenLoading : false;
     const isNotFound = !isLoading && !card;
 
     // Check if current card is already in collections (for viewer mode)
@@ -260,8 +247,6 @@ export default function MyBaseCardProfile({
                 {/* Card Section - Both modes */}
                 <ProfileCardContent
                     card={card!}
-                    socials={socials}
-                    isSocialLoading={isSocialLoading}
                     mode={mode}
                     onClose={isViewer ? handleClose : undefined}
                     isCollected={isViewer ? isCollected : undefined}

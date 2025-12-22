@@ -11,14 +11,13 @@ import {
 } from "@/lib/api/basecards";
 import { logger } from "@/lib/common/logger";
 import { useCallback, useState } from "react";
-import { useAccount, usePublicClient, useWriteContract } from "wagmi";
+import { useAccount, useWriteContract } from "wagmi";
 
 export function useMintBaseCard() {
     const { address } = useAccount();
     const { accessToken, isAuthenticated } = useAuth();
     const { writeContractAsync } = useWriteContract();
     const { contractAddress } = useConfig();
-    const publicClient = usePublicClient();
     const [isCreatingBaseCard, setIsCreatingBaseCard] = useState(false);
     const [isSendingTransaction, setIsSendingTransaction] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -46,21 +45,16 @@ export function useMintBaseCard() {
 
                 // 2. Contract 호출: NFT 민팅 트랜잭션 전송
                 logger.info("Step 2: Sending mint transaction...");
+                logger.info("Contract Address:", contractAddress);
+                logger.info("Card Data:", card_data);
+                logger.info("Social Keys:", social_keys);
+                logger.info("Social Values:", social_values);
                 setIsSendingTransaction(true);
 
-                if (!publicClient) {
-                    throw new Error("Wallet not connected");
-                }
-
-                if (!contractAddress) {
-                    throw new Error("Contract address not found");
-                }
-
-                const { request } = await publicClient.simulateContract({
+                const hash = await writeContractAsync({
                     address: contractAddress as `0x${string}`,
                     abi: baseCardAbi,
                     functionName: "mintBaseCard",
-                    account: address,
                     args: [
                         [
                             card_data.imageUri,
@@ -72,9 +66,6 @@ export function useMintBaseCard() {
                         social_values,
                     ],
                 });
-                logger.info("✅ Simulation successful", request);
-
-                const hash = await writeContractAsync(request);
 
                 logger.info("✅ Transaction sent. Hash:", hash);
                 setIsSendingTransaction(false);
@@ -140,7 +131,6 @@ export function useMintBaseCard() {
                     }
                 } catch {
                     // Other errors
-                    
                 }
                 logger.error("❌ Mint error:", err);
                 return {
@@ -153,7 +143,6 @@ export function useMintBaseCard() {
             address,
             accessToken,
             writeContractAsync,
-            publicClient,
             contractAddress,
             isAuthenticated,
         ]

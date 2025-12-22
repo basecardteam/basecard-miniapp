@@ -4,11 +4,12 @@ import SuccessModal from "@/components/modals/SuccessModal";
 import QuestHeroSection from "@/features/quest/components/QuestHeroSection";
 import QuestList from "@/features/quest/components/QuestList";
 import { useQuestHandler } from "@/features/quest/hooks/useQuestHandler";
-import { useQuests } from "@/hooks/api/useQuests";
+import { useMyQuests } from "@/hooks/api/useMyQuests";
 
 export const NoCardState = () => {
-    const { quests, isLoading, error, claimingQuest } = useQuests();
-    const { handleQuestAction, successModalState, setSuccessModalState } = useQuestHandler();
+    const { quests, isLoading, error, claimingQuest } = useMyQuests();
+    const { handleQuestAction, successModalState, setSuccessModalState } =
+        useQuestHandler();
 
     return (
         <>

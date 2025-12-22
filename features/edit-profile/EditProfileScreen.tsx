@@ -15,7 +15,6 @@ import { RoleSelector } from "@/features/mint/components/RoleSelector";
 import { SocialsInput } from "@/features/mint/components/SocialsInput";
 import { WebsitesInput } from "@/features/mint/components/WebsitesInput";
 import { useMyBaseCard } from "@/hooks/api/useMyBaseCard";
-import { useUser } from "@/hooks/api/useUser";
 import type { MintFormData } from "@/lib/schemas/mintFormSchema";
 import defaultProfileImage from "@/public/assets/default-profile.png";
 import dynamic from "next/dynamic";
@@ -26,7 +25,6 @@ import { useEditProfileForm } from "./hooks/useEditProfileForm";
 
 import { processProfileImage } from "@/lib/processProfileImage";
 import { useEditBaseCard } from "./hooks/useEditBaseCard";
-
 
 const BaseModal = dynamic(
     () =>
@@ -52,7 +50,6 @@ export default function EditProfileScreen() {
     const frameContext = useFrameContext();
     const router = useRouter();
     const { address } = useAccount();
-    const { data: user } = useUser();
     const {
         editCard,
         isCreatingBaseCard,
@@ -61,8 +58,7 @@ export default function EditProfileScreen() {
     } = useEditBaseCard();
 
     const username = (frameContext?.context as MiniAppContext)?.user?.username;
-    // Default image if no card data
-    const defaultProfileUrl =
+    const profileImage =
         (frameContext?.context as MiniAppContext)?.user?.pfpUrl ||
         defaultProfileImage;
 
@@ -95,7 +91,7 @@ export default function EditProfileScreen() {
                 role: (cardData.role as any) || undefined, // Type cast if necessary
                 bio: cardData.bio || "",
                 github: cardData.socials?.github || "",
-                twitter: cardData.socials?.twitter || "",
+                x: cardData.socials?.x || "",
                 farcaster: cardData.socials?.farcaster || "",
                 websites: [], // Card data doesn't seem to have websites in the example JSON?
                 // If it does, map it here. The provided JSON doesn't show it.
@@ -107,9 +103,6 @@ export default function EditProfileScreen() {
             // We should overwrite 'defaultProfileUrl' logic effectively for visual.
         }
     }, [cardData, reset]);
-
-    // Use user profile image as default source for preview
-    const activeProfileUrl = user?.profileImage || defaultProfileUrl;
 
     const [newWebsite, setNewWebsite] = useState("");
     const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -147,23 +140,18 @@ export default function EditProfileScreen() {
 
         const socials: Record<string, string> = {};
         if (data.github) socials.github = data.github;
-        if (data.twitter) socials.twitter = data.twitter;
+        if (data.x) socials.x = data.x;
         if (data.farcaster) socials.farcaster = data.farcaster;
         if (data.linkedin) socials.linkedin = data.linkedin;
 
-        // 1. Backend API 호출 (이미지 처리) → 2. Contract 호출 (editBaseCard)
-        const profileImage = await processProfileImage(
-            data.profileImageFile,
-            cardData.imageUri,
-            activeProfileUrl as string
-        );
+        const processedImage = await processProfileImage(profileImage);
 
         const result = await editCard({
             nickname: data.name,
             role: data.role,
             bio: data.bio || "",
             socials: Object.keys(socials).length > 0 ? socials : {},
-            profileImageFile: profileImage,
+            profileImageFile: processedImage,
         });
 
         if (result.success) {
@@ -192,10 +180,10 @@ export default function EditProfileScreen() {
                 onSubmit={handleSubmit}
                 className="flex flex-col justify-center items-start px-5 gap-y-6"
             >
-                {/* Profile Image - using activeProfileUrl which prefers card image */}
+                {/* Profile Image */}
                 <ProfileImagePreview
+                    defaultProfileUrl={profileImage}
                     profileImageFile={profileImageFile || null}
-                    defaultProfileUrl={activeProfileUrl}
                     fileInputRef={fileInputRef}
                     handleFileChange={handleFileChange}
                     handleImageClick={handleImageClick}
@@ -235,13 +223,12 @@ export default function EditProfileScreen() {
 
                 {/* Socials */}
                 <SocialsInput
-                    baseName={username}
-                    twitterRegister={register("twitter")}
+                    xRegister={register("x")}
                     githubRegister={register("github")}
                     farcasterRegister={register("farcaster")}
                     linkedinRegister={register("linkedin")}
                     errors={{
-                        twitter: errors.twitter,
+                        x: errors.x,
                         github: errors.github,
                         farcaster: errors.farcaster,
                         linkedin: errors.linkedin,
@@ -298,8 +285,8 @@ export default function EditProfileScreen() {
                     {isCreatingBaseCard
                         ? "Updating..."
                         : isSendingTransaction
-                            ? "Confirming..."
-                            : "Save"}
+                        ? "Confirming..."
+                        : "Save"}
                 </BaseButton>
             </form>
 
