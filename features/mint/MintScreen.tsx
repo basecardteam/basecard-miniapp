@@ -110,7 +110,7 @@ export default function MintScreen() {
                     bio: data.bio || "",
                     profileImageFile: profileImage,
                     socials: {
-                        twitter: data.twitter || "",
+                        x: data.x || "",
                         github: data.github || "",
                         farcaster: data.farcaster || "",
                     },
@@ -278,13 +278,12 @@ export default function MintScreen() {
 
                 {/* 소셜 링크 입력 */}
                 <SocialsInput
-                    baseName={username}
-                    twitterRegister={register("twitter")}
+                    xRegister={register("x")}
                     githubRegister={register("github")}
                     farcasterRegister={register("farcaster")}
                     linkedinRegister={register("linkedin")}
                     errors={{
-                        twitter: errors.twitter,
+                        x: errors.x,
                         github: errors.github,
                         farcaster: errors.farcaster,
                         linkedin: errors.linkedin,

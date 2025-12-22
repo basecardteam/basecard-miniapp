@@ -21,7 +21,7 @@ export function useEditProfileForm(initialData?: Partial<MintFormData>) {
             bio: initialData?.bio || "",
             github: initialData?.github || "",
             farcaster: initialData?.farcaster || "",
-            twitter: initialData?.twitter || "",
+            x: initialData?.x || "",
             websites: initialData?.websites || [],
             selectedSkills: initialData?.selectedSkills || [],
             profileImageFile: initialData?.profileImageFile || null,

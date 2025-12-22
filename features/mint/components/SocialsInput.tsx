@@ -8,13 +8,12 @@ import { FieldError, UseFormRegisterReturn } from "react-hook-form";
 import { FaGithub, FaLinkedin, FaSquareXTwitter } from "react-icons/fa6";
 
 interface SocialsInputProps {
-    baseName?: string | null;
-    twitterRegister: UseFormRegisterReturn;
+    xRegister: UseFormRegisterReturn;
     githubRegister: UseFormRegisterReturn;
     farcasterRegister: UseFormRegisterReturn;
     linkedinRegister: UseFormRegisterReturn;
     errors: {
-        twitter?: FieldError;
+        x?: FieldError;
         github?: FieldError;
         farcaster?: FieldError;
         linkedin?: FieldError;
@@ -23,11 +22,11 @@ interface SocialsInputProps {
 
 const SOCIAL_CONFIG = [
     {
-        id: "twitter",
-        label: "Twitter / X",
+        id: "x",
+        label: "X (Twitter)",
         icon: <FaSquareXTwitter className="w-5 h-5" />,
         placeholder: "@username",
-        registerKey: "twitter" as const,
+        registerKey: "x" as const,
     },
     {
         id: "github",
@@ -56,14 +55,14 @@ const SOCIAL_CONFIG = [
  * 소셜 링크 입력 컴포넌트 - 모던한 아이콘 디자인
  */
 export const SocialsInput = memo(function SocialsInput({
-    twitterRegister,
+    xRegister,
     githubRegister,
     farcasterRegister,
     linkedinRegister,
     errors,
 }: SocialsInputProps) {
     const registers = {
-        twitter: twitterRegister,
+        x: xRegister,
         github: githubRegister,
         farcaster: farcasterRegister,
         linkedin: linkedinRegister,

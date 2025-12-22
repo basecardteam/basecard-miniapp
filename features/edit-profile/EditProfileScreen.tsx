@@ -96,7 +96,7 @@ export default function EditProfileScreen() {
                 role: (cardData.role as any) || undefined, // Type cast if necessary
                 bio: cardData.bio || "",
                 github: cardData.socials?.github || "",
-                twitter: cardData.socials?.twitter || "",
+                x: cardData.socials?.x || "",
                 farcaster: cardData.socials?.farcaster || "",
                 websites: [], // Card data doesn't seem to have websites in the example JSON?
                 // If it does, map it here. The provided JSON doesn't show it.
@@ -145,7 +145,7 @@ export default function EditProfileScreen() {
 
         const socials: Record<string, string> = {};
         if (data.github) socials.github = data.github;
-        if (data.twitter) socials.twitter = data.twitter;
+        if (data.x) socials.x = data.x;
         if (data.farcaster) socials.farcaster = data.farcaster;
         if (data.linkedin) socials.linkedin = data.linkedin;
 
@@ -228,13 +228,12 @@ export default function EditProfileScreen() {
 
                 {/* Socials */}
                 <SocialsInput
-                    baseName={username}
-                    twitterRegister={register("twitter")}
+                    xRegister={register("x")}
                     githubRegister={register("github")}
                     farcasterRegister={register("farcaster")}
                     linkedinRegister={register("linkedin")}
                     errors={{
-                        twitter: errors.twitter,
+                        x: errors.x,
                         github: errors.github,
                         farcaster: errors.farcaster,
                         linkedin: errors.linkedin,

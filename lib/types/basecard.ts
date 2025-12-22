@@ -1,6 +1,6 @@
 // Allowed social keys
 export const SOCIAL_KEYS = [
-    "twitter",
+    "x",
     "farcaster",
     "website",
     "github",

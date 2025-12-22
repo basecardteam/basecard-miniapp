@@ -53,7 +53,6 @@ type SocialEntry = {
 
 const SOCIAL_PREFIXES: Record<string, string> = {
     x: "https://x.com/",
-    twitter: "https://x.com/",
     farcaster: "https://farcaster.xyz/",
     github: "https://github.com/",
     website: "",
@@ -76,8 +75,8 @@ const SOCIAL_ENTRIES: SocialEntry[] = [
         icon: <FaGlobe className="text-white" size={24} />,
     },
     {
-        key: "twitter",
-        label: "Twitter",
+        key: "x",
+        label: "X",
         icon: <FaTwitter className="text-white" size={24} />,
     },
     {

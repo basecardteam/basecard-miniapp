@@ -12,7 +12,7 @@ export const mintFormSchema = z.object({
     bio: z.string().optional(),
     github: z.string().optional(),
     farcaster: z.string().optional(),
-    twitter: z.string().optional(),
+    x: z.string().optional(),
     linkedin: z.string().optional(),
     websites: z
         .array(z.string().url("Invalid URL"))
