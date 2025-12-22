@@ -21,7 +21,7 @@ import {
     generateCardShareQRCode,
     generateCardShareURL,
 } from "@/lib/qrCodeGenerator";
-import { Card } from "@/lib/types";
+import { Card, SocialKey } from "@/lib/types";
 import { resolveIpfsUrl } from "@/lib/utils";
 import defaultProfileImage from "@/public/assets/default-profile.png";
 import BCLogo from "@/public/bc-icon.png";
@@ -43,7 +43,7 @@ interface ProfileCardContentProps {
 }
 
 type SocialEntry = {
-    key: string;
+    key: SocialKey;
     label: string;
     icon: React.ReactNode;
 };
@@ -246,7 +246,9 @@ export default function ProfileCardContent({
                 {isViewer && isCollected && onRemove && (
                     <CardActionButton
                         onClick={onRemove}
-                        icon={<IoTrashOutline className="text-white" size={20} />}
+                        icon={
+                            <IoTrashOutline className="text-white" size={20} />
+                        }
                         label="Remove"
                     />
                 )}
@@ -305,10 +307,10 @@ export default function ProfileCardContent({
                                     disabled={!hasUrl}
                                     className={`w-10 h-10 rounded-full flex items-center justify-center border transition-all
                                         ${
-                                hasUrl
-                                    ? "bg-[#0455FF] border-[#3E7CFF] hover:opacity-90 cursor-pointer"
-                                    : "bg-gray-800/50 border-gray-600 opacity-50 cursor-not-allowed"
-                                }`}
+                                            hasUrl
+                                                ? "bg-[#0455FF] border-[#3E7CFF] hover:opacity-90 cursor-pointer"
+                                                : "bg-gray-800/50 border-gray-600 opacity-50 cursor-not-allowed"
+                                        }`}
                                     aria-label={label}
                                 >
                                     {icon}
