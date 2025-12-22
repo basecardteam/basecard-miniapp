@@ -1,13 +1,13 @@
 "use client";
 
-import React from "react";
-import { Card } from "@/lib/types/api";
-import { CardStackAnimationStrategy } from "./types";
 import CardItem from "@/features/collection/components/CardItem";
-import { MAX_CARD_WIDTH, CARD_HORIZONTAL_PADDING } from "./config";
+import { BaseCard } from "@/lib/types/api";
+import React from "react";
+import { CARD_HORIZONTAL_PADDING, MAX_CARD_WIDTH } from "./config";
+import { CardStackAnimationStrategy } from "./types";
 
 interface CardStackProps {
-    cards: Card[];
+    cards: BaseCard[];
     activeIndex: number;
     progress: number; // 0..1
     strategy: CardStackAnimationStrategy;
@@ -26,10 +26,7 @@ export default function CardStack({
     if (!cards.length) return null;
 
     // 전략의 visibleCardCount를 사용하되, 최소 STACK_SIZE는 4로 유지
-    const stackSize = Math.max(
-        strategy.visibleCardCount + 3,
-        4
-    );
+    const stackSize = Math.max(strategy.visibleCardCount + 3, 4);
 
     // 이전 카드 수 (사라지는 카드들)
     const prevCardCount = 2;
@@ -57,7 +54,7 @@ export default function CardStack({
         const style: React.CSSProperties = {
             position: "absolute",
             inset: 0,
-            transformStyle: (isBackCard) ? "flat" : "preserve-3d",
+            transformStyle: isBackCard ? "flat" : "preserve-3d",
             transformOrigin: "center top",
             display: "flex",
             alignItems: "flex-start",
@@ -69,10 +66,10 @@ export default function CardStack({
                 ? "transform 180ms var(--card-ease, cubic-bezier(.22,.61,.36,1))"
                 : "transform 180ms var(--card-ease, cubic-bezier(.22,.61,.36,1)), filter 180ms var(--card-ease, cubic-bezier(.22,.61,.36,1))",
             willChange: "transform",
-            filter: isBackCard ? "none" : (blur > 0 ? `blur(${blur}px)` : "none"),
+            filter: isBackCard ? "none" : blur > 0 ? `blur(${blur}px)` : "none",
             opacity: op,
             // 이전 카드는 가장 낮은 z-index, 현재 카드가 가장 높음
-            zIndex: isPrevCard ? (5 + layer) : (isBackCard ? 10 : (100 - layer)),
+            zIndex: isPrevCard ? 5 + layer : isBackCard ? 10 : 100 - layer,
         };
 
         items.push(

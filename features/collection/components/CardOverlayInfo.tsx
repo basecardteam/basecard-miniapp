@@ -1,8 +1,8 @@
-import { Card } from "@/lib/types";
+import { BaseCard } from "@/lib/types";
 import clsx from "clsx";
 
 interface CardOverlayInfoProps {
-    card: Card;
+    card: BaseCard;
     isActive: boolean;
 }
 

@@ -1,5 +1,5 @@
 import { config } from "@/lib/common/config";
-import { ApiResponse, Card } from "@/lib/types/api";
+import { ApiResponse, BaseCard } from "@/lib/types/api";
 import { createHeaders } from "../utils";
 
 interface CollectionResponse {
@@ -58,7 +58,7 @@ export const deleteCollection = async (
 
 export const fetchCollections = async (
     accessToken: string
-): Promise<Card[] | null> => {
+): Promise<BaseCard[] | null> => {
     const response = await fetch(
         `${config.BACKEND_API_URL}/v1/collections/me`,
         {
@@ -71,7 +71,7 @@ export const fetchCollections = async (
         throw new Error("Failed to fetch collections");
     }
 
-    const data: ApiResponse<Card[] | null> = await response.json();
+    const data: ApiResponse<BaseCard[] | null> = await response.json();
 
     if (!data.success || !data.result) {
         throw new Error(data.error || "Failed to fetch collections");

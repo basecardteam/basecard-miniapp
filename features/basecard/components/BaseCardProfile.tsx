@@ -6,7 +6,7 @@ import { useBaseCard } from "@/hooks/api/useBaseCard";
 import { useMyBaseCard } from "@/hooks/api/useMyBaseCard";
 import { useMyCollections } from "@/hooks/api/useMyCollections";
 import { addCollection, deleteCollection } from "@/lib/api/collections";
-import { Card } from "@/lib/types/api";
+import { BaseCard } from "@/lib/types/api";
 import { useQueryClient } from "@tanstack/react-query";
 import clsx from "clsx";
 import { useRouter } from "next/navigation";
@@ -77,11 +77,19 @@ export default function MyBaseCardProfile({
     // ==========================================================================
 
     // Card data: from myCard (profile) or fetched viewerCard (viewer)
-    const card: Card | null = useMemo(() => {
+    const card: BaseCard | null = useMemo(() => {
         if (isProfile) return myCard ?? null;
         if (isViewer) return viewerCard ?? null;
         return null;
     }, [isProfile, isViewer, myCard, viewerCard]);
+
+    // Owner profile image URL (for viewer mode - from farcasterProfile)
+    const ownerPfpUrl = useMemo(() => {
+        if (isViewer && viewerCard?.farcasterProfile) {
+            return viewerCard.farcasterProfile.pfp_url;
+        }
+        return null;
+    }, [isViewer, viewerCard]);
 
     const isLoading = isProfile ? isMyCardLoading : isViewerCardLoading;
     const isNotFound = !isLoading && !card;
@@ -251,6 +259,7 @@ export default function MyBaseCardProfile({
                 <ProfileCardContent
                     card={card!}
                     mode={mode}
+                    ownerPfpUrl={ownerPfpUrl ?? undefined}
                     onClose={isViewer ? handleClose : undefined}
                     isCollected={isViewer ? isCollected : undefined}
                     onCollect={isViewer ? handleCollect : undefined}

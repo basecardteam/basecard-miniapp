@@ -1,8 +1,8 @@
+import { BaseCard } from "@/lib/types";
 import CardItem from "./CardItem";
-import { Card } from "@/lib/types";
 
 interface CollectionListProps {
-    cards: Card[];
+    cards: BaseCard[];
 }
 
 export function CollectionList({ cards }: CollectionListProps) {

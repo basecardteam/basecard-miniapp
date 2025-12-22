@@ -3,7 +3,7 @@
 import { useAuth } from "@/components/providers/AuthProvider";
 import { fetchCardByAddress } from "@/lib/api/basecards";
 import { logger } from "@/lib/common/logger";
-import { Card } from "@/lib/types/api";
+import { BaseCard } from "@/lib/types/api";
 import { useQuery } from "@tanstack/react-query";
 import { useAccount } from "wagmi";
 
@@ -14,7 +14,7 @@ export function useMyBaseCard() {
     const { isAuthenticated, accessToken } = useAuth();
     const { isConnected } = useAccount();
 
-    return useQuery<Card | null, Error>({
+    return useQuery<BaseCard | null, Error>({
         queryKey: ["myBaseCard", accessToken],
         queryFn: async () => {
             if (!accessToken) {

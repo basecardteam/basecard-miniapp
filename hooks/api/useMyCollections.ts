@@ -1,7 +1,7 @@
 import { useAuth } from "@/components/providers/AuthProvider";
 import { fetchCollections } from "@/lib/api/collections";
 import { logger } from "@/lib/common/logger";
-import { Card } from "@/lib/types/api";
+import { BaseCard } from "@/lib/types/api";
 import { useQuery } from "@tanstack/react-query";
 import { useAccount } from "wagmi";
 
@@ -9,7 +9,7 @@ export function useMyCollections() {
     const { isAuthenticated, accessToken } = useAuth();
     const { isConnected } = useAccount();
 
-    return useQuery<Card[] | null, Error>({
+    return useQuery<BaseCard[] | null, Error>({
         queryKey: ["collectedCards", isConnected],
         queryFn: () => {
             if (!accessToken) {

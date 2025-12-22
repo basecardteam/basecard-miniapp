@@ -1,15 +1,14 @@
 "use client";
 
-import { Card } from "@/lib/types";
+import { BaseCard } from "@/lib/types";
 import { getIPFSUrl } from "@/lib/utils";
 import clsx from "clsx";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import React from "react";
-import CardOverlayInfo from "./CardOverlayInfo";
 
 interface CardItemProps {
-    card: Card;
+    card: BaseCard;
     isActive: boolean;
     style?: React.CSSProperties;
 }

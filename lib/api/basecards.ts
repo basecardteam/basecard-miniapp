@@ -1,5 +1,10 @@
 import { config } from "@/lib/common/config";
-import { ApiResponse, Card, CreateCardResponse } from "@/lib/types/api";
+import {
+    ApiResponse,
+    BaseCard,
+    BaseCardDetail,
+    CreateCardResponse,
+} from "@/lib/types/api";
 import { logger } from "../common/logger";
 import { Socials } from "../types";
 
@@ -24,14 +29,14 @@ function createHeaders(
  * Fetch all basecards
  * Uses GET /v1/basecards endpoint
  */
-export async function fetchAllBaseCards(): Promise<Card[]> {
+export async function fetchAllBaseCards(): Promise<BaseCard[]> {
     const response = await fetch(`${config.BACKEND_API_URL}/v1/basecards`);
 
     if (!response.ok) {
         throw new Error("Failed to fetch cards");
     }
 
-    const data: ApiResponse<Card[]> = await response.json();
+    const data: ApiResponse<BaseCard[]> = await response.json();
 
     if (!data.success || !data.result) {
         throw new Error(data.error || "Failed to fetch cards");
@@ -41,11 +46,13 @@ export async function fetchAllBaseCards(): Promise<Card[]> {
 }
 
 /**
- * Fetch card data by card ID
+ * Fetch card detail by card ID (includes farcasterProfile)
  * Uses GET /v1/basecards/:id endpoint
  * Returns null if card not found
  */
-export async function fetchBaseCardById(cardId: string): Promise<Card | null> {
+export async function fetchBaseCardById(
+    cardId: string
+): Promise<BaseCardDetail | null> {
     const response = await fetch(
         `${config.BACKEND_API_URL}/v1/basecards/${cardId}`
     );
@@ -57,7 +64,7 @@ export async function fetchBaseCardById(cardId: string): Promise<Card | null> {
         throw new Error("Failed to fetch card");
     }
 
-    const data: ApiResponse<Card | null> = await response.json();
+    const data: ApiResponse<BaseCardDetail | null> = await response.json();
 
     if (!data.success) {
         throw new Error(data.error || "Failed to fetch card");
@@ -73,7 +80,7 @@ export async function fetchBaseCardById(cardId: string): Promise<Card | null> {
  */
 export async function fetchCardByAddress(
     accessToken: string
-): Promise<Card | null> {
+): Promise<BaseCard | null> {
     const response = await fetch(`${config.BACKEND_API_URL}/v1/basecards/me`, {
         headers: createHeaders(accessToken),
     });
@@ -85,7 +92,7 @@ export async function fetchCardByAddress(
         throw new Error("Failed to fetch card");
     }
 
-    const data: ApiResponse<Card | null> = await response.json();
+    const data: ApiResponse<BaseCard | null> = await response.json();
 
     if (!data.success) {
         throw new Error(data.error || "Failed to fetch card");

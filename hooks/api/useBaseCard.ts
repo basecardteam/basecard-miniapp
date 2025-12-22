@@ -1,15 +1,15 @@
 "use client";
 
 import { fetchBaseCardById } from "@/lib/api/basecards";
-import { Card } from "@/lib/types/api";
+import { BaseCardDetail } from "@/lib/types/api";
 import { useQuery } from "@tanstack/react-query";
 
 /**
- * Hook to fetch a single BaseCard by ID
+ * Hook to fetch a single BaseCard by ID (includes farcasterProfile)
  * Used for viewer mode to fetch card details
  */
 export function useBaseCard(cardId?: string) {
-    return useQuery<Card | null, Error>({
+    return useQuery<BaseCardDetail | null, Error>({
         queryKey: ["basecard", cardId],
         queryFn: () =>
             cardId ? fetchBaseCardById(cardId) : Promise.resolve(null),

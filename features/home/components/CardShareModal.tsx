@@ -3,7 +3,7 @@
 import ShareModal from "@/components/modals/ShareModal";
 import { useFrameContext } from "@/components/providers/FrameProvider";
 import { generateCardShareQRCode } from "@/lib/qrCodeGenerator";
-import { Card } from "@/lib/types";
+import { BaseCard } from "@/lib/types";
 import BCLogo from "@/public/bc-icon.png";
 import { MiniAppContext } from "@farcaster/miniapp-core/dist/context";
 import { useCallback, useEffect, useState } from "react";
@@ -11,7 +11,7 @@ import { useCallback, useEffect, useState } from "react";
 interface CardShareModalProps {
     isVisible: boolean;
     onClose: () => void;
-    card: Card;
+    card: BaseCard;
 }
 
 /**
@@ -62,7 +62,7 @@ export const CardShareModal: React.FC<CardShareModalProps> = ({
             isOpen={isVisible}
             onClose={onClose}
             title="Share My Card"
-            profileImageUrl={user?.pfpUrl??undefined}
+            profileImageUrl={user?.pfpUrl ?? undefined}
             name={card?.nickname || undefined}
             subtitle={card?.role || undefined}
             qrCodeDataURL={qrCodeDataURL}
