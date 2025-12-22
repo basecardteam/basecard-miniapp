@@ -63,8 +63,8 @@ export function useQuestHandler(): UseQuestHandlerResult {
                 return;
             }
 
-            // Handle SHARE quest - share to Farcaster
-            if (quest.actionType === "SHARE") {
+            // Handle FC_SHARE quest - share to Farcaster
+            if (quest.actionType === "FC_SHARE") {
                 const shareUrl = address
                     ? `${
                           process.env.NEXT_PUBLIC_URL ||
@@ -84,8 +84,8 @@ export function useQuestHandler(): UseQuestHandlerResult {
                 return;
             }
 
-            // Handle NOTIFICATION quest - request notification permission
-            if (quest.actionType === "NOTIFICATION") {
+            // Handle APP_NOTIFICATION quest - request notification permission
+            if (quest.actionType === "APP_NOTIFICATION") {
                 if (!frameContext?.requestNotificationPermission) {
                     showToast("Notification not supported", "error");
                     return;
@@ -119,14 +119,17 @@ export function useQuestHandler(): UseQuestHandlerResult {
                 return;
             }
 
-            // Redirects for uncompleted actions
-            if (quest.actionType === "MINT" && quest.status === "pending") {
+            // Redirects for uncompleted mint action
+            if (
+                quest.actionType === "APP_BASECARD_MINT" &&
+                quest.status === "pending"
+            ) {
                 router.push("/mint");
                 return;
             }
 
-            // Link quests redirect to EditProfile
-            if (quest.actionType.startsWith("LINK_")) {
+            // Link quests redirect to EditProfile (e.g., LINK_GITHUB, LI_LINK, etc.)
+            if (quest.actionType.includes("LINK")) {
                 router.push("/edit-profile");
                 return;
             }

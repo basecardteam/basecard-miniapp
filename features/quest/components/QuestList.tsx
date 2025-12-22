@@ -7,22 +7,46 @@ import QuestItem from "./QuestItem";
 import QuestItemSkeleton from "./QuestItemSkeleton";
 
 const BUTTON_LABELS: Record<string, string> = {
-    MINT: "Mint",
-    SHARE: "Share",
-    FOLLOW: "Follow",
-    NOTIFICATION: "Enable",
-    LINK_BASENAME: "Link",
-    LINK_FARCASTER: "Link",
-    LINK_GITHUB: "Link",
-    LINK_LINKEDIN: "Link",
-    LINK_TWITTER: "Link",
-    LINK_WEBSITE: "Link",
+    // APP Platform
+    APP_BASECARD_MINT: "Mint",
+    APP_NOTIFICATION: "Enable",
+    APP_ADD_MINIAPP: "Add",
+    // FARCASTER Platform
+    FC_LINK: "Link",
+    FC_SHARE: "Share",
+    FC_FOLLOW: "Follow",
+    // TWITTER Platform
+    X_LINK: "Link",
+    // GITHUB Platform
+    GH_LINK: "Link",
+    // LINKEDIN Platform
+    LI_LINK: "Link",
 };
 
 function getButtonName(quest: Quest): string {
     if (quest.status === "completed") return "Claimed";
     if (quest.status === "claimable") return "Claim!";
-    return BUTTON_LABELS[quest.actionType] || quest.actionType;
+
+    // Check if there's a predefined label
+    if (BUTTON_LABELS[quest.actionType]) {
+        return BUTTON_LABELS[quest.actionType];
+    }
+
+    // Remove prefix before first underscore and format as Title Case
+    // e.g., "LINK_BASE_NAME" -> "Base Name", "LI_LINK" -> "Link"
+    const actionType = quest.actionType;
+    const underscoreIndex = actionType.indexOf("_");
+    const textPart =
+        underscoreIndex !== -1
+            ? actionType.slice(underscoreIndex + 1)
+            : actionType;
+
+    // Convert to Title Case: "BASE_NAME" -> "Base Name"
+    return textPart
+        .toLowerCase()
+        .split("_")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ");
 }
 
 interface QuestListProps {
@@ -75,11 +99,7 @@ export default function QuestList({
 
     if (error) {
         const textColor = variant === "dark" ? "text-red-300" : "text-red-500";
-        return (
-            <div className={`text-center py-8 ${textColor}`}>
-                {error}
-            </div>
-        );
+        return <div className={`text-center py-8 ${textColor}`}>{error}</div>;
     }
 
     if (quests.length === 0) {

@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/Toast";
 import { useMintBaseCardMutation } from "@/features/mint/hooks/useMintBaseCardMutation";
 import { useMintForm } from "@/features/mint/hooks/useMintForm";
+import { logger } from "@/lib/common/logger";
 import { MAX_WEBSITES, type Role } from "@/lib/constants/mint";
 import { shareToFarcaster } from "@/lib/farcaster/share";
 import { processProfileImage } from "@/lib/processProfileImage";
@@ -116,6 +117,13 @@ export default function MintScreen() {
                 });
 
                 if (result.success) {
+                    logger.info("mint result:", result);
+                    logger.info("result.imageUri (raw):", result.imageUri);
+                    logger.info(
+                        "result.imageUri (resolved):",
+                        resolveIpfsUrl(result.imageUri)
+                    );
+
                     // Clear all cached storage data for fresh start
                     if (typeof window !== "undefined") {
                         localStorage.clear();
