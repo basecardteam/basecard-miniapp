@@ -9,7 +9,7 @@ export const minikitConfig = {
     accountAssociation: {
         header: process.env.NEXT_PUBLIC_ASSOCIATION_HEADER!,
         payload: process.env.NEXT_PUBLIC_ASSOCIATION_PAYLOAD!,
-        signature: process.env.NEXT_PUBLIC_ASSOCIATION_HEADER!,
+        signature: process.env.NEXT_PUBLIC_ASSOCIATION_SIGNATURE!,
     },
     miniapp: {
         version: "1",
