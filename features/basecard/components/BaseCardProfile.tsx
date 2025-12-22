@@ -5,7 +5,7 @@ import { useToast } from "@/components/ui/Toast";
 import { useBaseCard } from "@/hooks/api/useBaseCard";
 import { useMyBaseCard } from "@/hooks/api/useMyBaseCard";
 import { useMyCollections } from "@/hooks/api/useMyCollections";
-import { addCollection } from "@/lib/api/collections";
+import { addCollection, deleteCollection } from "@/lib/api/collections";
 import { Card } from "@/lib/types/api";
 import { useQueryClient } from "@tanstack/react-query";
 import clsx from "clsx";
@@ -240,7 +240,10 @@ export default function MyBaseCardProfile({
                 {/* [VIEWER ONLY] Back Button */}
                 {isViewer && (
                     <div className="w-full relative h-12 flex items-center justify-start">
-                        <BackButton size={40} className="text-gray-600 relative m-0 left-0 top-0" />
+                        <BackButton
+                            size={40}
+                            className="text-gray-600 relative m-0 left-0 top-0"
+                        />
                     </div>
                 )}
 
