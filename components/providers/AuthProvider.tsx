@@ -27,6 +27,7 @@ interface AuthContextType {
     authUser: AuthUser | null;
     accessToken: string | null;
     loginWithMetaMask: (connectedAddress?: string) => Promise<void>;
+    refreshAuth: () => Promise<void>;
     logout: () => void;
 }
 
@@ -424,6 +425,7 @@ export default function AuthProvider({
             authUser,
             accessToken,
             loginWithMetaMask,
+            refreshAuth: () => performFarcasterAuth(false),
             logout,
         }),
         [
@@ -432,6 +434,7 @@ export default function AuthProvider({
             authUser,
             accessToken,
             loginWithMetaMask,
+            performFarcasterAuth,
             logout,
         ]
     );
