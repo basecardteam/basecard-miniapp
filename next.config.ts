@@ -86,6 +86,20 @@ const nextConfig: NextConfig = {
     ],
 
     // -------------------------------------------------------------------------
+    // Farcaster Manifest 리다이렉트
+    // -------------------------------------------------------------------------
+    async redirects() {
+        return [
+            {
+                source: "/.well-known/farcaster.json",
+                destination:
+                    "https://api.farcaster.xyz/miniapps/hosted-manifest/019b4475-0eb4-ee32-0dbb-9575ff27aa78",
+                permanent: false, // 307 Temporary Redirect
+            },
+        ];
+    },
+
+    // -------------------------------------------------------------------------
     // HTTP 헤더 보안 설정 (CORS, Embedding)
     // -------------------------------------------------------------------------
     async headers() {

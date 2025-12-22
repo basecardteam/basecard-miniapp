@@ -27,6 +27,19 @@ export const viewport: Viewport = {
     userScalable: false,
 };
 
+const getBaseAppId = () => {
+    const env = process.env.APP_ENV;
+    switch (env) {
+    case "PRODUCTION":
+        return "6943ae91d77c069a945bdfec";
+    case "DEVELOPMENT-HWANG":
+        return "6943ae91d77c069a945bdfec";
+    case "DEVELOPMENT":
+    default:
+        return "69434d13d19763ca26ddc3cb";
+    }
+};
+
 export async function generateMetadata(): Promise<Metadata> {
     return {
         icons: {
@@ -34,9 +47,8 @@ export async function generateMetadata(): Promise<Metadata> {
             apple: "/bc-icon.png",
         },
         other: {
-            // prod: "base:app_id": "6943ae91d77c069a945bdfec",
-            // dev: "base:app_id": "69434d13d19763ca26ddc3cb",
-            "base:app_id": "69434d13d19763ca26ddc3cb",
+            "base:app_id": getBaseAppId(),
+            
             "fc:miniapp": JSON.stringify({
                 version: "next",
                 imageUrl: minikitConfig.miniapp.embedImageUrl,
