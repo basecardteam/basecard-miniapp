@@ -38,7 +38,7 @@ export const deleteCollection = async (
     basecardId: string
 ): Promise<void> => {
     const response = await fetch(
-        `${config.BACKEND_API_URL}/v1/collections/${basecardId}`,
+        `${config.BACKEND_API_URL}/v1/collections/by-card/${basecardId}`,
         {
             method: "DELETE",
             headers: createHeaders(accessToken),

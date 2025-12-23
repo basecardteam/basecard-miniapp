@@ -7,6 +7,7 @@ import { useMyBaseCard } from "@/hooks/api/useMyBaseCard";
 import { useMyCollections } from "@/hooks/api/useMyCollections";
 import { addCollection, deleteCollection } from "@/lib/api/collections";
 import { BaseCard } from "@/lib/types/api";
+import defaultProfileImage from "@/public/assets/default-profile.png";
 import { useQueryClient } from "@tanstack/react-query";
 import clsx from "clsx";
 import { useRouter } from "next/navigation";
@@ -88,7 +89,8 @@ export default function MyBaseCardProfile({
         if (isViewer && viewerCard?.farcasterProfile) {
             return viewerCard.farcasterProfile.pfp_url;
         }
-        return null;
+        // FID가 없거나 farcasterProfile이 null이면 기본 이미지 사용
+        return defaultProfileImage.src;
     }, [isViewer, viewerCard]);
 
     const isLoading = isProfile ? isMyCardLoading : isViewerCardLoading;
@@ -117,7 +119,7 @@ export default function MyBaseCardProfile({
         useState(false);
 
     const handleCollect = useCallback(async () => {
-        if (!cardId || isCollected) return;
+        if (!card?.id || isCollected) return;
 
         if (!isAuthenticated || !accessToken) {
             showToast("Please login to collect this card.", "error");
@@ -126,7 +128,7 @@ export default function MyBaseCardProfile({
 
         setIsCollecting(true);
         try {
-            await addCollection(accessToken, cardId);
+            await addCollection(accessToken, card.id);
             setLocalCollected(true); // Immediately update UI
             queryClient.invalidateQueries({ queryKey: ["collectedCards"] }); // Refetch in background
             setIsCollectSuccessModalOpen(true); // Show success modal
@@ -151,7 +153,7 @@ export default function MyBaseCardProfile({
             setIsCollecting(false);
         }
     }, [
-        cardId,
+        card?.id,
         isAuthenticated,
         accessToken,
         showToast,
@@ -160,7 +162,7 @@ export default function MyBaseCardProfile({
     ]);
 
     const handleRemove = useCallback(async () => {
-        if (!cardId) return;
+        if (!card?.id) return;
 
         if (!isAuthenticated || !accessToken) {
             showToast("Please login to remove this card.", "error");
@@ -168,7 +170,7 @@ export default function MyBaseCardProfile({
         }
 
         try {
-            await deleteCollection(accessToken, cardId);
+            await deleteCollection(accessToken, card.id);
             setLocalCollected(false);
             queryClient.invalidateQueries({ queryKey: ["collectedCards"] });
             showToast("Removed from collection", "success");
@@ -180,7 +182,14 @@ export default function MyBaseCardProfile({
                     : "Failed to remove card";
             showToast(message, "error");
         }
-    }, [cardId, isAuthenticated, accessToken, showToast, queryClient, router]);
+    }, [
+        card?.id,
+        isAuthenticated,
+        accessToken,
+        showToast,
+        queryClient,
+        router,
+    ]);
 
     // ==========================================================================
     // Styles
