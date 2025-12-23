@@ -99,20 +99,55 @@ export async function handleFcFollow(): Promise<void> {
 /**
  * APP_ADD_MINIAPP: 미니앱을 홈 화면에 추가
  * SDK addMiniApp 호출
+ * @returns 성공 여부, 앱 추가 여부, 알림 활성화 여부
  */
-export async function handleAppAddMiniapp(): Promise<{
+export interface AddMiniAppResult {
     success: boolean;
+    isAppAdded: boolean;
+    hasNotifications: boolean;
     notificationDetails?: { url: string; token: string } | null;
-}> {
+    error?: string;
+}
+
+export async function handleAppAddMiniapp(): Promise<AddMiniAppResult> {
     try {
-        const response = await sdk.actions.addMiniApp();
-        console.log("addMiniApp response", response);
+        const result = await sdk.actions.addMiniApp();
+        console.log("addMiniApp response", result);
+
+        // Check if notificationDetails were included
+        // Note: result might be undefined if user rejects or in web environment
+        if (result && result.notificationDetails) {
+            return {
+                success: true,
+                isAppAdded: true,
+                hasNotifications: true,
+                notificationDetails: result.notificationDetails,
+            };
+        } else if (result) {
+            // App added but notifications not enabled
+            return {
+                success: true,
+                isAppAdded: true,
+                hasNotifications: false,
+                notificationDetails: null,
+            };
+        } else {
+            // Result is undefined - user might have rejected
+            return {
+                success: false,
+                isAppAdded: false,
+                hasNotifications: false,
+                notificationDetails: null,
+            };
+        }
+    } catch (error) {
+        console.error("Failed to add mini app:", error);
         return {
-            success: true,
-            notificationDetails: response.notificationDetails ?? null,
+            success: false,
+            isAppAdded: false,
+            hasNotifications: false,
+            error: error instanceof Error ? error.message : "Unknown error",
         };
-    } catch {
-        return { success: false };
     }
 }
 

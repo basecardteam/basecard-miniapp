@@ -7,6 +7,7 @@ import { handleAppAddMiniapp, handleFcFollow } from "@/lib/quest-actions";
 import { Quest } from "@/lib/types/api";
 import { resolveIpfsUrl } from "@/lib/utils";
 import sdk from "@farcaster/miniapp-sdk";
+import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import { useAccount } from "wagmi";
@@ -34,6 +35,7 @@ export function useQuestHandler(): UseQuestHandlerResult {
     const { showToast } = useToast();
     const frameContext = useFrameContext();
     const { metadata } = useERC721Token();
+    const queryClient = useQueryClient();
     const openUrl = sdk.actions.openUrl;
 
     const [successModalState, setSuccessModalState] = useState<{
@@ -161,7 +163,16 @@ export function useQuestHandler(): UseQuestHandlerResult {
                     return;
                 case "APP_ADD_MINIAPP": {
                     const result = await handleAppAddMiniapp();
-                    if (result.success) {
+                    // Refetch quests to update status
+                    await queryClient.invalidateQueries({
+                        queryKey: ["userQuests"],
+                    });
+                    if (result.isAppAdded && result.hasNotifications) {
+                        showToast(
+                            "Basecard added with notifications!",
+                            "success"
+                        );
+                    } else if (result.isAppAdded) {
                         showToast("Basecard added to home screen!", "success");
                     } else {
                         showToast("Failed to add Basecard", "error");

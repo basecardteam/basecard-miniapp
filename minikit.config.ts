@@ -1,6 +1,10 @@
 export const ROOT_URL = process.env.NEXT_PUBLIC_URL || "http://localhost:3000";
 export const BACKEND_API_URL =
     process.env.NEXT_PUBLIC_BACKEND_API_URL || "http://api.basecard.org";
+
+const AppName =
+    process.env.NODE_ENV === "development" ? "BaseCard Dev" : "BaseCard";
+const Indexing = process.env.NODE_ENV === "development" ? true : false;
 /**
  * MiniApp configuration object. Must follow the Farcaster MiniApp specification.
  *
@@ -8,14 +12,14 @@ export const BACKEND_API_URL =
  */
 export const minikitConfig = {
     accountAssociation: {
-        header: "eyJmaWQiOi0xLCJ0eXBlIjoiYXV0aCIsImtleSI6IjB4M2QxNThjYjg2Zjg5OUZmMEIyNzM0RDEwODMyMzVDYTA0NzZFNTc0YSJ9",
-        payload: "eyJkb21haW4iOiJtaW5pYXBwLmJhc2VjYXJkLm9yZyJ9",
+        header: process.env.NEXT_PUBLIC_MINIAPP_ACCOUNT_ASSOCIATION_HEADER,
+        payload: process.env.NEXT_PUBLIC_MINIAPP_ACCOUNT_ASSOCIATION_PAYLOAD,
         signature:
-            "AAAAAAAAAAAAAAAAyhG94Fl3s2MRZwKIYr4qFzl2yhEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAALAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAiSCrVbLAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAAul7REO_bo9AFv8iC11NYrLu4WEIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAASQ_-6NvAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAAe-csx_0z0dxGexkP1bWTTK13ZRIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAPhSELIcxQMC9He6VmhtIBncm2etAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABBj7BWZdVyJEHTIG1PHGzdh4kh8Ff1rTal573LkA1FS1g5DKNO3U3S-COydNca7Zx3_pWTsDQmTJOlvqevv51yyRwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAZJJkkmSSZJJkkmSSZJJkkmSSZJJkkmSSZJJkkmSSZJI",
+            process.env.NEXT_PUBLIC_MINIAPP_ACCOUNT_ASSOCIATION_SIGNATURE,
     },
     miniapp: {
         version: "1",
-        name: "BaseCard",
+        name: AppName,
         iconUrl: `${ROOT_URL}/bc-icon.png`,
         homeUrl: `${ROOT_URL}`,
         imageUrl: `${ROOT_URL}/bc-icon.png`,
@@ -27,11 +31,13 @@ export const minikitConfig = {
         description:
             "Stop repeating your pitch. Mint your verified, onchain ID card, BaseCard! And, find people who share your interests.",
         primaryCategory: "social",
-        heroImageUrl: `${ROOT_URL}/bc-hero.webp`,
+        heroImageUrl: `${ROOT_URL}/bc-hero.png`,
         ogImageUrl: `${ROOT_URL}/bc-embed-image.png`,
-        ogTitle: "BaseCard",
+        ogTitle: AppName,
         tags: ["social", "basecard", "identity", "earn", "card"],
         embedImageUrl: `${ROOT_URL}/bc-embed-image.png`,
+        // if NODE_ENV is development, noindex is true
+        noindex: !Indexing,
         // TODO: ...
         // tagline
         // ogDescriptionaa
