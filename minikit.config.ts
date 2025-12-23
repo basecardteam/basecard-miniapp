@@ -4,7 +4,7 @@ export const BACKEND_API_URL =
 
 const AppName =
     process.env.NODE_ENV === "development" ? "BaseCard Dev" : "BaseCard";
-const Indexing = process.env.NODE_ENV === "development" ? true : false;
+const Indexing = process.env.NODE_ENV === "production";
 /**
  * MiniApp configuration object. Must follow the Farcaster MiniApp specification.
  *
