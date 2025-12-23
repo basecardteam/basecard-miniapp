@@ -12,10 +12,12 @@ const Indexing = process.env.NODE_ENV === "development" ? true : false;
  */
 export const minikitConfig = {
     accountAssociation: {
-        header: process.env.NEXT_PUBLIC_MINIAPP_ACCOUNT_ASSOCIATION_HEADER,
-        payload: process.env.NEXT_PUBLIC_MINIAPP_ACCOUNT_ASSOCIATION_PAYLOAD,
+        header:
+            process.env.NEXT_PUBLIC_MINIAPP_ACCOUNT_ASSOCIATION_HEADER || "",
+        payload:
+            process.env.NEXT_PUBLIC_MINIAPP_ACCOUNT_ASSOCIATION_PAYLOAD || "",
         signature:
-            process.env.NEXT_PUBLIC_MINIAPP_ACCOUNT_ASSOCIATION_SIGNATURE,
+            process.env.NEXT_PUBLIC_MINIAPP_ACCOUNT_ASSOCIATION_SIGNATURE || "",
     },
     miniapp: {
         version: "1",
