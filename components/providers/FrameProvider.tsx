@@ -20,7 +20,7 @@ interface SafeAreaInsets {
 
 interface MiniAppClient {
     platformType?: "web" | "mobile";
-    clientFid: number;
+    clientFid: number; // (9152=Farcaster, 309857=BaseApp)
     added: boolean;
     safeAreaInsets?: SafeAreaInsets;
     notificationDetails?: {
