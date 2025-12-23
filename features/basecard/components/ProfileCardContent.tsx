@@ -122,7 +122,7 @@ export default function ProfileCardContent({
     const router = useRouter();
     const openUrl = sdk.actions.openUrl;
     const frameContext = useFrameContext();
-    const { data: user } = useUser();
+    const { user } = useUser();
     const { address } = useAccount();
     const { showToast } = useToast();
     const { ipfsGatewayUrl } = useConfig();

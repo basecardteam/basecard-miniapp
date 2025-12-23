@@ -1,33 +1,27 @@
 "use client";
 
-import { useAuth } from "@/components/providers/AuthProvider";
-import { fetchCardByAddress } from "@/lib/api/basecards";
-import { logger } from "@/lib/common/logger";
+import { useUser } from "@/hooks/api/useUser";
 import { BaseCard } from "@/lib/types/api";
-import { useQuery } from "@tanstack/react-query";
-import { useAccount } from "wagmi";
 
 /**
  * Custom hook to get user's card data
+ * useUser에서 반환하는 card 데이터를 사용
+ * 기존 useMyBaseCard 인터페이스와 호환
  */
-export function useMyBaseCard() {
-    const { isAuthenticated, accessToken } = useAuth();
-    const { isConnected } = useAccount();
+export function useMyBaseCard(): {
+    data: BaseCard | null;
+    isLoading: boolean;
+    isPending: boolean;
+    isError: boolean;
+    error: Error | null;
+} {
+    const { card, isPending, isError, error } = useUser();
 
-    return useQuery<BaseCard | null, Error>({
-        queryKey: ["myBaseCard", accessToken],
-        queryFn: async () => {
-            if (!accessToken) {
-                return null;
-            }
-            logger.debug("Fetching myBaseCard data");
-            const card = await fetchCardByAddress(accessToken);
-            // React Query doesn't allow undefined, ensure we return null
-            return card ?? null;
-        },
-        // Only fetch when connected, have address, AND authenticated
-        enabled: isAuthenticated && !!accessToken && isConnected,
-        staleTime: 1000 * 30, // 30 seconds
-        retry: 1,
-    });
+    return {
+        data: card,
+        isLoading: isPending,
+        isPending,
+        isError,
+        error,
+    };
 }

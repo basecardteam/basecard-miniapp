@@ -9,7 +9,7 @@ interface BalanceDisplayProps {
 }
 
 export default function BalanceDisplay({ className }: BalanceDisplayProps) {
-    const { data: user, isPending } = useUser();
+    const { user, isPending } = useUser();
     return (
         <div
             className={`text-ock-foreground relative flex w-full items-center justify-between ${className} `}

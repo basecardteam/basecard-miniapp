@@ -55,7 +55,9 @@ export interface User {
     isNewUser: boolean;
     hasMintedCard: boolean;
     profileImage?: string;
+    farcasterPfpUrl?: string | null;
     wallets?: UserWallet[];
+    card?: BaseCard | null;
 }
 
 /**

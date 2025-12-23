@@ -1,11 +1,26 @@
+"use client";
+
 import { useAuth } from "@/components/providers/AuthProvider";
 import { fetchUser } from "@/lib/api/users";
 import { logger } from "@/lib/common/logger";
-import { User } from "@/lib/types/api";
+import { BaseCard, User } from "@/lib/types/api";
 import { useQuery } from "@tanstack/react-query";
 import { useRef } from "react";
 
-export function useUser() {
+interface UseUserResult {
+    user: User | null;
+    card: BaseCard | null;
+    isPending: boolean;
+    isError: boolean;
+    error: Error | null;
+    refetch: () => void;
+}
+
+/**
+ * Custom hook to get user data with card included
+ * 백엔드에서 user + card를 한 번에 반환
+ */
+export function useUser(): UseUserResult {
     const { accessToken, isAuthenticated, refreshAuth } = useAuth();
     const hasTriedRefresh = useRef(false);
 
@@ -39,5 +54,12 @@ export function useUser() {
         retry: 1,
     });
 
-    return query;
+    return {
+        user: query.data ?? null,
+        card: query.data?.card ?? null,
+        isPending: query.isPending,
+        isError: query.isError,
+        error: query.error,
+        refetch: query.refetch,
+    };
 }
