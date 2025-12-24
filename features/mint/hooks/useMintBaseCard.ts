@@ -43,6 +43,7 @@ export function useMintBaseCard() {
                     social_keys,
                     social_values,
                     initial_delegates,
+                    gatewayUrl,
                 } = await createBaseCard(address!, input, accessToken);
 
                 setIsCreatingBaseCard(false);
@@ -79,7 +80,7 @@ export function useMintBaseCard() {
                 return {
                     success: true,
                     hash,
-                    imageUri: card_data.imageUri,
+                    gatewayUrl,
                 };
             } catch (err) {
                 // Reset loading states

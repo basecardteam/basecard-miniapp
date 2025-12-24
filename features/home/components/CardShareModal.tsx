@@ -2,7 +2,7 @@
 
 import ShareModal from "@/components/modals/ShareModal";
 import { useFrameContext } from "@/components/providers/FrameProvider";
-import { generateCardShareQRCode } from "@/lib/qrCodeGenerator";
+import { generateBaseCardCollectQRCode } from "@/lib/qrCodeGenerator";
 import { BaseCard } from "@/lib/types";
 import BCLogo from "@/public/bc-icon.png";
 import { MiniAppContext } from "@farcaster/miniapp-core/dist/context";
@@ -34,7 +34,7 @@ export const CardShareModal: React.FC<CardShareModalProps> = ({
 
         setIsLoading(true);
         try {
-            const qrCode = await generateCardShareQRCode(card.id, {
+            const qrCode = await generateBaseCardCollectQRCode(card.id, {
                 width: 250,
                 margin: 2,
                 color: {

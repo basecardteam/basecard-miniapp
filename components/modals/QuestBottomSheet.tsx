@@ -11,6 +11,7 @@ interface QuestBottomSheetProps {
     onClose: () => void;
     quests: Quest[];
     claimingQuest: string | null;
+    verifyingActions?: string[];
     onAction: (quest: Quest) => void;
 }
 
@@ -19,6 +20,7 @@ export default function QuestBottomSheet({
     onClose,
     quests,
     claimingQuest,
+    verifyingActions = [],
     onAction,
 }: QuestBottomSheetProps) {
     const [isClosing, setIsClosing] = useState(false);
@@ -85,46 +87,60 @@ export default function QuestBottomSheet({
         }
     }, [dragY, handleDragClose]);
 
-    const handleBackdropClick = useCallback((e: React.MouseEvent) => {
-        // Ignore ghost clicks that happen shortly after touch events
-        const timeSinceTouch = Date.now() - lastTouchTimeRef.current;
-        if (timeSinceTouch < 300) {
-            return;
-        }
+    const handleBackdropClick = useCallback(
+        (e: React.MouseEvent) => {
+            // Ignore ghost clicks that happen shortly after touch events
+            const timeSinceTouch = Date.now() - lastTouchTimeRef.current;
+            if (timeSinceTouch < 300) {
+                return;
+            }
 
-        // Only close if clicking directly on the backdrop, not bubbled events
-        if (e.target === e.currentTarget) {
-            handleClose();
-        }
-    }, [handleClose]);
+            // Only close if clicking directly on the backdrop, not bubbled events
+            if (e.target === e.currentTarget) {
+                handleClose();
+            }
+        },
+        [handleClose]
+    );
 
     // Don't render if not open and not closing
     if (!isOpen && !isClosing) return null;
 
-    const claimableCount = quests.filter((q) => q.status === "claimable").length;
-    const completedCount = quests.filter((q) => q.status === "completed").length;
-
+    const claimableCount = quests.filter(
+        (q) => q.status === "claimable"
+    ).length;
+    const completedCount = quests.filter(
+        (q) => q.status === "completed"
+    ).length;
 
     return (
         <>
             <div className="fixed inset-0 z-[1000] max-w-xl mx-auto ">
                 <style jsx>{`
-                @keyframes slideUp {
-                    from { transform: translateY(100%); }
-                    to { transform: translateY(0); }
-                }
-                @keyframes slideDown {
-                    from { transform: translateY(0); }
-                    to { transform: translateY(100%); }
-                }
-            `}</style>
+                    @keyframes slideUp {
+                        from {
+                            transform: translateY(100%);
+                        }
+                        to {
+                            transform: translateY(0);
+                        }
+                    }
+                    @keyframes slideDown {
+                        from {
+                            transform: translateY(0);
+                        }
+                        to {
+                            transform: translateY(100%);
+                        }
+                    }
+                `}</style>
 
                 {/* Backdrop */}
                 <div
                     className="absolute inset-0 bg-black/50 z-0"
                     onClick={handleBackdropClick}
                     onTouchEnd={(e) => {
-                    // Only close if touch ends directly on backdrop
+                        // Only close if touch ends directly on backdrop
                         if (e.target === e.currentTarget) {
                             e.preventDefault();
                             handleClose();
@@ -138,16 +154,21 @@ export default function QuestBottomSheet({
                     className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl z-10"
                     style={{
                         maxHeight: "80vh",
-                        transform: (isDragging || closingWithDrag) ? `translateY(${dragY}px)` : undefined,
+                        transform:
+                            isDragging || closingWithDrag
+                                ? `translateY(${dragY}px)`
+                                : undefined,
                         animation:
-                        isDragging || closingWithDrag
-                            ? "none"
-                            : isClosing
+                            isDragging || closingWithDrag
+                                ? "none"
+                                : isClosing
                                 ? "slideDown 300ms ease-out forwards"
                                 : hasAnimatedIn
-                                    ? "none"
-                                    : "slideUp 300ms ease-out forwards",
-                        transition: isDragging ? "none" : "transform 300ms ease-out",
+                                ? "none"
+                                : "slideUp 300ms ease-out forwards",
+                        transition: isDragging
+                            ? "none"
+                            : "transform 300ms ease-out",
                     }}
                     onClick={(e) => e.stopPropagation()}
                     onMouseDown={(e) => e.stopPropagation()}
@@ -171,11 +192,13 @@ export default function QuestBottomSheet({
                             </div>
                             <div>
                                 <h2 className="text-base font-bold text-gray-900 leading-none">
-                                Quests
+                                    Quests
                                 </h2>
                                 <p className="text-xs text-gray-500">
                                     {claimableCount > 0
-                                        ? `${claimableCount} reward${claimableCount > 1 ? "s" : ""} available`
+                                        ? `${claimableCount} reward${
+                                              claimableCount > 1 ? "s" : ""
+                                          } available`
                                         : `${completedCount}/${quests.length} completed`}
                                 </p>
                             </div>
@@ -193,18 +216,19 @@ export default function QuestBottomSheet({
                         className="overflow-y-auto overscroll-y-contain px-4 py-3"
                         style={{
                             maxHeight: "calc(80vh - 72px)",
-                            paddingBottom: "calc(12px + var(--bottom-nav-h, 64px) + env(safe-area-inset-bottom, 0px))"
+                            paddingBottom:
+                                "calc(12px + var(--bottom-nav-h, 64px) + env(safe-area-inset-bottom, 0px))",
                         }}
                     >
                         <QuestList
                             quests={quests}
                             claimingQuest={claimingQuest}
+                            verifyingActions={verifyingActions}
                             onAction={onAction}
                             className="flex flex-col gap-2.5"
                         />
                     </div>
                 </div>
-
             </div>
 
             {/* Full Screen Loading Overlay - 컨테이너 밖에서 렌더링 */}

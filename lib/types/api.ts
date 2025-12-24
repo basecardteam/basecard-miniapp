@@ -134,10 +134,7 @@ export interface CreateCardResponse {
     social_keys: string[];
     social_values: string[];
     initial_delegates: string[];
-    uploadedFiles?: {
-        s3Key: string;
-        ipfsId: string;
-    };
+    gatewayUrl: string;
 }
 
 export interface VerifyQuestResponse {

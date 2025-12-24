@@ -31,7 +31,7 @@ interface UseQuestHandlerResult {
 export function useQuestHandler(): UseQuestHandlerResult {
     const router = useRouter();
     const { address } = useAccount();
-    const { claim } = useMyQuests();
+    const { claim, markPendingAction } = useMyQuests();
     const { showToast } = useToast();
     const frameContext = useFrameContext();
     const { metadata } = useERC721Token();
@@ -79,6 +79,9 @@ export function useQuestHandler(): UseQuestHandlerResult {
                 // === Farcaster ===
                 case "FC_SHARE":
                 case "FC_POST_HASHTAG": {
+                    // Mark as pending before opening external link
+                    markPendingAction(quest.actionType);
+
                     const shareUrl = address
                         ? `${
                               process.env.NEXT_PUBLIC_URL ||
@@ -89,14 +92,16 @@ export function useQuestHandler(): UseQuestHandlerResult {
                     const imageUrl = metadata?.image
                         ? resolveIpfsUrl(metadata.image)
                         : undefined;
+                    // Uses DEFAULT_SHARE_TEXT from share.ts
                     await shareToFarcaster({
-                        text: "I just minted my Basecard! Collect this and check all about myself",
                         imageUrl,
                         embedUrl: shareUrl,
                     });
                     return;
                 }
                 case "FC_FOLLOW":
+                    // Mark as pending before opening external link
+                    markPendingAction(quest.actionType);
                     await handleFcFollow();
                     return;
                 case "FC_LINK":
@@ -105,6 +110,9 @@ export function useQuestHandler(): UseQuestHandlerResult {
 
                 // === Twitter ===
                 case "X_FOLLOW": {
+                    // Mark as pending before opening external link
+                    markPendingAction(quest.actionType);
+
                     const xUrl = "https://x.com/basecardteam";
                     if (frameContext?.isInMiniApp) {
                         try {

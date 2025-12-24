@@ -12,7 +12,8 @@ export default function QuestBanner() {
     const [isQuestSheetOpen, setIsQuestSheetOpen] = useState(false);
 
     // Quest hooks
-    const { quests, claimingQuest, isLoading } = useMyQuests();
+    const { quests, claimingQuest, verifyingActions, isLoading } =
+        useMyQuests();
     const { handleQuestAction, successModalState, setSuccessModalState } =
         useQuestHandler();
 
@@ -79,8 +80,8 @@ export default function QuestBanner() {
                             {hasClaimable
                                 ? `Claim +${claimableAmount} BC`
                                 : `${incompleteCount} Quest${
-                                    incompleteCount > 1 ? "s" : ""
-                                }`}
+                                      incompleteCount > 1 ? "s" : ""
+                                  }`}
                         </span>
                     </div>
                     <ChevronRight
@@ -109,6 +110,7 @@ export default function QuestBanner() {
                 onClose={() => setIsQuestSheetOpen(false)}
                 quests={quests}
                 claimingQuest={claimingQuest}
+                verifyingActions={verifyingActions}
                 onAction={handleQuestAction}
             />
         </>

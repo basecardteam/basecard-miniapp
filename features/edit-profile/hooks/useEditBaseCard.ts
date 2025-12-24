@@ -42,7 +42,7 @@ export function useEditBaseCard() {
                 return { success: false, error: "Contract address not found" };
             }
 
-            let uploadedFiles: { ipfsId: string } | undefined;
+            let gatewayUrl: string | undefined;
 
             try {
                 if (!address) {
@@ -63,7 +63,7 @@ export function useEditBaseCard() {
                     accessToken
                 );
                 const { card_data, social_keys, social_values } = response;
-                uploadedFiles = response.uploadedFiles;
+                gatewayUrl = response.gatewayUrl;
 
                 setIsCreatingBaseCard(false);
 
@@ -97,10 +97,14 @@ export function useEditBaseCard() {
 
                 // Invalidate and refetch myBaseCard query + userQuests (profile changes may complete quests)
                 await Promise.all([
-                    queryClient.invalidateQueries({ queryKey: ["myBaseCard", address] }),
+                    queryClient.invalidateQueries({
+                        queryKey: ["myBaseCard", address],
+                    }),
                     queryClient.invalidateQueries({ queryKey: ["userQuests"] }),
                 ]);
-                await queryClient.refetchQueries({ queryKey: ["myBaseCard", address] });
+                await queryClient.refetchQueries({
+                    queryKey: ["myBaseCard", address],
+                });
 
                 setIsSendingTransaction(false);
 
@@ -121,11 +125,11 @@ export function useEditBaseCard() {
                 // User rejected the transaction
                 if (rawMessage.includes("User rejected")) {
                     // Rollback IPFS upload if files were uploaded
-                    if (uploadedFiles && address) {
+                    if (gatewayUrl && address) {
                         logger.info("↺ Rolling back uploaded IPFS files...");
                         rollbackUpdate(
                             address,
-                            uploadedFiles,
+                            { ipfsId: gatewayUrl },
                             accessToken
                         ).catch((rollbackErr: unknown) => {
                             logger.error("Failed to rollback:", rollbackErr);

@@ -64,6 +64,7 @@ function getButtonName(quest: Quest): string {
 interface QuestListProps {
     quests: Quest[];
     claimingQuest: string | null;
+    verifyingActions?: string[];
     onAction: (quest: Quest) => void;
     className?: string;
     itemClassName?: string;
@@ -76,6 +77,7 @@ interface QuestListProps {
 export default function QuestList({
     quests,
     claimingQuest,
+    verifyingActions = [],
     onAction,
     className,
     itemClassName,
@@ -130,6 +132,8 @@ export default function QuestList({
                     isCompleted={quest.status === "completed"}
                     isClaimable={quest.status === "claimable"}
                     isClaiming={claimingQuest === quest.actionType}
+                    isVerifying={verifyingActions.includes(quest.actionType)}
+                    actionType={quest.actionType}
                     onAction={() => onAction(quest)}
                     className={itemClassName}
                 />

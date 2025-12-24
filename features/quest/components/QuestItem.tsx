@@ -10,6 +10,8 @@ interface QuestItemProps {
     isCompleted?: boolean;
     isClaimable?: boolean;
     isClaiming?: boolean;
+    isVerifying?: boolean;
+    actionType?: string;
     onAction?: () => void;
 }
 
@@ -22,6 +24,7 @@ export default function QuestItem({
     isCompleted = false,
     isClaimable = false,
     isClaiming = false,
+    isVerifying = false,
     onAction,
 }: QuestItemProps) {
     return (
@@ -42,11 +45,20 @@ export default function QuestItem({
                         isCompleted
                             ? "bg-blue-500"
                             : isClaimable
-                                ? "bg-white border-2 border-blue-500"
-                                : "border-2 border-gray-300 bg-white"
+                            ? "bg-white border-2 border-blue-500"
+                            : "border-2 border-gray-300 bg-white"
                     )}
                 >
-                    <Check className={cn("w-3 h-3 stroke-[3]", isCompleted ? "text-white" : isClaimable ? "text-blue-500" : "text-gray-300")} />
+                    <Check
+                        className={cn(
+                            "w-3 h-3 stroke-[3]",
+                            isCompleted
+                                ? "text-white"
+                                : isClaimable
+                                ? "text-blue-500"
+                                : "text-gray-300"
+                        )}
+                    />
                 </div>
                 {/* Title + Description */}
                 <div className="flex-1 min-w-0">
@@ -113,9 +125,22 @@ export default function QuestItem({
                         onClick={() => {
                             onAction?.();
                         }}
-                        className="flex-1 flex justify-center items-center h-10 px-2 rounded-md text-sm font-medium bg-white border border-gray-300 text-gray-700 active:bg-gray-50 transition-colors"
+                        disabled={isVerifying}
+                        className={cn(
+                            "flex-1 flex justify-center items-center h-10 px-2 rounded-md text-sm font-medium transition-colors",
+                            isVerifying
+                                ? "bg-blue-50 border border-blue-200 text-blue-500"
+                                : "bg-white border border-gray-300 text-gray-700 active:bg-gray-50"
+                        )}
                     >
-                        <span>{buttonName}</span>
+                        {isVerifying ? (
+                            <>
+                                <Loader2 className="w-4 h-4 animate-spin mr-1.5" />
+                                <span>Verifying...</span>
+                            </>
+                        ) : (
+                            <span>{buttonName}</span>
+                        )}
                     </button>
                     <div className="flex-1 h-10 flex justify-center items-center px-2 rounded-md text-sm font-medium bg-gray-100 text-gray-400">
                         <span>+{point} BC</span>

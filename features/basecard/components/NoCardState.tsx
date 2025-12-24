@@ -7,7 +7,8 @@ import { useQuestHandler } from "@/features/quest/hooks/useQuestHandler";
 import { useMyQuests } from "@/hooks/api/useMyQuests";
 
 export const NoCardState = () => {
-    const { quests, isLoading, error, claimingQuest } = useMyQuests();
+    const { quests, isLoading, error, claimingQuest, verifyingActions } =
+        useMyQuests();
     const { handleQuestAction, successModalState, setSuccessModalState } =
         useQuestHandler();
 
@@ -25,6 +26,7 @@ export const NoCardState = () => {
                     <QuestList
                         quests={quests}
                         claimingQuest={claimingQuest}
+                        verifyingActions={verifyingActions}
                         onAction={handleQuestAction}
                         isLoading={isLoading}
                         error={error}

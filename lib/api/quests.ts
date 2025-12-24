@@ -139,3 +139,42 @@ export async function verifyQuest(
 
     return data.result;
 }
+
+/**
+ * Verify a specific quest by action type
+ * Called when user returns from external app (Visibility API)
+ */
+export async function verifyQuestByAction(
+    actionType: string,
+    accessToken: string
+): Promise<VerifyQuestResponse> {
+    const response = await fetch(
+        `${config.BACKEND_API_URL}/v1/user-quests/verify`,
+        {
+            method: "POST",
+            headers: createHeaders(accessToken),
+            body: JSON.stringify({ actionType }),
+        }
+    );
+
+    if (!response.ok) {
+        let errorMessage = "Failed to verify quest";
+        try {
+            const errorData = await response.json();
+            errorMessage = errorData.message || errorData.error || errorMessage;
+        } catch {
+            // Ignore JSON parse error
+        }
+        throw new Error(errorMessage);
+    }
+
+    const data: ApiResponse<VerifyQuestResponse> = await response.json();
+
+    if (!data.success || !data.result) {
+        throw new Error(data.error || "Failed to verify quest");
+    }
+
+    logger.debug("Verified quest by action:", actionType, data.result);
+
+    return data.result;
+}

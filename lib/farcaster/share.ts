@@ -1,7 +1,7 @@
 /**
  * Farcaster Mini App Sharing Utilities
  *
- * Based on: https://miniapps.farcaster.xyz/docs/guides/sharing
+ * Based on: https://miniapps.farcaster.xyz/docs/sdk/actions/compose-cast
  *
  * This utility provides functions to share content from Mini Apps
  * using the Farcaster SDK's composeCast action.
@@ -9,18 +9,31 @@
 
 import { sdk } from "@farcaster/miniapp-sdk";
 
+// =============================================================================
+// Constants
+// =============================================================================
+
+/** Default promotional text for BaseCard shares */
+export const DEFAULT_SHARE_TEXT = "Just minted my BaseCard ✨ Mint yours!";
+
+// =============================================================================
+// Types
+// =============================================================================
+
 /**
  * Options for sharing to Farcaster
  */
 export interface ShareToFarcasterOptions {
-    /** Text content for the cast */
+    /** Text content for the cast (defaults to promotional text) */
     text?: string;
     /** URL to embed (will show as Mini App embed if the page has fc:miniapp meta tags) */
     embedUrl?: string;
     /** Image URL to embed directly in the cast */
     imageUrl?: string;
-    /** Close the compose window after posting (default: false) */
+    /** Close the Mini App after posting (default: false) */
     closeAfterPost?: boolean;
+    /** Channel to post to (optional) */
+    channelKey?: string;
 }
 
 /**
@@ -30,9 +43,17 @@ export interface ShareResult {
     success: boolean;
     /** Cast hash if successful */
     castHash?: string;
+    /** Channel key if posted to a channel */
+    channelKey?: string;
+    /** Whether the user cancelled the cast */
+    cancelled?: boolean;
     /** Error message if failed */
     error?: string;
 }
+
+// =============================================================================
+// Helper Functions
+// =============================================================================
 
 /**
  * Check if we're running inside a Farcaster Mini App
@@ -46,6 +67,32 @@ export async function isInMiniApp(): Promise<boolean> {
 }
 
 /**
+ * Build embeds tuple from image and URL
+ * SDK expects: [] | [string] | [string, string]
+ * Order: [imageUrl, embedUrl] - image first shows as main image
+ */
+function buildEmbeds(
+    imageUrl?: string,
+    embedUrl?: string
+): [] | [string] | [string, string] | undefined {
+    const img = imageUrl?.trim();
+    const url = embedUrl?.trim();
+
+    if (img && url) {
+        return [img, url];
+    } else if (img) {
+        return [img];
+    } else if (url) {
+        return [url];
+    }
+    return undefined;
+}
+
+// =============================================================================
+// Main Share Function
+// =============================================================================
+
+/**
  * Share content to Farcaster using the SDK's composeCast action.
  *
  * When inside a Mini App, this opens the native compose UI.
@@ -53,29 +100,32 @@ export async function isInMiniApp(): Promise<boolean> {
  *
  * @example
  * ```ts
+ * // Share with default promotional text
  * await shareToFarcaster({
- *   text: "Check out my BaseCard! 🎉",
- *   embedUrl: "https://app.basecard.org/card/0x1234...",
+ *   imageUrl: "https://gateway.pinata.cloud/ipfs/...",
+ *   embedUrl: "https://miniapp.basecard.org/card/0x1234...",
+ * });
+ *
+ * // Share with custom text
+ * await shareToFarcaster({
+ *   text: "Check out this amazing BaseCard!",
+ *   embedUrl: "https://miniapp.basecard.org/card/0x1234...",
  * });
  * ```
  */
 export async function shareToFarcaster(
     options: ShareToFarcasterOptions
 ): Promise<ShareResult> {
-    const { text = "", embedUrl, imageUrl } = options;
+    const {
+        text = DEFAULT_SHARE_TEXT,
+        embedUrl,
+        imageUrl,
+        closeAfterPost = false,
+        channelKey,
+    } = options;
 
-    // Build embeds tuple: image first (shows as main image), then URL
-    // SDK expects tuple of max 2 elements
-    type EmbedsTuple = [] | [string] | [string, string];
-    let embeds: EmbedsTuple | undefined;
-
-    if (imageUrl && embedUrl) {
-        embeds = [imageUrl, embedUrl];
-    } else if (imageUrl) {
-        embeds = [imageUrl];
-    } else if (embedUrl) {
-        embeds = [embedUrl];
-    }
+    // Build embeds: [imageUrl, embedUrl] - image first, link second
+    const embeds = buildEmbeds(imageUrl, embedUrl);
 
     try {
         // Check if we're in a Mini App context
@@ -86,20 +136,24 @@ export async function shareToFarcaster(
             const result = await sdk.actions.composeCast({
                 text,
                 embeds,
+                close: closeAfterPost,
+                channelKey,
             });
 
-            // composeCast returns the cast details on success
-            if (result && "hash" in result) {
+            // result.cast is null if user cancels
+            if (result?.cast) {
                 return {
                     success: true,
-                    castHash: result.hash as string,
+                    castHash: result.cast.hash,
+                    channelKey: result.cast.channelKey,
                 };
             }
 
-            // User might have cancelled
+            // User cancelled the cast
             return {
                 success: false,
-                error: "Cast was cancelled or failed",
+                cancelled: true,
+                error: "Cast composition cancelled by user",
             };
         } else {
             // Fallback to Warpcast intent URL for browser
@@ -115,10 +169,16 @@ export async function shareToFarcaster(
         openWarpcastCompose(text, imageUrl, embedUrl);
         return {
             success: true, // Opened fallback
-            error: "Used fallback (Warpcast intent URL)",
+            error: `Used fallback: ${
+                error instanceof Error ? error.message : "Unknown error"
+            }`,
         };
     }
 }
+
+// =============================================================================
+// Fallback Functions
+// =============================================================================
 
 /**
  * Open Warpcast compose intent URL (fallback for non-Mini App context)
@@ -131,7 +191,7 @@ export function openWarpcastCompose(
     const encodedText = encodeURIComponent(text);
     let url = `https://warpcast.com/~/compose?text=${encodedText}`;
 
-    // Add image first, then embed URL
+    // Add image first, then embed URL (same order as SDK)
     if (imageUrl) {
         url += `&embeds[]=${encodeURIComponent(imageUrl)}`;
     }

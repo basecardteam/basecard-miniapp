@@ -1,4 +1,5 @@
 import { ACTION_ADD_CARD } from "@/lib/constants/actions";
+import { ROOT_URL } from "@/minikit.config";
 import QRCode from "qrcode";
 
 export interface QRCodeOptions {
@@ -68,7 +69,14 @@ export async function generateQRCodeSVG(
 /**
  * Generate a shareable URL for a BaseCard
  */
-export function generateCardShareURL(cardId: string): string {
+export function generateBaseCardShareURL(cardId: string): string {
+    return `${ROOT_URL}/share/${cardId}`;
+}
+
+/**
+ * Generate a collectable URL for a BaseCard
+ */
+export function generateBaseCardCollectURL(cardId: string): string {
     const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
     console.log(
         "generated share URL",
@@ -79,12 +87,12 @@ export function generateCardShareURL(cardId: string): string {
 }
 
 /**
- * Generate QR code for BaseCard sharing
+ * Generate QR code for BaseCard collect
  */
-export async function generateCardShareQRCode(
+export async function generateBaseCardCollectQRCode(
     cardId: string,
     options?: QRCodeOptions
 ): Promise<string> {
-    const shareURL = generateCardShareURL(cardId);
+    const shareURL = generateBaseCardCollectURL(cardId);
     return generateQRCodeDataURL(shareURL, options);
 }

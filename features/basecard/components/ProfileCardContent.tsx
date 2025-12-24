@@ -13,13 +13,12 @@ import {
     useFrameContext,
 } from "@/components/providers/FrameProvider";
 import { useToast } from "@/components/ui/Toast";
-import { useConfig } from "@/hooks/api/useConfig";
 import { useUser } from "@/hooks/api/useUser";
-import { logger } from "@/lib/common/logger";
 import { shareToFarcaster } from "@/lib/farcaster/share";
 import {
-    generateCardShareQRCode,
-    generateCardShareURL,
+    generateBaseCardCollectQRCode,
+    generateBaseCardCollectURL,
+    generateBaseCardShareURL,
 } from "@/lib/qrCodeGenerator";
 import { BaseCard, SocialKey } from "@/lib/types";
 import { resolveIpfsUrl } from "@/lib/utils";
@@ -125,7 +124,6 @@ export default function ProfileCardContent({
     const { user } = useUser();
     const { address } = useAccount();
     const { showToast } = useToast();
-    const { ipfsGatewayUrl } = useConfig();
 
     // =========================================================================
     // Derived States
@@ -136,7 +134,6 @@ export default function ProfileCardContent({
 
     // Use card.socials directly
     const socials = card.socials || {};
-    logger.info("socials", socials);
     const profileImageUrl = useMemo(() => {
         // Viewer mode: use owner's Farcaster pfp_url if available
         if (isViewer && ownerPfpUrl) {
@@ -182,9 +179,9 @@ export default function ProfileCardContent({
     );
 
     const handleCopyLink = useCallback(async () => {
-        if (!address) return;
+        if (!card) return;
         try {
-            const shareURL = generateCardShareURL(address);
+            const shareURL = generateBaseCardCollectURL(card.id);
             await navigator.clipboard.writeText(shareURL);
             showToast("Link copied!", "success");
         } catch (error) {
@@ -198,7 +195,7 @@ export default function ProfileCardContent({
         setIsQRModalOpen(true);
         setIsLoadingQR(true);
         try {
-            const qrCode = await generateCardShareQRCode(address, {
+            const qrCode = await generateBaseCardCollectQRCode(address, {
                 width: 250,
                 margin: 2,
                 color: { dark: "#000000", light: "#FFFFFF00" },
@@ -213,17 +210,12 @@ export default function ProfileCardContent({
     }, [address]);
 
     const handleCastCard = useCallback(async () => {
-        if (!address) return;
-        const shareUrl = generateCardShareURL(address);
-        const imageUrl = card?.imageUri
-            ? resolveIpfsUrl(card.imageUri, ipfsGatewayUrl)
-            : undefined;
+        if (!card) return;
+        const shareUrl = generateBaseCardShareURL(card.id);
         await shareToFarcaster({
-            text: `Check out my Basecard! Collect this and see all about me 🎉`,
-            imageUrl,
             embedUrl: shareUrl,
         });
-    }, [address, card?.imageUri, ipfsGatewayUrl]);
+    }, [card]);
 
     // =========================================================================
     // Render
@@ -377,7 +369,7 @@ export default function ProfileCardContent({
                     title="Share My Card"
                     profileImageUrl={
                         user?.profileImage
-                            ? resolveIpfsUrl(user.profileImage, ipfsGatewayUrl)
+                            ? resolveIpfsUrl(user.profileImage)
                             : undefined
                     }
                     name={card?.nickname || undefined}

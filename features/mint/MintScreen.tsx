@@ -16,7 +16,6 @@ import { MAX_WEBSITES, type Role } from "@/lib/constants/mint";
 import { shareToFarcaster } from "@/lib/farcaster/share";
 import { processProfileImage } from "@/lib/processProfileImage";
 import type { MintFormData } from "@/lib/schemas/mintFormSchema";
-import { resolveIpfsUrl } from "@/lib/utils";
 import { activeChain } from "@/lib/wagmi";
 import defaultProfileImage from "@/public/assets/default-profile.png";
 import dynamic from "next/dynamic";
@@ -87,9 +86,9 @@ export default function MintScreen() {
     const [successModal, setSuccessModal] = useState<{
         isOpen: boolean;
         txHash: string;
-        imageUri: string;
+        gatewayUrl: string;
         isExisting: boolean;
-    }>({ isOpen: false, txHash: "", imageUri: "", isExisting: false });
+    }>({ isOpen: false, txHash: "", gatewayUrl: "", isExisting: false });
 
     // Form submit handler
     const onSubmit = useCallback(
@@ -117,12 +116,7 @@ export default function MintScreen() {
                 });
 
                 if (result.success) {
-                    logger.info("mint result:", result);
-                    logger.info("result.imageUri (raw):", result.imageUri);
-                    logger.info(
-                        "result.imageUri (resolved):",
-                        resolveIpfsUrl(result.imageUri)
-                    );
+                    logger.info("result.gatewayUrl", result.gatewayUrl);
 
                     // Clear all cached storage data for fresh start
                     if (typeof window !== "undefined") {
@@ -133,7 +127,7 @@ export default function MintScreen() {
                     setSuccessModal({
                         isOpen: true,
                         txHash: result.hash || "",
-                        imageUri: resolveIpfsUrl(result.imageUri) || "",
+                        gatewayUrl: result.gatewayUrl || "",
                         isExisting: result.isExisting || false,
                     });
                 }
@@ -388,9 +382,9 @@ export default function MintScreen() {
                     router.push("/");
                 }}
                 onShare={async () => {
+                    // Uses DEFAULT_SHARE_TEXT from share.ts
                     await shareToFarcaster({
-                        text: "I just minted my Basecard! Collect this and check all about myself",
-                        embedUrl: successModal.imageUri,
+                        embedUrl: successModal.gatewayUrl,
                     });
                     router.push("/");
                 }}

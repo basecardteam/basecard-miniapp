@@ -49,12 +49,16 @@ export async function fetchAllBaseCards(): Promise<BaseCard[]> {
  * Fetch card detail by card ID (includes farcasterProfile)
  * Uses GET /v1/basecards/:id endpoint
  * Returns null if card not found
+ * Cached for 60 seconds to improve metadata generation performance
  */
 export async function fetchBaseCardById(
     cardId: string
 ): Promise<BaseCardDetail | null> {
     const response = await fetch(
-        `${config.BACKEND_API_URL}/v1/basecards/${cardId}`
+        `${config.BACKEND_API_URL}/v1/basecards/${cardId}`,
+        {
+            next: { revalidate: 60 }, // Cache for 60 seconds
+        }
     );
 
     if (!response.ok) {
