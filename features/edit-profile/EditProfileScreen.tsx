@@ -14,9 +14,10 @@ import ProfileImagePreview from "@/features/mint/components/ProfileImagePreview"
 import { RoleSelector } from "@/features/mint/components/RoleSelector";
 import { SocialsInput } from "@/features/mint/components/SocialsInput";
 import { WebsitesInput } from "@/features/mint/components/WebsitesInput";
-import { useMyBaseCard } from "@/hooks/api/useMyBaseCard";
+import { useUser } from "@/hooks/api/useUser";
 import type { MintFormData } from "@/lib/schemas/mintFormSchema";
 import defaultProfileImage from "@/public/assets/default-profile.png";
+import { useQueryClient } from "@tanstack/react-query";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { Suspense, useCallback, useEffect, useState } from "react";
@@ -63,7 +64,8 @@ export default function EditProfileScreen() {
         defaultProfileImage;
 
     // Fetch existing card data
-    const { data: cardData, isLoading: isCardLoading } = useMyBaseCard();
+    const { card: cardData, isPending: isCardLoading } = useUser();
+    const queryClient = useQueryClient();
 
     // Form state
     const {
@@ -88,19 +90,16 @@ export default function EditProfileScreen() {
         if (cardData) {
             reset({
                 name: cardData.nickname || "",
-                role: (cardData.role as any) || undefined, // Type cast if necessary
+                role: (cardData.role as any) || undefined,
                 bio: cardData.bio || "",
                 github: cardData.socials?.github || "",
                 x: cardData.socials?.x || "",
                 farcaster: cardData.socials?.farcaster || "",
-                websites: [], // Card data doesn't seem to have websites in the example JSON?
-                // If it does, map it here. The provided JSON doesn't show it.
-                selectedSkills: [], // Also not in JSON
-                profileImageFile: null, // Can't prepopulate file input, but Preview handles URL
+                linkedin: cardData.socials?.linkedin || "",
+                websites: [],
+                selectedSkills: [],
+                profileImageFile: null,
             });
-            // We need to ensure ProfileImagePreview handles the 'preview' correctly if it's a URL
-            // The ProfileImagePreview component usually takes a file or a default URL.
-            // We should overwrite 'defaultProfileUrl' logic effectively for visual.
         }
     }, [cardData, reset]);
 
@@ -317,8 +316,24 @@ export default function EditProfileScreen() {
                 <Suspense fallback={null}>
                     <BaseModal
                         isOpen={showSuccessModal}
-                        onClose={() => {
+                        onClose={async () => {
                             setShowSuccessModal(false);
+                            // Refetch both user and quests so QuestList can check updated socials
+                            await Promise.all([
+                                queryClient.refetchQueries({
+                                    queryKey: ["user"],
+                                }),
+                                queryClient.invalidateQueries({
+                                    queryKey: ["userQuests"],
+                                }),
+                            ]);
+                            // Debug: log updated user data after refetch
+                            const userData = queryClient.getQueryData(["user"]);
+                            console.log("After refetch - user data:", userData);
+                            console.log(
+                                "After refetch - user.card.socials:",
+                                (userData as any)?.card?.socials
+                            );
                             router.push("/basecard");
                         }}
                         title="Profile Updated"

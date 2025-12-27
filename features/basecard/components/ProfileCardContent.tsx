@@ -134,6 +134,7 @@ export default function ProfileCardContent({
 
     // Use card.socials directly
     const socials = card.socials || {};
+    console.log("ProfileCardContent - card.socials:", card.socials);
     const profileImageUrl = useMemo(() => {
         // Viewer mode: use owner's Farcaster pfp_url if available
         if (isViewer && ownerPfpUrl) {

@@ -1,10 +1,21 @@
 "use client";
 
-import { Quest } from "@/lib/types/api";
+import { useUser } from "@/hooks/api/useUser";
+import { Quest, SocialKey } from "@/lib/types/api";
 import { useMemo } from "react";
 import QuestEmptyState from "./QuestEmptyState";
 import QuestItem from "./QuestItem";
 import QuestItemSkeleton from "./QuestItemSkeleton";
+
+// Map actionType to social key for link quests
+const ACTION_TO_SOCIAL_KEY: Record<string, SocialKey> = {
+    GH_LINK: "github",
+    LI_LINK: "linkedin",
+    X_LINK: "x",
+    FC_LINK: "farcaster",
+    WEB_LINK: "website",
+    BASE_LINK_NAME: "basename",
+};
 
 const BUTTON_LABELS: Record<string, string> = {
     // Farcaster
@@ -86,6 +97,18 @@ export default function QuestList({
     skeletonCount = 3,
     variant = "light",
 }: QuestListProps) {
+    // Get user's socials for verifiable check
+    const { card } = useUser();
+    const userSocials = card?.socials ?? {};
+
+    // Check if a quest is verifiable (pending + social linked)
+    const isQuestVerifiable = (quest: Quest): boolean => {
+        if (quest.status !== "pending") return false;
+        const socialKey = ACTION_TO_SOCIAL_KEY[quest.actionType];
+        if (!socialKey) return false;
+        return !!userSocials[socialKey];
+    };
+
     // Sort: claimable → pending → completed
     const sortedQuests = useMemo(() => {
         return [...quests].sort((a, b) => {
@@ -122,22 +145,30 @@ export default function QuestList({
 
     return (
         <div className={className}>
-            {sortedQuests.map((quest, index) => (
-                <QuestItem
-                    key={quest.actionType || index}
-                    title={quest.title}
-                    content={quest.description || ""}
-                    buttonName={getButtonName(quest)}
-                    point={quest.rewardAmount}
-                    isCompleted={quest.status === "completed"}
-                    isClaimable={quest.status === "claimable"}
-                    isClaiming={claimingQuest === quest.actionType}
-                    isVerifying={verifyingActions.includes(quest.actionType)}
-                    actionType={quest.actionType}
-                    onAction={() => onAction(quest)}
-                    className={itemClassName}
-                />
-            ))}
+            {sortedQuests.map((quest, index) => {
+                const verifiable = isQuestVerifiable(quest);
+                return (
+                    <QuestItem
+                        key={quest.actionType || index}
+                        title={quest.title}
+                        content={quest.description || ""}
+                        buttonName={
+                            verifiable ? "Verify" : getButtonName(quest)
+                        }
+                        point={quest.rewardAmount}
+                        isCompleted={quest.status === "completed"}
+                        isClaimable={quest.status === "claimable"}
+                        isVerifiable={verifiable}
+                        isClaiming={claimingQuest === quest.actionType}
+                        isVerifying={verifyingActions.includes(
+                            quest.actionType
+                        )}
+                        actionType={quest.actionType}
+                        onAction={() => onAction(quest)}
+                        className={itemClassName}
+                    />
+                );
+            })}
         </div>
     );
 }

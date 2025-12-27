@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/Toast";
 import { useMintBaseCardMutation } from "@/features/mint/hooks/useMintBaseCardMutation";
 import { useMintForm } from "@/features/mint/hooks/useMintForm";
+import { useUser } from "@/hooks/api/useUser";
 import { logger } from "@/lib/common/logger";
 import { MAX_WEBSITES, type Role } from "@/lib/constants/mint";
 import { shareToFarcaster } from "@/lib/farcaster/share";
@@ -45,6 +46,7 @@ export default function MintScreen() {
     const router = useRouter();
     const { address } = useAccount();
     const { showToast } = useToast();
+    const { refetch: refetchMyCard } = useUser();
 
     const username = (frameContext?.context as MiniAppContext)?.user?.username;
     const defaultProfileUrl =
@@ -379,6 +381,7 @@ export default function MintScreen() {
                 isExisting={successModal.isExisting}
                 onViewCard={() => {
                     setSuccessModal((prev) => ({ ...prev, isOpen: false }));
+                    refetchMyCard();
                     router.push("/");
                 }}
                 onShare={async () => {

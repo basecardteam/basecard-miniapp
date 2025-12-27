@@ -155,38 +155,46 @@ export async function createBaseCard(
 }
 
 export interface UpdateBaseCardParams {
-    nickname: string;
-    role: string;
-    bio: string;
-    socials: Socials;
-    profileImageFile: File;
+    nickname?: string;
+    role?: string;
+    bio?: string;
+    socials?: Socials;
+    profileImageFile?: File;
+}
+
+export interface UpdateBaseCardResponse {
+    card_data: {
+        imageUri: string;
+        nickname: string;
+        role: string;
+        bio: string;
+    };
+    social_keys: string[];
+    social_values: string[];
+    token_id: number;
+    needs_rollback: boolean; // true if new image was uploaded (should call rollback on tx reject)
 }
 
 export async function updateBaseCard(
-    address: string,
     params: UpdateBaseCardParams,
     accessToken: string
-): Promise<CreateCardResponse> {
+): Promise<UpdateBaseCardResponse> {
     const formData = new FormData();
 
-    // Always send all fields - empty string means "clear/delete"
-    formData.append("nickname", params.nickname);
-    formData.append("role", params.role);
-    formData.append("bio", params.bio);
-    formData.append("socials", JSON.stringify(params.socials));
-    formData.append("profileImageFile", params.profileImageFile);
+    // Only append provided fields
+    if (params.nickname) formData.append("nickname", params.nickname);
+    if (params.role) formData.append("role", params.role);
+    if (params.bio !== undefined) formData.append("bio", params.bio);
+    if (params.profileImageFile)
+        formData.append("profileImageFile", params.profileImageFile);
+    if (params.socials)
+        formData.append("socials", JSON.stringify(params.socials));
 
-    const headers: HeadersInit = {};
-    headers["Authorization"] = `Bearer ${accessToken}`;
-
-    const response = await fetch(
-        `${config.BACKEND_API_URL}/v1/basecards/${address}`,
-        {
-            method: "PATCH",
-            headers,
-            body: formData,
-        }
-    );
+    const response = await fetch(`${config.BACKEND_API_URL}/v1/basecards/me`, {
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${accessToken}` },
+        body: formData,
+    });
 
     if (!response.ok) {
         let errorMessage = `Failed to update card (status: ${response.status})`;
@@ -201,9 +209,10 @@ export async function updateBaseCard(
         throw new Error(errorMessage);
     }
 
-    const data: ApiResponse<CreateCardResponse> = await response.json();
+    const data = await response.json();
     logger.debug("Update card response:", data);
 
+    // Handle wrapped API response ({ success: true, result: {...} })
     if (!data.success || !data.result) {
         throw new Error(data.error || "Failed to update card");
     }
@@ -212,16 +221,15 @@ export async function updateBaseCard(
 }
 
 export async function rollbackUpdate(
-    address: string,
-    uploadedFiles: { ipfsId: string },
+    imageUri: string,
     accessToken: string
 ): Promise<void> {
     const response = await fetch(
-        `${config.BACKEND_API_URL}/v1/basecards/${address}/rollback`,
+        `${config.BACKEND_API_URL}/v1/basecards/me/rollback`,
         {
             method: "POST",
             headers: createHeaders(accessToken, true),
-            body: JSON.stringify(uploadedFiles),
+            body: JSON.stringify({ imageUri }),
         }
     );
 

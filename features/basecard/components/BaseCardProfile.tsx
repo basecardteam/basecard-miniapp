@@ -3,8 +3,8 @@ import { BaseModal } from "@/components/modals/BaseModal";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useToast } from "@/components/ui/Toast";
 import { useBaseCard } from "@/hooks/api/useBaseCard";
-import { useMyBaseCard } from "@/hooks/api/useMyBaseCard";
 import { useMyCollections } from "@/hooks/api/useMyCollections";
+import { useUser } from "@/hooks/api/useUser";
 import { addCollection, deleteCollection } from "@/lib/api/collections";
 import { BaseCard } from "@/lib/types/api";
 import defaultProfileImage from "@/public/assets/default-profile.png";
@@ -67,7 +67,7 @@ export default function MyBaseCardProfile({
     const isProfile = mode === "profile";
 
     // Data fetching based on mode
-    const { data: myCard, isLoading: isMyCardLoading } = useMyBaseCard();
+    const { card: myCard, isPending: isMyCardLoading } = useUser();
     const { data: viewerCard, isLoading: isViewerCardLoading } = useBaseCard(
         isViewer ? cardId : undefined
     );

@@ -2,7 +2,7 @@
 
 import { CollectionFilter } from "@/features/collection/components/CollectionFilter";
 import { useBaseCards } from "@/hooks/api/useBaseCards";
-import { useMyBaseCard } from "@/hooks/api/useMyBaseCard";
+import { useUser } from "@/hooks/api/useUser";
 import {
     CollectionFilterTag,
     filterCollections,
@@ -17,7 +17,7 @@ export default function CollectCardsSection() {
     const deferredSearchTerm = searchInput;
 
     const { data: allCards, isError, isPending } = useBaseCards();
-    const { data: myCard } = useMyBaseCard();
+    const { card: myCard } = useUser();
 
     // Filter out my own card from the list
     const cards = useMemo(() => {

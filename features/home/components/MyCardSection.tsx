@@ -6,7 +6,7 @@ import {
     CardEmptyState,
     CardLoadingState,
 } from "@/components/CardStates";
-import { useMyBaseCard } from "@/hooks/api/useMyBaseCard";
+import { useUser } from "@/hooks/api/useUser";
 import { getIPFSUrl } from "@/lib/utils";
 import { QrCode } from "lucide-react";
 import Image from "next/image";
@@ -16,7 +16,7 @@ import { CardShareModal } from "./CardShareModal";
 
 export default function MyCardSection() {
     const router = useRouter();
-    const { data: card, isLoading, error } = useMyBaseCard();
+    const { card, isPending: isLoading, error } = useUser();
     const [showShareFloating, setShowShareFloating] = useState(false);
 
     const handleMyCardClick = () => {

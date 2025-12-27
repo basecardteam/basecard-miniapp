@@ -1,4 +1,3 @@
-import { useMyBaseCard } from "@/hooks/api/useMyBaseCard";
 import {
     CollectionFilterTag,
     filterCollections,
@@ -6,6 +5,7 @@ import {
 import { sdk } from "@farcaster/miniapp-sdk";
 import { useState } from "react";
 import { useMyCollections } from "./api/useMyCollections";
+import { useUser } from "./api/useUser";
 
 /**
  * Collection 페이지의 전체 로직을 통합한 훅
@@ -15,10 +15,10 @@ export function useCollectionPage() {
 
     // 사용자 카드 정보 조회
     const {
-        data: myCard,
-        isLoading: isMyCardLoading,
+        card: myCard,
+        isPending: isMyCardLoading,
         error: myCardError,
-    } = useMyBaseCard();
+    } = useUser();
 
     // 컬렉션 카드 목록 조회
     const { data, isLoading, error } = useMyCollections();

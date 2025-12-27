@@ -373,8 +373,8 @@ export default function AuthProvider({
         if (!isInMiniApp || isAuthenticated) {
             return;
         }
-        // Wait for wallet to be connected (address available)
-        if (!address) {
+        // Wait for wallet to be connected (address is required for loginWithFarcaster)
+        if (!isConnected || !address) {
             logger.debug("Waiting for wallet address before Farcaster auth...");
             return;
         }
@@ -383,6 +383,7 @@ export default function AuthProvider({
         isContextReady,
         isInMiniApp,
         isAuthenticated,
+        isConnected,
         address,
         performFarcasterAuth,
     ]);

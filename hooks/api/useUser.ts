@@ -25,7 +25,7 @@ export function useUser(): UseUserResult {
     const hasTriedRefresh = useRef(false);
 
     const query = useQuery<User | null, Error>({
-        queryKey: ["user", accessToken],
+        queryKey: ["user"],
         queryFn: async () => {
             if (!accessToken) {
                 return null;
@@ -50,7 +50,8 @@ export function useUser(): UseUserResult {
             }
         },
         enabled: isAuthenticated && !!accessToken,
-        staleTime: 1000 * 60 * 5, // 5 minutes
+        staleTime: 1000 * 60, // 1 minute
+        refetchOnMount: true,
         retry: 1,
     });
 

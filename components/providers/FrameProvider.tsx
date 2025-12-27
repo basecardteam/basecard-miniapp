@@ -114,7 +114,7 @@ export default function FrameProvider({
             try {
                 const ctx = await sdk.context;
                 sdk.actions.ready();
-                await new Promise((resolve) => setTimeout(resolve, 100));
+                await new Promise((resolve) => setTimeout(resolve, 50));
 
                 const inMiniApp = await sdk.isInMiniApp();
                 setContext(ctx);

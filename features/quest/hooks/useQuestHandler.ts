@@ -1,16 +1,27 @@
 import { useFrameContext } from "@/components/providers/FrameProvider";
 import { useToast } from "@/components/ui/Toast";
 import { useMyQuests } from "@/hooks/api/useMyQuests";
-import { useERC721Token } from "@/hooks/evm/useERC721Token";
+import { useUser } from "@/hooks/api/useUser";
 import { shareToFarcaster } from "@/lib/farcaster/share";
 import { handleAppAddMiniapp, handleFcFollow } from "@/lib/quest-actions";
-import { Quest } from "@/lib/types/api";
-import { resolveIpfsUrl } from "@/lib/utils";
+import { Quest, SocialKey } from "@/lib/types/api";
 import sdk from "@farcaster/miniapp-sdk";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import { useAccount } from "wagmi";
+
+/**
+ * Map actionType to social key for link quests
+ */
+const ACTION_TO_SOCIAL_KEY: Record<string, SocialKey> = {
+    GH_LINK: "github",
+    LI_LINK: "linkedin",
+    X_LINK: "x",
+    FC_LINK: "farcaster",
+    WEB_LINK: "website",
+    BASE_LINK_NAME: "basename",
+};
 
 interface UseQuestHandlerResult {
     handleQuestAction: (quest: Quest) => Promise<void>;
@@ -31,12 +42,15 @@ interface UseQuestHandlerResult {
 export function useQuestHandler(): UseQuestHandlerResult {
     const router = useRouter();
     const { address } = useAccount();
-    const { claim, markPendingAction } = useMyQuests();
+    const { claim, markPendingAction, verifyAction } = useMyQuests();
+    const { card } = useUser();
     const { showToast } = useToast();
     const frameContext = useFrameContext();
-    const { metadata } = useERC721Token();
     const queryClient = useQueryClient();
     const openUrl = sdk.actions.openUrl;
+
+    // Get user's current socials for verification
+    const userSocials = card?.socials ?? {};
 
     const [successModalState, setSuccessModalState] = useState<{
         isOpen: boolean;
@@ -89,9 +103,10 @@ export function useQuestHandler(): UseQuestHandlerResult {
                           }/card/${address}`
                         : process.env.NEXT_PUBLIC_URL ||
                           "https://basecard.vercel.app";
-                    const imageUrl = metadata?.image
-                        ? resolveIpfsUrl(metadata.image)
-                        : undefined;
+                    // const imageUrl = card?.image
+                    //     ? resolveIpfsUrl(card.image)
+                    //     : undefined;
+                    const imageUrl = "";
                     // Uses DEFAULT_SHARE_TEXT from share.ts
                     await shareToFarcaster({
                         imageUrl,
@@ -125,9 +140,6 @@ export function useQuestHandler(): UseQuestHandlerResult {
                     }
                     return;
                 }
-                case "X_LINK":
-                    router.push("/edit-profile");
-                    return;
 
                 // === App ===
                 case "APP_NOTIFICATION": {
@@ -208,13 +220,46 @@ export function useQuestHandler(): UseQuestHandlerResult {
                     showToast("Complete this action to claim", "info");
                     return;
 
-                // === Link accounts (all go to edit profile) ===
+                // === Link accounts ===
                 case "GH_LINK":
                 case "LI_LINK":
+                case "X_LINK":
                 case "BASE_LINK_NAME":
-                case "WEB_LINK":
+                case "WEB_LINK": {
+                    // Only check for auto-verify when status is pending
+                    if (quest.status === "pending") {
+                        const socialKey =
+                            ACTION_TO_SOCIAL_KEY[quest.actionType];
+                        const hasSocial = socialKey && userSocials[socialKey];
+
+                        // If social is already linked, try to verify (not claim)
+                        if (hasSocial) {
+                            try {
+                                const result = await verifyAction(
+                                    quest.actionType
+                                );
+                                if (result && result.verified) {
+                                    showToast(
+                                        "Quest verified! You can now claim your reward.",
+                                        "success"
+                                    );
+                                }
+                            } catch (err) {
+                                showToast(
+                                    err instanceof Error
+                                        ? err.message
+                                        : "Failed to verify quest",
+                                    "error"
+                                );
+                            }
+                            return;
+                        }
+                    }
+
+                    // Social not linked yet OR not pending, go to edit-profile
                     router.push("/edit-profile");
                     return;
+                }
 
                 default:
                     // Unknown action type - try to claim anyway
@@ -237,7 +282,7 @@ export function useQuestHandler(): UseQuestHandlerResult {
                     }
             }
         },
-        [claim, router, showToast, frameContext, address, metadata, openUrl]
+        [claim, router, showToast, frameContext, address, openUrl]
     );
 
     return {
