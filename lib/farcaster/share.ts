@@ -120,7 +120,7 @@ export async function shareToFarcaster(
         text = DEFAULT_SHARE_TEXT,
         embedUrl,
         imageUrl,
-        closeAfterPost = true,
+        closeAfterPost = false,
         channelKey,
     } = options;
 
