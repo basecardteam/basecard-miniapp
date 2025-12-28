@@ -327,13 +327,6 @@ export default function EditProfileScreen() {
                                     queryKey: ["userQuests"],
                                 }),
                             ]);
-                            // Debug: log updated user data after refetch
-                            const userData = queryClient.getQueryData(["user"]);
-                            console.log("After refetch - user data:", userData);
-                            console.log(
-                                "After refetch - user.card.socials:",
-                                (userData as any)?.card?.socials
-                            );
                             router.push("/basecard");
                         }}
                         title="Profile Updated"

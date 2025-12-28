@@ -44,6 +44,7 @@ export const useAuth = () => {
 const AUTH_TOKEN_KEY = "basecard_auth_token";
 const AUTH_USER_KEY = "basecard_auth_user";
 const AUTH_EXPIRES_KEY = "basecard_auth_expires";
+const NOTIFICATION_PROMPT_SHOWN_KEY = "basecard_notification_prompt_shown";
 const TOKEN_EXPIRY_MS = 60 * 60 * 1000; // 1 hour in milliseconds
 const TOKEN_REFRESH_BUFFER_MS = 5 * 60 * 1000; // Refresh 5 minutes before expiry
 
@@ -70,6 +71,8 @@ export default function AuthProvider({
     const [isAuthLoading, setIsAuthLoading] = useState(true);
     const [authUser, setAuthUser] = useState<AuthUser | null>(null);
     const [accessToken, setAccessToken] = useState<string | null>(null);
+    const [showRetryModal, setShowRetryModal] = useState(false);
+    const [retryCountdown, setRetryCountdown] = useState(0);
     const isAuthInProgress = useRef(false);
     const hasAttemptedAutoLogin = useRef(false);
     const hasRestoredAuth = useRef(false);
@@ -253,7 +256,33 @@ export default function AuthProvider({
                     logout(); // Only logout on refresh failure
                 }
                 if (isInitialLogin) {
-                    throw error; // Re-throw for initial login
+                    // Check if user rejected
+                    const errorMessage =
+                        error instanceof Error ? error.message : String(error);
+                    const isRejected =
+                        errorMessage.toLowerCase().includes("user rejected") ||
+                        errorMessage.toLowerCase().includes("user denied");
+
+                    if (isRejected) {
+                        // Show retry modal and countdown
+                        setShowRetryModal(true);
+                        setRetryCountdown(5);
+
+                        // Start countdown and retry
+                        const countdownInterval = setInterval(() => {
+                            setRetryCountdown((prev) => {
+                                if (prev <= 1) {
+                                    clearInterval(countdownInterval);
+                                    setShowRetryModal(false);
+                                    hasAttemptedAutoLogin.current = false; // Allow retry
+                                    return 0;
+                                }
+                                return prev - 1;
+                            });
+                        }, 1000);
+                    } else {
+                        throw error; // Re-throw for other errors
+                    }
                 }
             } finally {
                 isAuthInProgress.current = false;
@@ -388,6 +417,28 @@ export default function AuthProvider({
         performFarcasterAuth,
     ]);
 
+    // Prompt for notification permission once after Farcaster auth
+    useEffect(() => {
+        if (!isInMiniApp || !isAuthenticated) return;
+
+        const hasPrompted =
+            localStorage.getItem(NOTIFICATION_PROMPT_SHOWN_KEY) === "true";
+        if (hasPrompted) return;
+
+        // Delay slightly to ensure UI is ready
+        const timeout = setTimeout(async () => {
+            try {
+                localStorage.setItem(NOTIFICATION_PROMPT_SHOWN_KEY, "true");
+                await sdk.actions.addMiniApp();
+                logger.debug("Notification prompt shown");
+            } catch (error) {
+                logger.error("Failed to show notification prompt:", error);
+            }
+        }, 1000);
+
+        return () => clearTimeout(timeout);
+    }, [isInMiniApp, isAuthenticated]);
+
     // Browser wallet auto-login: if wallet is already connected but not authenticated
     // Uses hasAttemptedAutoLogin ref to prevent re-triggering
     useEffect(() => {
@@ -443,6 +494,25 @@ export default function AuthProvider({
     return (
         <AuthContext.Provider value={contextValue}>
             {children}
+
+            {/* Login Retry Modal */}
+            {showRetryModal && (
+                <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50">
+                    <div className="bg-white rounded-2xl p-6 mx-4 max-w-sm text-center shadow-xl">
+                        <div className="text-4xl mb-3">🔐</div>
+                        <h3 className="text-lg font-bold text-gray-900 mb-2">
+                            Login Required
+                        </h3>
+                        <p className="text-sm text-gray-600 mb-4">
+                            Please approve the signature request in your wallet
+                            to continue.
+                        </p>
+                        <p className="text-2xl font-bold text-blue-600">
+                            Retrying in {retryCountdown}s...
+                        </p>
+                    </div>
+                </div>
+            )}
         </AuthContext.Provider>
     );
 }

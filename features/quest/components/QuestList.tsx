@@ -1,81 +1,28 @@
 "use client";
 
-import { useUser } from "@/hooks/api/useUser";
-import { Quest, SocialKey } from "@/lib/types/api";
+import { ACTION_BUTTON_LABELS, ActionType } from "@/lib/quest-actions";
+import { Quest } from "@/lib/types/api";
 import { useMemo } from "react";
 import QuestEmptyState from "./QuestEmptyState";
 import QuestItem from "./QuestItem";
 import QuestItemSkeleton from "./QuestItemSkeleton";
 
-// Map actionType to social key for link quests
-const ACTION_TO_SOCIAL_KEY: Record<string, SocialKey> = {
-    GH_LINK: "github",
-    LI_LINK: "linkedin",
-    X_LINK: "x",
-    FC_LINK: "farcaster",
-    WEB_LINK: "website",
-    BASE_LINK_NAME: "basename",
-};
+// =============================================================================
+// Types
+// =============================================================================
 
-const BUTTON_LABELS: Record<string, string> = {
-    // Farcaster
-    FC_LINK: "Link",
-    FC_SHARE: "Share",
-    FC_FOLLOW: "Follow",
-    FC_POST_HASHTAG: "Post",
-    // Twitter
-    X_LINK: "Link",
-    X_FOLLOW: "Follow",
-    // App
-    APP_NOTIFICATION: "Enable",
-    APP_DAILY_CHECKIN: "Check In",
-    APP_BASECARD_MINT: "Mint",
-    APP_ADD_MINIAPP: "Add",
-    APP_REFERRAL: "Invite",
-    APP_BIO_UPDATE: "Update",
-    APP_SKILL_TAG: "Add",
-    APP_VOTE: "Vote",
-    APP_MANUAL: "Complete",
-    // GitHub
-    GH_LINK: "Link",
-    // LinkedIn
-    LI_LINK: "Link",
-    // Basename
-    BASE_LINK_NAME: "Link",
-    // Website
-    WEB_LINK: "Link",
-};
-
-function getButtonName(quest: Quest): string {
-    if (quest.status === "completed") return "Claimed";
-    if (quest.status === "claimable") return "Claim!";
-
-    // Check if there's a predefined label
-    if (BUTTON_LABELS[quest.actionType]) {
-        return BUTTON_LABELS[quest.actionType];
-    }
-
-    // Remove prefix before first underscore and format as Title Case
-    // e.g., "LINK_BASE_NAME" -> "Base Name", "LI_LINK" -> "Link"
-    const actionType = quest.actionType;
-    const underscoreIndex = actionType.indexOf("_");
-    const textPart =
-        underscoreIndex !== -1
-            ? actionType.slice(underscoreIndex + 1)
-            : actionType;
-
-    // Convert to Title Case: "BASE_NAME" -> "Base Name"
-    return textPart
-        .toLowerCase()
-        .split("_")
-        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(" ");
-}
+/**
+ * Quest UI 상태
+ * - completed: 완료됨
+ * - claimable: claim 가능
+ * - verifiable: verify 가능 (handler에서 결정)
+ * - pending: 아직 action 필요
+ */
+type QuestUIState = "completed" | "claimable" | "verifiable" | "pending";
 
 interface QuestListProps {
     quests: Quest[];
-    claimingQuest: string | null;
-    verifyingActions?: string[];
+    verifiableActions?: string[];
     onAction: (quest: Quest) => void;
     className?: string;
     itemClassName?: string;
@@ -85,10 +32,83 @@ interface QuestListProps {
     variant?: "light" | "dark";
 }
 
+// =============================================================================
+// Helper Functions
+// =============================================================================
+
+/**
+ * Quest 상태에 따른 버튼 라벨 반환
+ */
+function getButtonLabel(quest: Quest, uiState: QuestUIState): string {
+    switch (uiState) {
+        case "completed":
+            return "Claimed";
+        case "claimable":
+            return "Claim!";
+        case "verifiable":
+            return "Verify";
+        case "pending":
+        default:
+            return (
+                ACTION_BUTTON_LABELS[quest.actionType as ActionType] ||
+                formatActionType(quest.actionType)
+            );
+    }
+}
+
+/**
+ * ActionType을 읽기 쉬운 형태로 변환
+ */
+function formatActionType(actionType: string): string {
+    const underscoreIndex = actionType.indexOf("_");
+    const textPart =
+        underscoreIndex !== -1
+            ? actionType.slice(underscoreIndex + 1)
+            : actionType;
+
+    return textPart
+        .toLowerCase()
+        .split("_")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ");
+}
+
+/**
+ * Quest의 현재 UI 상태 계산
+ */
+function getQuestUIState(
+    quest: Quest,
+    verifiableActions: string[]
+): QuestUIState {
+    if (quest.status === "completed") return "completed";
+    if (quest.status === "claimable") return "claimable";
+    if (verifiableActions.includes(quest.actionType)) return "verifiable";
+    return "pending";
+}
+
+/**
+ * Quest 정렬: claimable → verifiable → pending → completed
+ */
+function sortQuests(quests: Quest[], verifiableActions: string[]): Quest[] {
+    return [...quests].sort((a, b) => {
+        const getOrder = (q: Quest) => {
+            // completed는 항상 맨 밑
+            if (q.status === "completed") return 3;
+            if (q.status === "claimable") return 0;
+            if (verifiableActions.includes(q.actionType)) return 1;
+            return 2; // pending
+        };
+        return getOrder(a) - getOrder(b);
+    });
+}
+
+// =============================================================================
+// Component
+// =============================================================================
+
 export default function QuestList({
     quests,
-    claimingQuest,
-    verifyingActions = [],
+    verifiableActions = [],
     onAction,
     className,
     itemClassName,
@@ -97,33 +117,12 @@ export default function QuestList({
     skeletonCount = 3,
     variant = "light",
 }: QuestListProps) {
-    // Get user's socials for verifiable check
-    const { card } = useUser();
-    const userSocials = card?.socials ?? {};
+    const sortedQuests = useMemo(
+        () => sortQuests(quests, verifiableActions),
+        [quests, verifiableActions]
+    );
 
-    // Check if a quest is verifiable (pending + social linked)
-    const isQuestVerifiable = (quest: Quest): boolean => {
-        if (quest.status !== "pending") return false;
-        const socialKey = ACTION_TO_SOCIAL_KEY[quest.actionType];
-        if (!socialKey) return false;
-        return !!userSocials[socialKey];
-    };
-
-    // Sort: claimable → pending → completed
-    const sortedQuests = useMemo(() => {
-        return [...quests].sort((a, b) => {
-            const order: Record<string, number> = {
-                claimable: 0,
-                pending: 1,
-                completed: 2,
-            };
-            return (
-                (order[a.status ?? "pending"] ?? 1) -
-                (order[b.status ?? "pending"] ?? 1)
-            );
-        });
-    }, [quests]);
-
+    // Loading state
     if (isLoading) {
         return (
             <div className={className}>
@@ -134,35 +133,33 @@ export default function QuestList({
         );
     }
 
+    // Error state
     if (error) {
         const textColor = variant === "dark" ? "text-red-300" : "text-red-500";
         return <div className={`text-center py-8 ${textColor}`}>{error}</div>;
     }
 
+    // Empty state
     if (quests.length === 0) {
         return <QuestEmptyState variant={variant} />;
     }
 
+    // Quest list
     return (
         <div className={className}>
             {sortedQuests.map((quest, index) => {
-                const verifiable = isQuestVerifiable(quest);
+                const uiState = getQuestUIState(quest, verifiableActions);
+
                 return (
                     <QuestItem
                         key={quest.actionType || index}
                         title={quest.title}
                         content={quest.description || ""}
-                        buttonName={
-                            verifiable ? "Verify" : getButtonName(quest)
-                        }
+                        buttonName={getButtonLabel(quest, uiState)}
                         point={quest.rewardAmount}
-                        isCompleted={quest.status === "completed"}
-                        isClaimable={quest.status === "claimable"}
-                        isVerifiable={verifiable}
-                        isClaiming={claimingQuest === quest.actionType}
-                        isVerifying={verifyingActions.includes(
-                            quest.actionType
-                        )}
+                        isCompleted={uiState === "completed"}
+                        isClaimable={uiState === "claimable"}
+                        isVerifiable={uiState === "verifiable"}
                         actionType={quest.actionType}
                         onAction={() => onAction(quest)}
                         className={itemClassName}

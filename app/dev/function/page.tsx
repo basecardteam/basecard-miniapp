@@ -3,6 +3,7 @@
 import BaseButton from "@/components/buttons/BaseButton";
 import { useModal } from "@/components/modals/BaseModal";
 import { ShareResult, shareToFarcaster } from "@/lib/farcaster/share";
+import { generateBaseCardShareURL } from "@/lib/qrCodeGenerator";
 import { activeChain } from "@/lib/wagmi";
 import { useState } from "react";
 
@@ -47,9 +48,10 @@ export default function FunctionTestPage() {
                     alert("Error: imageUri is empty!");
                     return;
                 }
+                const shareUrl = generateBaseCardShareURL("");
                 await shareToFarcaster({
                     text: "I just minted my BaseCard! Check it out 🎉",
-                    embedUrl: result.imageUri,
+                    embedUrl: shareUrl,
                 });
                 // router.push("/"); // Don't redirect in test page
                 alert("Share triggered! Check console for details.");

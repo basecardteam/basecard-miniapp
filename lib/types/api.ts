@@ -94,7 +94,7 @@ export interface BaseCard {
 export interface BaseCardDetail extends BaseCard {
     address: string;
     fid: number | null;
-    farcasterProfile: FarcasterProfile | null;
+    farcasterPfpUrl: string | null;
 }
 
 export interface Quest {

@@ -16,6 +16,7 @@ import { logger } from "@/lib/common/logger";
 import { MAX_WEBSITES, type Role } from "@/lib/constants/mint";
 import { shareToFarcaster } from "@/lib/farcaster/share";
 import { processProfileImage } from "@/lib/processProfileImage";
+import { generateBaseCardShareURL } from "@/lib/qrCodeGenerator";
 import type { MintFormData } from "@/lib/schemas/mintFormSchema";
 import { activeChain } from "@/lib/wagmi";
 import defaultProfileImage from "@/public/assets/default-profile.png";
@@ -90,7 +91,14 @@ export default function MintScreen() {
         txHash: string;
         gatewayUrl: string;
         isExisting: boolean;
-    }>({ isOpen: false, txHash: "", gatewayUrl: "", isExisting: false });
+        cardId: string;
+    }>({
+        isOpen: false,
+        txHash: "",
+        gatewayUrl: "",
+        isExisting: false,
+        cardId: "",
+    });
 
     // Form submit handler
     const onSubmit = useCallback(
@@ -131,6 +139,7 @@ export default function MintScreen() {
                         txHash: result.hash || "",
                         gatewayUrl: result.gatewayUrl || "",
                         isExisting: result.isExisting || false,
+                        cardId: ("cardId" in result ? result.cardId : "") || "",
                     });
                 }
             } catch (error) {
@@ -386,8 +395,11 @@ export default function MintScreen() {
                 }}
                 onShare={async () => {
                     // Uses DEFAULT_SHARE_TEXT from share.ts
+                    const shareUrl = generateBaseCardShareURL(
+                        successModal.cardId
+                    );
                     await shareToFarcaster({
-                        embedUrl: successModal.gatewayUrl,
+                        embedUrl: shareUrl,
                     });
                     router.push("/");
                 }}

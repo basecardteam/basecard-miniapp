@@ -7,10 +7,13 @@ import { useQuestHandler } from "@/features/quest/hooks/useQuestHandler";
 import { useMyQuests } from "@/hooks/api/useMyQuests";
 
 export const NoCardState = () => {
-    const { quests, isLoading, error, claimingQuest, verifyingActions } =
-        useMyQuests();
-    const { handleQuestAction, successModalState, setSuccessModalState } =
-        useQuestHandler();
+    const { quests, isLoading, error } = useMyQuests();
+    const {
+        handleQuestAction,
+        verifiableActions,
+        successModalState,
+        setSuccessModalState,
+    } = useQuestHandler();
 
     return (
         <>
@@ -25,8 +28,7 @@ export const NoCardState = () => {
                     </div>
                     <QuestList
                         quests={quests}
-                        claimingQuest={claimingQuest}
-                        verifyingActions={verifyingActions}
+                        verifiableActions={verifiableActions}
                         onAction={handleQuestAction}
                         isLoading={isLoading}
                         error={error}
@@ -43,7 +45,7 @@ export const NoCardState = () => {
                     setSuccessModalState((prev) => ({ ...prev, isOpen: false }))
                 }
                 title="Quest Claimed!"
-                description={`You earned +${successModalState.rewarded} BC.\nTotal Balance: ${successModalState.newTotalPoints} BC`}
+                description={`You earned +${successModalState.rewarded} Points.\nTotal Balance: ${successModalState.newTotalPoints} Points`}
                 buttonText="Awesome!"
             />
         </>

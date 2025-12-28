@@ -2,7 +2,7 @@ import BackButton from "@/components/buttons/BackButton";
 import { BaseModal } from "@/components/modals/BaseModal";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useToast } from "@/components/ui/Toast";
-import { useBaseCard } from "@/hooks/api/useBaseCard";
+import { useBaseCard } from "@/hooks/api/useBaseCards";
 import { useMyCollections } from "@/hooks/api/useMyCollections";
 import { useUser } from "@/hooks/api/useUser";
 import { addCollection, deleteCollection } from "@/lib/api/collections";
@@ -84,12 +84,12 @@ export default function MyBaseCardProfile({
         return null;
     }, [isProfile, isViewer, myCard, viewerCard]);
 
-    // Owner profile image URL (for viewer mode - from farcasterProfile)
+    // Owner profile image URL (for viewer mode - from API's farcasterPfpUrl)
     const ownerPfpUrl = useMemo(() => {
-        if (isViewer && viewerCard?.farcasterProfile) {
-            return viewerCard.farcasterProfile.pfp_url;
+        if (isViewer && viewerCard?.farcasterPfpUrl) {
+            return viewerCard.farcasterPfpUrl;
         }
-        // FID가 없거나 farcasterProfile이 null이면 기본 이미지 사용
+        // FID가 없거나 farcasterPfpUrl이 없으면 기본 이미지 사용
         return defaultProfileImage.src;
     }, [isViewer, viewerCard]);
 

@@ -76,9 +76,9 @@ export function ModalContainer() {
     if (!modal.isOpen) return null;
 
     const titleColor = {
-        success: "text-[#007aff]",
-        error: "text-red-400",
-        default: "text-[#60A5FA]",
+        success: "text-basecard-blue",
+        error: "text-red-500",
+        default: "text-basecard-blue",
     }[modal.variant];
 
     const handleButtonClick = () => {
@@ -106,10 +106,10 @@ export function ModalContainer() {
                     transform transition-all duration-300 ease-out
                     text-white max-w-sm text-center
                     ${
-        modal.isOpen
-            ? "scale-100 translate-y-0"
-            : "scale-95 translate-y-4"
-        }`}
+                        modal.isOpen
+                            ? "scale-100 translate-y-0"
+                            : "scale-95 translate-y-4"
+                    }`}
                 onClick={(e) => e.stopPropagation()}
             >
                 <div className="flex flex-col justify-center items-center mt-auto">
@@ -142,7 +142,10 @@ export function ModalContainer() {
                 <BaseButton
                     onClick={handleButtonClick}
                     className="mt-auto w-full h-14 bg-white hover:bg-gray-100 text-gray-900 rounded-lg text-base font-semibold"
-                    style={{ marginBottom: "calc(20px + env(safe-area-inset-bottom, 0px))" }}
+                    style={{
+                        marginBottom:
+                            "calc(20px + env(safe-area-inset-bottom, 0px))",
+                    }}
                 >
                     {modal.buttonText}
                 </BaseButton>
@@ -191,9 +194,9 @@ export const BaseModal = ({
     if (!isOpen && !isVisible) return null;
 
     const titleColor = {
-        success: "text-[#60A5FA]",
-        error: "text-red-400",
-        default: "text-[#60A5FA]",
+        success: "text-basecard-blue",
+        error: "text-red-500",
+        default: "text-basecard-blue",
     }[variant];
 
     return (
@@ -214,42 +217,47 @@ export const BaseModal = ({
                     transform transition-all duration-300 ease-out
                     text-white max-w-sm text-center
                     ${
-        isOpen
-            ? "scale-100 translate-y-0"
-            : "scale-95 translate-y-4"
-        }`}
+                        isOpen
+                            ? "scale-100 translate-y-0"
+                            : "scale-95 translate-y-4"
+                    }`}
                 onClick={(e) => e.stopPropagation()}
             >
-                {/* Title */}
-                <h2
-                    className={`text-2xl font-extrabold mb-3 leading-snug ${titleColor}`}
-                >
-                    {title}
-                </h2>
-
-                {/* Description */}
-                <p className="text-base font-medium text-gray-300 mb-6 whitespace-pre-line">
-                    {description}
-                </p>
-
-                {/* Optional Link */}
-                {linkText && onLinkClick && (
-                    <button
-                        onClick={onLinkClick}
-                        className="flex items-center gap-1 border-b border-[#60A5FA] pb-0.5 mb-6 hover:opacity-80 transition-opacity"
+                <div className="flex-1 flex flex-col items-center justify-center w-full">
+                    {/* Title */}
+                    <h2
+                        className={`text-2xl font-extrabold mb-3 leading-snug ${titleColor}`}
                     >
-                        <span className="text-sm font-semibold text-[#60A5FA]">
-                            {linkText}
-                        </span>
-                        <span className="text-xs text-[#60A5FA]">→</span>
-                    </button>
-                )}
+                        {title}
+                    </h2>
+
+                    {/* Description */}
+                    <p className="text-base font-medium text-gray-300 mb-6 whitespace-pre-line">
+                        {description}
+                    </p>
+
+                    {/* Optional Link */}
+                    {linkText && onLinkClick && (
+                        <button
+                            onClick={onLinkClick}
+                            className="flex items-center gap-1 border-b border-[#60A5FA] pb-0.5 mb-6 hover:opacity-80 transition-opacity"
+                        >
+                            <span className="text-sm font-semibold text-[#60A5FA]">
+                                {linkText}
+                            </span>
+                            <span className="text-xs text-[#60A5FA]">→</span>
+                        </button>
+                    )}
+                </div>
 
                 {/* Primary Button */}
                 <BaseButton
                     onClick={onButtonClick || onClose}
-                    className="max-w-[280px] absolute w-full h-12 bg-white hover:bg-gray-100 text-gray-900 rounded-xl text-base font-semibold"
-                    style={{ bottom: "calc(20px + env(safe-area-inset-bottom, 0px))" }}
+                    className="max-w-[280px] w-full h-12 bg-white hover:bg-gray-100 text-gray-900 rounded-xl text-base font-semibold"
+                    style={{
+                        marginBottom:
+                            "calc(20px + env(safe-area-inset-bottom, 0px))",
+                    }}
                 >
                     {buttonText}
                 </BaseButton>

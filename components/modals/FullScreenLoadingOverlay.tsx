@@ -9,7 +9,7 @@ interface BaseLoadingModalProps {
     description?: string;
 }
 
-const FullScreenLoadingOverlay = ({ 
+const FullScreenLoadingOverlay = ({
     isOpen,
     title = "Processing Transaction",
     description = "Please wait a moment",
@@ -19,13 +19,13 @@ const FullScreenLoadingOverlay = ({
     useEffect(() => {
         if (isOpen) {
             setIsVisible(true);
-            document.body.style.overflow = 'hidden'; 
+            document.body.style.overflow = "hidden";
         } else {
             const timer = setTimeout(() => setIsVisible(false), 300);
-            document.body.style.overflow = 'unset';
+            document.body.style.overflow = "unset";
             return () => clearTimeout(timer);
         }
-    }, [isOpen,]);
+    }, [isOpen]);
 
     if (!isOpen && !isVisible) return null;
 
@@ -44,17 +44,21 @@ const FullScreenLoadingOverlay = ({
                 className={`relative flex flex-col items-center justify-center p-8 
                     transform transition-all duration-300 ease-out 
                     text-white max-w-sm text-center
-                    ${isOpen ? "scale-100 translate-y-0" : "scale-95 translate-y-4"}`}
+                    ${
+                        isOpen
+                            ? "scale-100 translate-y-0"
+                            : "scale-95 translate-y-4"
+                    }`}
             >
                 {/* Spinner: 심플하고 강력한 시각 효과 */}
                 <div className="flex items-center justify-center mb-6">
-                    <Loader 
+                    <Loader
                         className="w-12 h-12 text-basecard-blue animate-spin" // 밝은 하늘색(Sky-400) 계열
                     />
                 </div>
 
                 {/* Title */}
-                <h2 className="text-2xl font-extrabold mb-3 leading-snug">
+                <h2 className="text-2xl font-extrabold mb-3 leading-snug text-basecard-blue">
                     {title}
                 </h2>
 
@@ -63,15 +67,13 @@ const FullScreenLoadingOverlay = ({
                     {description}
                 </p>
             </div>
-            
+
             {/* 3. Footer Indicator (선택 사항: 로딩이 계속되고 있음을 시각화) */}
             <div
                 className="absolute left-0 right-0 h-1"
                 style={{ bottom: "env(safe-area-inset-bottom, 0px)" }}
             >
-                <div
-                    className="h-full bg-gradient-to-r from-transparent via-basecard-blue to-transparent animate-pulse"
-                />
+                <div className="h-full bg-gradient-to-r from-transparent via-basecard-blue to-transparent animate-pulse" />
             </div>
         </div>
     );
