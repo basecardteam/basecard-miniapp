@@ -9,6 +9,7 @@ interface QuestItemProps {
     className?: string;
     isCompleted?: boolean;
     isClaimable?: boolean;
+    isVerifiable?: boolean;
     isClaiming?: boolean;
     isVerifying?: boolean;
     actionType?: string;
@@ -23,6 +24,7 @@ export default function QuestItem({
     className,
     isCompleted = false,
     isClaimable = false,
+    isVerifiable = false,
     isClaiming = false,
     isVerifying = false,
     onAction,
@@ -130,6 +132,8 @@ export default function QuestItem({
                             "flex-1 flex justify-center items-center h-10 px-2 rounded-md text-sm font-medium transition-colors",
                             isVerifying
                                 ? "bg-blue-50 border border-blue-200 text-blue-500"
+                                : isVerifiable
+                                ? "bg-blue-500 text-white active:bg-blue-600"
                                 : "bg-white border border-gray-300 text-gray-700 active:bg-gray-50"
                         )}
                     >
@@ -142,7 +146,14 @@ export default function QuestItem({
                             <span>{buttonName}</span>
                         )}
                     </button>
-                    <div className="flex-1 h-10 flex justify-center items-center px-2 rounded-md text-sm font-medium bg-gray-100 text-gray-400">
+                    <div
+                        className={cn(
+                            "flex-1 h-10 flex justify-center items-center px-2 rounded-md text-sm font-medium",
+                            isVerifiable
+                                ? "bg-blue-100 text-blue-600"
+                                : "bg-gray-100 text-gray-400"
+                        )}
+                    >
                         <span>+{point} BC</span>
                     </div>
                 </div>

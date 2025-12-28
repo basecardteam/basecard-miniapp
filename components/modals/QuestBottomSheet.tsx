@@ -1,28 +1,43 @@
 "use client";
 
+import FullScreenLoadingOverlay from "@/components/modals/FullScreenLoadingOverlay";
+import SuccessModal from "@/components/modals/SuccessModal";
 import QuestList from "@/features/quest/components/QuestList";
-import { Quest } from "@/lib/types/api";
+import { useQuestHandler } from "@/features/quest/hooks/useQuestHandler";
+import { useMyQuests } from "@/hooks/api/useMyQuests";
 import { Gift, X } from "lucide-react";
-import { useCallback, useRef, useState } from "react";
-import FullScreenLoadingOverlay from "./FullScreenLoadingOverlay";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 interface QuestBottomSheetProps {
     isOpen: boolean;
     onClose: () => void;
-    quests: Quest[];
-    claimingQuest: string | null;
-    verifyingActions?: string[];
-    onAction: (quest: Quest) => void;
 }
 
 export default function QuestBottomSheet({
     isOpen,
     onClose,
-    quests,
-    claimingQuest,
-    verifyingActions = [],
-    onAction,
 }: QuestBottomSheetProps) {
+    // Quest data
+    const { quests, isLoading, refetch } = useMyQuests();
+
+    // Quest actions + verifiable state
+    const {
+        handleQuestAction,
+        verifiableActions,
+        isProcessing,
+        processingMessage,
+        successModalState,
+        setSuccessModalState,
+    } = useQuestHandler();
+
+    // Refetch when sheet opens
+    useEffect(() => {
+        if (isOpen) {
+            refetch();
+        }
+    }, [isOpen, refetch]);
+
+    // Bottom sheet animation states
     const [isClosing, setIsClosing] = useState(false);
     const [dragY, setDragY] = useState(0);
     const [isDragging, setIsDragging] = useState(false);
@@ -89,13 +104,10 @@ export default function QuestBottomSheet({
 
     const handleBackdropClick = useCallback(
         (e: React.MouseEvent) => {
-            // Ignore ghost clicks that happen shortly after touch events
             const timeSinceTouch = Date.now() - lastTouchTimeRef.current;
             if (timeSinceTouch < 300) {
                 return;
             }
-
-            // Only close if clicking directly on the backdrop, not bubbled events
             if (e.target === e.currentTarget) {
                 handleClose();
             }
@@ -140,7 +152,6 @@ export default function QuestBottomSheet({
                     className="absolute inset-0 bg-black/50 z-0"
                     onClick={handleBackdropClick}
                     onTouchEnd={(e) => {
-                        // Only close if touch ends directly on backdrop
                         if (e.target === e.currentTarget) {
                             e.preventDefault();
                             handleClose();
@@ -220,21 +231,42 @@ export default function QuestBottomSheet({
                                 "calc(12px + var(--bottom-nav-h, 64px) + env(safe-area-inset-bottom, 0px))",
                         }}
                     >
-                        <QuestList
-                            quests={quests}
-                            claimingQuest={claimingQuest}
-                            verifyingActions={verifyingActions}
-                            onAction={onAction}
-                            className="flex flex-col gap-2.5"
-                        />
+                        {isLoading ? (
+                            <div className="flex flex-col gap-2.5">
+                                {[1, 2, 3].map((i) => (
+                                    <div
+                                        key={i}
+                                        className="h-16 bg-gray-100 rounded-xl animate-pulse"
+                                    />
+                                ))}
+                            </div>
+                        ) : (
+                            <QuestList
+                                quests={quests}
+                                verifiableActions={verifiableActions}
+                                onAction={handleQuestAction}
+                                className="flex flex-col gap-2.5"
+                            />
+                        )}
                     </div>
                 </div>
             </div>
 
-            {/* Full Screen Loading Overlay - 컨테이너 밖에서 렌더링 */}
+            {/* Success Modal */}
+            <SuccessModal
+                isOpen={successModalState.isOpen}
+                onClose={() =>
+                    setSuccessModalState((prev) => ({ ...prev, isOpen: false }))
+                }
+                title="Quest Claimed!"
+                description={`You earned +${successModalState.rewarded} Points.\nTotal Balance: ${successModalState.newTotalPoints} Points`}
+                buttonText="Awesome!"
+            />
+
+            {/* Loading Overlay */}
             <FullScreenLoadingOverlay
-                isOpen={!!claimingQuest}
-                title="Claiming Reward"
+                isOpen={isProcessing}
+                title={processingMessage || "Processing..."}
                 description="Please wait a moment"
             />
         </>

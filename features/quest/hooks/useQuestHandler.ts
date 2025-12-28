@@ -1,19 +1,37 @@
-import { useFrameContext } from "@/components/providers/FrameProvider";
+import { useAuth } from "@/components/providers/AuthProvider";
+import {
+    MiniAppContext,
+    useFrameContext,
+} from "@/components/providers/FrameProvider";
 import { useToast } from "@/components/ui/Toast";
 import { useMyQuests } from "@/hooks/api/useMyQuests";
-import { useERC721Token } from "@/hooks/evm/useERC721Token";
-import { shareToFarcaster } from "@/lib/farcaster/share";
-import { handleAppAddMiniapp, handleFcFollow } from "@/lib/quest-actions";
+import { useUser } from "@/hooks/api/useUser";
+import { verifyQuestByAction } from "@/lib/api/quests";
+import {
+    executeAction,
+    getAutoVerifiableActions,
+    QuestActionContext,
+} from "@/lib/quest-actions";
+import {
+    clearPendingAction,
+    getPendingActionTypes,
+    setPendingAction,
+} from "@/lib/quest/questPendingActions";
 import { Quest } from "@/lib/types/api";
-import { resolveIpfsUrl } from "@/lib/utils";
-import sdk from "@farcaster/miniapp-sdk";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAccount } from "wagmi";
+
+// =============================================================================
+// Types
+// =============================================================================
 
 interface UseQuestHandlerResult {
     handleQuestAction: (quest: Quest) => Promise<void>;
+    verifiableActions: string[];
+    isProcessing: boolean;
+    processingMessage: string;
     successModalState: {
         isOpen: boolean;
         rewarded: number;
@@ -28,220 +46,252 @@ interface UseQuestHandlerResult {
     >;
 }
 
+// =============================================================================
+// Hook
+// =============================================================================
+
+/**
+ * Quest Action Handler
+ *
+ * 1. verifiableActions 계산 (auto + pending)
+ * 2. handleQuestAction: 상태에 따라 claim/verify/action 실행
+ */
 export function useQuestHandler(): UseQuestHandlerResult {
     const router = useRouter();
-    const { address } = useAccount();
-    const { claim, markPendingAction } = useMyQuests();
-    const { showToast } = useToast();
-    const frameContext = useFrameContext();
-    const { metadata } = useERC721Token();
     const queryClient = useQueryClient();
-    const openUrl = sdk.actions.openUrl;
+    const { address } = useAccount();
+    const { card } = useUser();
+    const { showToast } = useToast();
+    const frameContext = useFrameContext()!;
+    const { claim } = useMyQuests();
+    const { accessToken } = useAuth();
 
-    const [successModalState, setSuccessModalState] = useState<{
-        isOpen: boolean;
-        rewarded: number;
-        newTotalPoints: number;
-    }>({ isOpen: false, rewarded: 0, newTotalPoints: 0 });
+    const userSocials = card?.socials ?? {};
 
+    // -----------------------------------------
+    // State
+    // -----------------------------------------
+    const [pendingActions, setPendingActions] = useState<string[]>([]);
+    const [isProcessing, setIsProcessing] = useState(false);
+    const [processingMessage, setProcessingMessage] = useState("");
+    const [successModalState, setSuccessModalState] = useState({
+        isOpen: false,
+        rewarded: 0,
+        newTotalPoints: 0,
+    });
+
+    // -----------------------------------------
+    // Verifiable Actions 계산
+    // -----------------------------------------
+    const verifiableActions = useMemo(() => {
+        const auto = getAutoVerifiableActions({
+            hasCard: !!card,
+            socials: userSocials,
+        });
+        const merged = [...new Set([...pendingActions, ...auto])];
+
+        console.log("[QuestHandler] verifiableActions:", {
+            auto,
+            pendingActions,
+            merged,
+        });
+        return merged;
+    }, [card, userSocials, pendingActions]);
+
+    // -----------------------------------------
+    // Visibility API: 앱 복귀 시 pending → verifiable
+    // -----------------------------------------
+    useEffect(() => {
+        if (typeof document === "undefined") return;
+
+        const onVisible = () => {
+            if (document.visibilityState === "visible") {
+                const pending = getPendingActionTypes();
+                if (pending.length > 0) {
+                    setPendingActions((prev) => [
+                        ...new Set([...prev, ...pending]),
+                    ]);
+                }
+                queryClient.refetchQueries({ queryKey: ["userQuests"] });
+            }
+        };
+
+        // 마운트 시 체크
+        onVisible();
+
+        document.addEventListener("visibilitychange", onVisible);
+        return () =>
+            document.removeEventListener("visibilitychange", onVisible);
+    }, [queryClient]);
+
+    // -----------------------------------------
+    // Action Context (외부 액션용)
+    // -----------------------------------------
+    const actionContext: QuestActionContext = useMemo(
+        () => ({
+            cardId: card?.id ?? "",
+            address,
+            accessToken: accessToken ?? undefined,
+            cardImageUri: card?.imageUri ?? undefined,
+            isInMiniApp: frameContext.isInMiniApp,
+            clientContext: {
+                clientFid: (frameContext.context as unknown as MiniAppContext)
+                    .client.clientFid,
+            },
+        }),
+        [card, address, accessToken, frameContext]
+    );
+
+    // -----------------------------------------
+    // Helpers
+    // -----------------------------------------
+    const doVerify = useCallback(
+        async (actionType: string) => {
+            if (!accessToken) return null;
+            const result = await verifyQuestByAction(actionType, accessToken);
+
+            // Refetch to update UI & Points
+            await queryClient.refetchQueries({ queryKey: ["userQuests"] });
+            if (result.verified) {
+                await queryClient.refetchQueries({ queryKey: ["user"] });
+            }
+
+            clearPendingAction(actionType);
+            setPendingActions((prev) => prev.filter((a) => a !== actionType));
+            return result;
+        },
+        [accessToken, queryClient]
+    );
+
+    const showSuccess = useCallback(
+        (rewarded: number, newTotalPoints: number) => {
+            setSuccessModalState({ isOpen: true, rewarded, newTotalPoints });
+        },
+        []
+    );
+
+    // -----------------------------------------
+    // Main Handler
+    // -----------------------------------------
     const handleQuestAction = useCallback(
         async (quest: Quest) => {
+            const { actionType, status } = quest;
             console.log(
-                "handleQuestAction called:",
-                quest.actionType,
-                quest.status
+                "[QuestHandler] action:",
+                actionType,
+                "status:",
+                status
             );
 
-            // If claimable, always try to claim first
-            if (quest.status === "claimable") {
+            // 1️⃣ Claimable → Claim
+            if (status === "claimable") {
+                setIsProcessing(true);
+                setProcessingMessage("Claiming reward...");
                 try {
                     const result = await claim(quest);
-                    if (result && result.verified) {
-                        setSuccessModalState({
-                            isOpen: true,
-                            rewarded: result.rewarded ?? 0,
-                            newTotalPoints: result.newTotalPoints ?? 0,
-                        });
+                    if (result?.verified) {
+                        showSuccess(
+                            result.rewarded ?? 0,
+                            result.newTotalPoints ?? 0
+                        );
                     }
                 } catch (err) {
                     showToast(
-                        err instanceof Error
-                            ? err.message
-                            : "Failed to claim quest",
+                        err instanceof Error ? err.message : "Failed to claim",
                         "error"
                     );
+                } finally {
+                    setIsProcessing(false);
                 }
                 return;
             }
 
-            // Handle pending quests by action type
-            switch (quest.actionType) {
-                // === Farcaster ===
-                case "FC_SHARE":
-                case "FC_POST_HASHTAG": {
-                    // Mark as pending before opening external link
-                    markPendingAction(quest.actionType);
-
-                    const shareUrl = address
-                        ? `${
-                              process.env.NEXT_PUBLIC_URL ||
-                              "https://basecard.vercel.app"
-                          }/card/${address}`
-                        : process.env.NEXT_PUBLIC_URL ||
-                          "https://basecard.vercel.app";
-                    const imageUrl = metadata?.image
-                        ? resolveIpfsUrl(metadata.image)
-                        : undefined;
-                    // Uses DEFAULT_SHARE_TEXT from share.ts
-                    await shareToFarcaster({
-                        imageUrl,
-                        embedUrl: shareUrl,
-                    });
-                    return;
+            // 2️⃣ Verifiable → Verify
+            if (verifiableActions.includes(actionType)) {
+                setIsProcessing(true);
+                setProcessingMessage("Verifying quest...");
+                try {
+                    const result = await doVerify(actionType);
+                    showToast(
+                        result?.verified
+                            ? "Quest verified! Claim your reward."
+                            : "Verification failed.",
+                        result?.verified ? "success" : "error"
+                    );
+                } catch (err) {
+                    showToast(
+                        err instanceof Error
+                            ? err.message
+                            : "Verification failed",
+                        "error"
+                    );
+                } finally {
+                    setIsProcessing(false);
                 }
-                case "FC_FOLLOW":
-                    // Mark as pending before opening external link
-                    markPendingAction(quest.actionType);
-                    await handleFcFollow();
-                    return;
-                case "FC_LINK":
-                    router.push("/edit-profile");
-                    return;
-
-                // === Twitter ===
-                case "X_FOLLOW": {
-                    // Mark as pending before opening external link
-                    markPendingAction(quest.actionType);
-
-                    const xUrl = "https://x.com/basecardteam";
-                    if (frameContext?.isInMiniApp) {
-                        try {
-                            await openUrl({ url: xUrl });
-                        } catch {
-                            window.open(xUrl, "_blank");
-                        }
-                    } else {
-                        window.open(xUrl, "_blank");
-                    }
-                    return;
-                }
-                case "X_LINK":
-                    router.push("/edit-profile");
-                    return;
-
-                // === App ===
-                case "APP_NOTIFICATION": {
-                    if (!frameContext?.requestNotificationPermission) {
-                        showToast("Notification not supported", "error");
-                        return;
-                    }
-                    try {
-                        const result =
-                            await frameContext.requestNotificationPermission();
-                        if (result.success && result.notificationDetails) {
-                            showToast("Notifications enabled!", "success");
-                            const claimResult = await claim(quest);
-                            if (claimResult && claimResult.verified) {
-                                setSuccessModalState({
-                                    isOpen: true,
-                                    rewarded: claimResult.rewarded ?? 0,
-                                    newTotalPoints:
-                                        claimResult.newTotalPoints ?? 0,
-                                });
-                            }
-                        } else if (result.reason === "not_in_miniapp") {
-                            showToast("Please open in Base app", "warning");
-                        }
-                    } catch (err) {
-                        showToast(
-                            err instanceof Error
-                                ? err.message
-                                : "Failed to enable notifications",
-                            "error"
-                        );
-                    }
-                    return;
-                }
-                case "APP_BASECARD_MINT":
-                    router.push("/mint");
-                    return;
-                case "APP_BIO_UPDATE":
-                case "APP_SKILL_TAG":
-                    router.push("/edit-profile");
-                    return;
-                case "APP_ADD_MINIAPP": {
-                    const result = await handleAppAddMiniapp();
-                    // Refetch quests to update status
-                    await queryClient.invalidateQueries({
-                        queryKey: ["userQuests"],
-                    });
-                    if (result.isAppAdded && result.hasNotifications) {
-                        showToast(
-                            "Basecard added with notifications!",
-                            "success"
-                        );
-                    } else if (result.isAppAdded) {
-                        showToast("Basecard added to home screen!", "success");
-                    } else {
-                        showToast("Failed to add Basecard", "error");
-                    }
-                    return;
-                }
-                case "APP_REFERRAL": {
-                    const referralUrl = address
-                        ? `${
-                              process.env.NEXT_PUBLIC_URL ||
-                              "https://basecard.vercel.app"
-                          }?ref=${address}`
-                        : process.env.NEXT_PUBLIC_URL ||
-                          "https://basecard.vercel.app";
-                    await shareToFarcaster({
-                        text: "Join Basecard and build your on-chain profile!",
-                        embedUrl: referralUrl,
-                    });
-                    return;
-                }
-                case "APP_DAILY_CHECKIN":
-                case "APP_VOTE":
-                case "APP_MANUAL":
-                    // These are verified server-side, just show info
-                    showToast("Complete this action to claim", "info");
-                    return;
-
-                // === Link accounts (all go to edit profile) ===
-                case "GH_LINK":
-                case "LI_LINK":
-                case "BASE_LINK_NAME":
-                case "WEB_LINK":
-                    router.push("/edit-profile");
-                    return;
-
-                default:
-                    // Unknown action type - try to claim anyway
-                    try {
-                        const result = await claim(quest);
-                        if (result) {
-                            setSuccessModalState({
-                                isOpen: true,
-                                rewarded: result.rewarded ?? 0,
-                                newTotalPoints: result.newTotalPoints ?? 0,
-                            });
-                        }
-                    } catch (err) {
-                        showToast(
-                            err instanceof Error
-                                ? err.message
-                                : "Failed to claim quest",
-                            "error"
-                        );
-                    }
+                return;
             }
+
+            // 3️⃣ Generic Action Execution
+
+            // Execute action
+            const result = await executeAction(actionType, actionContext);
+
+            if (result.success) {
+                // Navigation
+                if (result.navigateTo) {
+                    router.push(result.navigateTo);
+                    return;
+                }
+
+                // A. Optimistic Pending (클라이언트 상태만 변경)
+                if (result.shouldSetPending) {
+                    setPendingAction(actionType);
+                    setPendingActions((prev) => [
+                        ...new Set([...prev, actionType]),
+                    ]);
+                }
+                // B. Immediate Verify (API 호출)
+                else if (result.shouldVerifyImmediately) {
+                    try {
+                        const verifyResult = await doVerify(actionType);
+                        if (verifyResult?.verified) {
+                            showToast(
+                                "Quest verified! Claim your reward.",
+                                "success"
+                            );
+                        }
+                    } catch {
+                        // verify 실패해도 action은 성공했을 수 있음
+                    }
+                }
+
+                if (result.data) {
+                    // 결과 데이터 처리
+                }
+            } else {
+                showToast(result.error ?? "Action failed", "error");
+            }
+            return;
+
+            // 4️⃣ Fallback: Unknown action
+            showToast("Action not supported", "error");
         },
-        [claim, router, showToast, frameContext, address, metadata, openUrl]
+        [
+            claim,
+            doVerify,
+            verifiableActions,
+            router,
+            showToast,
+            actionContext,
+            showSuccess,
+        ]
     );
 
     return {
         handleQuestAction,
+        verifiableActions,
+        isProcessing,
+        processingMessage,
         successModalState,
         setSuccessModalState,
     };

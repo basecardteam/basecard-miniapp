@@ -2,9 +2,9 @@ import BackButton from "@/components/buttons/BackButton";
 import { BaseModal } from "@/components/modals/BaseModal";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useToast } from "@/components/ui/Toast";
-import { useBaseCard } from "@/hooks/api/useBaseCard";
-import { useMyBaseCard } from "@/hooks/api/useMyBaseCard";
+import { useBaseCard } from "@/hooks/api/useBaseCards";
 import { useMyCollections } from "@/hooks/api/useMyCollections";
+import { useUser } from "@/hooks/api/useUser";
 import { addCollection, deleteCollection } from "@/lib/api/collections";
 import { BaseCard } from "@/lib/types/api";
 import defaultProfileImage from "@/public/assets/default-profile.png";
@@ -67,7 +67,7 @@ export default function MyBaseCardProfile({
     const isProfile = mode === "profile";
 
     // Data fetching based on mode
-    const { data: myCard, isLoading: isMyCardLoading } = useMyBaseCard();
+    const { card: myCard, isPending: isMyCardLoading } = useUser();
     const { data: viewerCard, isLoading: isViewerCardLoading } = useBaseCard(
         isViewer ? cardId : undefined
     );
@@ -84,13 +84,20 @@ export default function MyBaseCardProfile({
         return null;
     }, [isProfile, isViewer, myCard, viewerCard]);
 
-    // Owner profile image URL (for viewer mode - from farcasterProfile)
+    // Owner profile image URL (for viewer mode - from API's farcasterPfpUrl)
     const ownerPfpUrl = useMemo(() => {
-        if (isViewer && viewerCard?.farcasterProfile) {
-            return viewerCard.farcasterProfile.pfp_url;
+        if (isViewer && viewerCard?.farcasterPfpUrl) {
+            return viewerCard.farcasterPfpUrl;
         }
-        // FID가 없거나 farcasterProfile이 null이면 기본 이미지 사용
+        // FID가 없거나 farcasterPfpUrl이 없으면 기본 이미지 사용
         return defaultProfileImage.src;
+    }, [isViewer, viewerCard]);
+
+    const ownerFid = useMemo(() => {
+        if (isViewer && viewerCard?.fid) {
+            return viewerCard.fid;
+        }
+        return undefined;
     }, [isViewer, viewerCard]);
 
     const isLoading = isProfile ? isMyCardLoading : isViewerCardLoading;
@@ -133,10 +140,8 @@ export default function MyBaseCardProfile({
             queryClient.invalidateQueries({ queryKey: ["collectedCards"] }); // Refetch in background
             setIsCollectSuccessModalOpen(true); // Show success modal
         } catch (error) {
-            const message =
-                error instanceof Error
-                    ? error.message
-                    : "Failed to collect card";
+            console.log(`cardId: ${card?.id}, error: ${error}`);
+            const message = "Failed to collect card";
             if (message.includes("already exists")) {
                 showToast("You have already collected this card.", "error");
                 setLocalCollected(true); // Already collected
@@ -269,6 +274,7 @@ export default function MyBaseCardProfile({
                     card={card!}
                     mode={mode}
                     ownerPfpUrl={ownerPfpUrl ?? undefined}
+                    ownerFid={ownerFid ?? undefined}
                     onClose={isViewer ? handleClose : undefined}
                     isCollected={isViewer ? isCollected : undefined}
                     onCollect={isViewer ? handleCollect : undefined}

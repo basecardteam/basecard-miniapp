@@ -1,23 +1,25 @@
 "use client";
 
 import QuestBottomSheet from "@/components/modals/QuestBottomSheet";
-import SuccessModal from "@/components/modals/SuccessModal";
-import { useQuestHandler } from "@/features/quest/hooks/useQuestHandler";
 import { useMyQuests } from "@/hooks/api/useMyQuests";
 import clsx from "clsx";
 import { ChevronRight, Gift } from "lucide-react";
 import { useMemo, useState } from "react";
 
+/**
+ * QuestBanner - 퀘스트 배너 버튼
+ *
+ * 배너만 표시하고, 클릭 시 QuestBottomSheet를 열음.
+ * 퀘스트 데이터는 배너 표시용으로만 사용.
+ * 실제 퀘스트 관리는 QuestBottomSheet 내부에서 처리.
+ */
 export default function QuestBanner() {
     const [isQuestSheetOpen, setIsQuestSheetOpen] = useState(false);
 
-    // Quest hooks
-    const { quests, claimingQuest, verifyingActions, isLoading } =
-        useMyQuests();
-    const { handleQuestAction, successModalState, setSuccessModalState } =
-        useQuestHandler();
+    // 배너 표시용 데이터만 가져옴
+    const { quests, isLoading } = useMyQuests();
 
-    // Derived states
+    // Derived states - 배너 표시용
     const incompleteCount = useMemo(
         () => quests.filter((q) => q.status !== "completed").length,
         [quests]
@@ -93,25 +95,10 @@ export default function QuestBanner() {
                 </button>
             </div>
 
-            {/* Quest Success Modal */}
-            <SuccessModal
-                isOpen={successModalState.isOpen}
-                onClose={() =>
-                    setSuccessModalState((prev) => ({ ...prev, isOpen: false }))
-                }
-                title="Quest Claimed!"
-                description={`You earned +${successModalState.rewarded} BC.\nTotal Balance: ${successModalState.newTotalPoints} BC`}
-                buttonText="Awesome!"
-            />
-
-            {/* Quest Bottom Sheet */}
+            {/* Quest Bottom Sheet - 내부에서 모든 상태 관리 */}
             <QuestBottomSheet
                 isOpen={isQuestSheetOpen}
                 onClose={() => setIsQuestSheetOpen(false)}
-                quests={quests}
-                claimingQuest={claimingQuest}
-                verifyingActions={verifyingActions}
-                onAction={handleQuestAction}
             />
         </>
     );

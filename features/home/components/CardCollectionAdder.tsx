@@ -10,7 +10,7 @@ import ErrorModal from "@/components/modals/ErrorModal";
 import LoadingModal from "@/components/modals/LoadingModal";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useToast } from "@/components/ui/Toast";
-import { useMyBaseCard } from "@/hooks/api/useMyBaseCard";
+import { useUser } from "@/hooks/api/useUser";
 import { addCollection } from "@/lib/api/collections";
 
 interface CardCollectionAdderProps {
@@ -23,7 +23,7 @@ export default function CardCollectionAdder({
     const router = useRouter();
     const { isAuthenticated, accessToken } = useAuth();
     const { address } = useAccount();
-    const { data: myCard, isLoading: isCardLoading } = useMyBaseCard();
+    const { card: myCard, isPending: isCardLoading } = useUser();
     const { showToast } = useToast();
 
     const [isConfirmDismissed, setIsConfirmDismissed] = useState(false);
@@ -89,7 +89,15 @@ export default function CardCollectionAdder({
             }
             router.replace("/");
         }
-    }, [address, myCard, collectedCardId, router, showToast, accessToken, isAuthenticated]);
+    }, [
+        address,
+        myCard,
+        collectedCardId,
+        router,
+        showToast,
+        accessToken,
+        isAuthenticated,
+    ]);
 
     // -------------------------------------------------------------
     // 3. UX helper functions

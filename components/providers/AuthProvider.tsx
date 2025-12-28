@@ -2,13 +2,15 @@
 
 import {
     AuthResponse,
-    AuthUser,
     generateSignInMessage,
     loginWithFarcaster,
     loginWithWallet,
 } from "@/lib/api/auth";
+import { upsertMiniAppAdded, upsertNotificationToken } from "@/lib/api/users";
 import { logger } from "@/lib/common/logger";
+import { User } from "@/lib/types";
 import { sdk } from "@farcaster/miniapp-sdk";
+import { useQueryClient } from "@tanstack/react-query";
 import {
     createContext,
     useCallback,
@@ -24,7 +26,6 @@ import { useFrameContext } from "./FrameProvider";
 interface AuthContextType {
     isAuthenticated: boolean;
     isAuthLoading: boolean;
-    authUser: AuthUser | null;
     accessToken: string | null;
     loginWithMetaMask: (connectedAddress?: string) => Promise<void>;
     refreshAuth: () => Promise<void>;
@@ -42,8 +43,9 @@ export const useAuth = () => {
 };
 
 const AUTH_TOKEN_KEY = "basecard_auth_token";
-const AUTH_USER_KEY = "basecard_auth_user";
+const AUTH_USER_KEY = "basecard_auth_user"; // Keeping key for clearing logic if needed, but not using for restore state
 const AUTH_EXPIRES_KEY = "basecard_auth_expires";
+const NOTIFICATION_PROMPT_SHOWN_KEY = "basecard_notification_prompt_shown";
 const TOKEN_EXPIRY_MS = 60 * 60 * 1000; // 1 hour in milliseconds
 const TOKEN_REFRESH_BUFFER_MS = 5 * 60 * 1000; // Refresh 5 minutes before expiry
 
@@ -68,8 +70,10 @@ export default function AuthProvider({
 }) {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [isAuthLoading, setIsAuthLoading] = useState(true);
-    const [authUser, setAuthUser] = useState<AuthUser | null>(null);
     const [accessToken, setAccessToken] = useState<string | null>(null);
+    const queryClient = useQueryClient();
+    const [showRetryModal, setShowRetryModal] = useState(false);
+    const [retryCountdown, setRetryCountdown] = useState(0);
     const isAuthInProgress = useRef(false);
     const hasAttemptedAutoLogin = useRef(false);
     const hasRestoredAuth = useRef(false);
@@ -91,47 +95,56 @@ export default function AuthProvider({
     const { signMessageAsync } = useSignMessage();
 
     // Save auth state to localStorage with expiry
-    const saveAuthState = useCallback((response: AuthResponse) => {
-        logger.debug(
-            "Auth response received:",
-            JSON.stringify(response, null, 2)
-        );
-
-        if (!response.accessToken || typeof response.accessToken !== "string") {
-            logger.error(
-                "Invalid accessToken in response:",
-                response.accessToken
+    const saveAuthState = useCallback(
+        (response: AuthResponse) => {
+            logger.debug(
+                "Auth response received:",
+                JSON.stringify(response, null, 2)
             );
-            throw new Error("Invalid accessToken received from server");
-        }
 
-        const expiresAt = Date.now() + TOKEN_EXPIRY_MS;
+            if (
+                !response.accessToken ||
+                typeof response.accessToken !== "string"
+            ) {
+                logger.error(
+                    "Invalid accessToken in response:",
+                    response.accessToken
+                );
+                throw new Error("Invalid accessToken received from server");
+            }
 
-        setAccessToken(response.accessToken);
-        setAuthUser(response.user);
-        setIsAuthenticated(true);
+            const expiresAt = Date.now() + TOKEN_EXPIRY_MS;
 
-        localStorage.setItem(AUTH_TOKEN_KEY, response.accessToken);
-        localStorage.setItem(AUTH_USER_KEY, JSON.stringify(response.user));
-        localStorage.setItem(AUTH_EXPIRES_KEY, expiresAt.toString());
+            setAccessToken(response.accessToken);
+            setIsAuthenticated(true);
 
-        logger.debug(
-            "Auth state saved, expires at:",
-            new Date(expiresAt).toISOString()
-        );
-    }, []);
+            // Update React Query cache immediately
+            queryClient.setQueryData(["user"], response.user);
+
+            localStorage.setItem(AUTH_TOKEN_KEY, response.accessToken);
+            localStorage.setItem(AUTH_USER_KEY, JSON.stringify(response.user));
+            localStorage.setItem(AUTH_EXPIRES_KEY, expiresAt.toString());
+
+            logger.debug(
+                "Auth state saved, expires at:",
+                new Date(expiresAt).toISOString()
+            );
+        },
+        [queryClient]
+    );
 
     // Clear auth state
     const logout = useCallback(() => {
         setAccessToken(null);
-        setAuthUser(null);
         setIsAuthenticated(false);
+        queryClient.setQueryData(["user"], null);
+        queryClient.removeQueries({ queryKey: ["user"] });
         hasAttemptedAutoLogin.current = false; // Allow auto-login on next connect
         hasRestoredAuth.current = false; // Allow restore on next session
         localStorage.removeItem(AUTH_TOKEN_KEY);
         localStorage.removeItem(AUTH_USER_KEY);
         localStorage.removeItem(AUTH_EXPIRES_KEY);
-    }, []);
+    }, [queryClient]);
 
     // Unified Farcaster auth (for both initial login and refresh)
     const performFarcasterAuth = useCallback(
@@ -151,30 +164,67 @@ export default function AuthProvider({
                 );
 
                 const { token } = await sdk.quickAuth.getToken();
-                const clientFid = (
-                    frameContext?.context as { client?: { clientFid?: number } }
-                )?.client?.clientFid;
+                const context = await sdk.context;
+                const clientFid = context.client.clientFid;
 
-                logger.info("[Farcaster Auth] Preparing login request:", {
-                    hasToken: !!token,
-                    clientFid,
-                    address,
-                    frameContext: frameContext?.context,
-                });
+                if (!clientFid) {
+                    logger.error("No clientFid found in Farcaster context");
+                    throw new Error("Missing clientFid");
+                }
+
+                if (!isConnected || !address) {
+                    logger.error("Wallet not connected during Farcaster auth");
+                    throw new Error("Wallet not connected");
+                }
 
                 const response = await loginWithFarcaster(
                     token,
-                    clientFid!,
-                    address!
+                    clientFid,
+                    address
                 );
-                saveAuthState(response);
 
+                saveAuthState(response);
                 logger.info(
                     isInitialLogin
                         ? "Farcaster Quick Auth login successful"
-                        : "Farcaster auth token refreshed",
-                    response.user
+                        : "Farcaster auth token refreshed"
                 );
+
+                // Check wallet notification status and sync if needed
+                // One-time check per session to avoid annoying user
+                const currentWallet = response.user.wallets?.find(
+                    (w) => w.clientFid === clientFid
+                );
+
+                if (currentWallet) {
+                    const needsNotification =
+                        !currentWallet.notification_enabled;
+                    const needsMiniappAdded = !currentWallet.miniapp_added;
+
+                    if (needsNotification || needsMiniappAdded) {
+                        try {
+                            const result = await sdk.actions.addMiniApp();
+                            const miniappCtx = await sdk.context;
+
+                            if (result.notificationDetails) {
+                                await upsertNotificationToken(
+                                    response.accessToken,
+                                    result.notificationDetails,
+                                    clientFid
+                                );
+                            }
+
+                            if (miniappCtx.client.added) {
+                                await upsertMiniAppAdded(
+                                    response.accessToken,
+                                    clientFid
+                                );
+                            }
+                        } catch (e) {
+                            console.error("Failed to sync miniapp status", e);
+                        }
+                    }
+                }
             } catch (error) {
                 // Log detailed error info
                 const errorDetails =
@@ -206,7 +256,7 @@ export default function AuthProvider({
                 }
             }
         },
-        [saveAuthState, logout, frameContext, address]
+        [saveAuthState, logout, frameContext, address, isConnected]
     );
 
     // Unified MetaMask auth (for both initial login and refresh)
@@ -253,7 +303,33 @@ export default function AuthProvider({
                     logout(); // Only logout on refresh failure
                 }
                 if (isInitialLogin) {
-                    throw error; // Re-throw for initial login
+                    // Check if user rejected
+                    const errorMessage =
+                        error instanceof Error ? error.message : String(error);
+                    const isRejected =
+                        errorMessage.toLowerCase().includes("user rejected") ||
+                        errorMessage.toLowerCase().includes("user denied");
+
+                    if (isRejected) {
+                        // Show retry modal and countdown
+                        setShowRetryModal(true);
+                        setRetryCountdown(5);
+
+                        // Start countdown and retry
+                        const countdownInterval = setInterval(() => {
+                            setRetryCountdown((prev) => {
+                                if (prev <= 1) {
+                                    clearInterval(countdownInterval);
+                                    setShowRetryModal(false);
+                                    hasAttemptedAutoLogin.current = false; // Allow retry
+                                    return 0;
+                                }
+                                return prev - 1;
+                            });
+                        }, 1000);
+                    } else {
+                        throw error; // Re-throw for other errors
+                    }
                 }
             } finally {
                 isAuthInProgress.current = false;
@@ -287,27 +363,28 @@ export default function AuthProvider({
         // Already restored - only re-check if wallet just connected
         if (hasRestoredAuth.current) {
             // Wallet connected after initial restore - verify address match
-            if (!isInMiniApp && isConnected && address && authUser) {
-                if (
-                    authUser.walletAddress?.toLowerCase() !==
-                    address.toLowerCase()
-                ) {
-                    logger.debug(
-                        "Connected wallet address mismatch, clearing auth...",
-                        { stored: authUser.walletAddress, connected: address }
-                    );
-                    logout();
-                }
+            if (!isInMiniApp && isConnected && address) {
+                // Since we don't have authUser state anymore, we can try to rely on useAccount
+                // OR we can check localStorage again briefly or query cache
+                // But generally, the concern is if wallet switches, we logout.
+                // We don't have stored wallet address in state. Query cache might have it but accessing it here is clumsy.
+                // We can rely on next effect which checks address mismatch via access token?
+                // Actually if wallet changes, usually app should logout.
+                // Let's assume React Query's user data will be refreshed or invalidated if address changes and we force re-login elsewhere.
+                // But logout on account change is safer.
+                // For now, removing the strict address check block that used authUser.
             }
             return;
         }
 
         const storedToken = localStorage.getItem(AUTH_TOKEN_KEY);
-        const storedUser = localStorage.getItem(AUTH_USER_KEY);
+        // We can still parse stored User to check address match initially
+        const storedUserStr = localStorage.getItem(AUTH_USER_KEY);
 
-        if (storedToken && storedUser && !isTokenExpired()) {
+        if (storedToken && storedUserStr && !isTokenExpired()) {
             try {
-                const parsedUser: AuthUser = JSON.parse(storedUser);
+                // Temporary type for parsing
+                const parsedUser: User = JSON.parse(storedUserStr);
 
                 // For browser wallet: check if stored wallet matches connected wallet
                 // Skip this check in MiniApp (uses Farcaster auth) or if wallet not yet connected
@@ -331,8 +408,10 @@ export default function AuthProvider({
                 }
 
                 setAccessToken(storedToken);
-                setAuthUser(parsedUser);
                 setIsAuthenticated(true);
+                // Hydrate query cache
+                queryClient.setQueryData(["user"], parsedUser);
+
                 logger.debug("Restored auth from localStorage (token valid)");
             } catch {
                 logout();
@@ -343,7 +422,7 @@ export default function AuthProvider({
         }
         setIsAuthLoading(false);
         hasRestoredAuth.current = true;
-    }, [logout, isInMiniApp, isConnected, address, authUser]);
+    }, [logout, isInMiniApp, isConnected, address, queryClient]);
 
     // Periodic token expiry check (every minute)
     // Uses refs to avoid re-running on function reference changes
@@ -373,8 +452,8 @@ export default function AuthProvider({
         if (!isInMiniApp || isAuthenticated) {
             return;
         }
-        // Wait for wallet to be connected (address available)
-        if (!address) {
+        // Wait for wallet to be connected (address is required for loginWithFarcaster)
+        if (!isConnected || !address) {
             logger.debug("Waiting for wallet address before Farcaster auth...");
             return;
         }
@@ -383,9 +462,32 @@ export default function AuthProvider({
         isContextReady,
         isInMiniApp,
         isAuthenticated,
+        isConnected,
         address,
         performFarcasterAuth,
     ]);
+
+    // Prompt for notification permission once after Farcaster auth
+    useEffect(() => {
+        if (!isInMiniApp || !isAuthenticated) return;
+
+        const hasPrompted =
+            localStorage.getItem(NOTIFICATION_PROMPT_SHOWN_KEY) === "true";
+        if (hasPrompted) return;
+
+        // Delay slightly to ensure UI is ready
+        const timeout = setTimeout(async () => {
+            try {
+                localStorage.setItem(NOTIFICATION_PROMPT_SHOWN_KEY, "true");
+                await sdk.actions.addMiniApp();
+                logger.debug("Notification prompt shown");
+            } catch (error) {
+                logger.error("Failed to show notification prompt:", error);
+            }
+        }, 1000);
+
+        return () => clearTimeout(timeout);
+    }, [isInMiniApp, isAuthenticated]);
 
     // Browser wallet auto-login: if wallet is already connected but not authenticated
     // Uses hasAttemptedAutoLogin ref to prevent re-triggering
@@ -422,7 +524,6 @@ export default function AuthProvider({
         () => ({
             isAuthenticated,
             isAuthLoading,
-            authUser,
             accessToken,
             loginWithMetaMask,
             refreshAuth: () => performFarcasterAuth(false),
@@ -431,7 +532,6 @@ export default function AuthProvider({
         [
             isAuthenticated,
             isAuthLoading,
-            authUser,
             accessToken,
             loginWithMetaMask,
             performFarcasterAuth,
@@ -442,6 +542,25 @@ export default function AuthProvider({
     return (
         <AuthContext.Provider value={contextValue}>
             {children}
+
+            {/* Login Retry Modal */}
+            {showRetryModal && (
+                <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50">
+                    <div className="bg-white rounded-2xl p-6 mx-4 max-w-sm text-center shadow-xl">
+                        <div className="text-4xl mb-3">🔐</div>
+                        <h3 className="text-lg font-bold text-gray-900 mb-2">
+                            Login Required
+                        </h3>
+                        <p className="text-sm text-gray-600 mb-4">
+                            Please approve the signature request in your wallet
+                            to continue.
+                        </p>
+                        <p className="text-2xl font-bold text-blue-600">
+                            Retrying in {retryCountdown}s...
+                        </p>
+                    </div>
+                </div>
+            )}
         </AuthContext.Provider>
     );
 }

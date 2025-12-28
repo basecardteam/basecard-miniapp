@@ -2,7 +2,6 @@
 
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useConfig } from "@/hooks/api/useConfig";
-import { useERC721Token } from "@/hooks/evm/useERC721Token";
 import { baseCardAbi } from "@/lib/abi/abi";
 import {
     rollbackUpdate,
@@ -20,7 +19,6 @@ export function useEditBaseCard() {
     const { writeContractAsync } = useWriteContract();
     const { contractAddress } = useConfig();
     const queryClient = useQueryClient();
-    const { tokenId } = useERC721Token();
 
     const [isCreatingBaseCard, setIsCreatingBaseCard] = useState(false);
     const [isSendingTransaction, setIsSendingTransaction] = useState(false);
@@ -42,28 +40,20 @@ export function useEditBaseCard() {
                 return { success: false, error: "Contract address not found" };
             }
 
-            let gatewayUrl: string | undefined;
-
+            let imageUri = "";
+            let needsRollback = false;
             try {
-                if (!address) {
-                    throw new Error("Wallet not connected");
-                }
-
-                if (!tokenId) {
-                    throw new Error("No BaseCard token found for this address");
-                }
-
-                // 1. Backend API 호출: 이미지 처리 (S3 + IPFS) - DB 업데이트 없음
+                // 1. Backend API 호출
                 logger.info("Step 1: Preparing update via Backend API...");
                 setIsCreatingBaseCard(true);
 
-                const response = await updateBaseCard(
-                    address,
-                    input,
-                    accessToken
-                );
-                const { card_data, social_keys, social_values } = response;
-                gatewayUrl = response.gatewayUrl;
+                const {
+                    card_data,
+                    social_keys,
+                    social_values,
+                    token_id,
+                    needs_rollback,
+                } = await updateBaseCard(input, accessToken);
 
                 setIsCreatingBaseCard(false);
 
@@ -71,21 +61,20 @@ export function useEditBaseCard() {
                 logger.info("Step 2: Sending editBaseCard transaction...");
                 setIsSendingTransaction(true);
 
-                if (!contractAddress) {
-                    throw new Error("Contract address not found");
-                }
+                imageUri = card_data.imageUri;
+                needsRollback = needs_rollback;
 
                 const hash = await writeContractAsync({
                     address: contractAddress as `0x${string}`,
                     abi: baseCardAbi,
                     functionName: "editBaseCard",
                     args: [
-                        BigInt(tokenId),
+                        BigInt(token_id),
                         [
                             card_data.imageUri,
                             card_data.nickname,
                             card_data.role,
-                            card_data.bio || "",
+                            card_data.bio,
                         ],
                         social_keys,
                         social_values,
@@ -122,20 +111,18 @@ export function useEditBaseCard() {
 
                 logger.debug(rawMessage);
 
-                // User rejected the transaction
-                if (rawMessage.includes("User rejected")) {
-                    // Rollback IPFS upload if files were uploaded
-                    if (gatewayUrl && address) {
-                        logger.info("↺ Rolling back uploaded IPFS files...");
-                        rollbackUpdate(
-                            address,
-                            { ipfsId: gatewayUrl },
-                            accessToken
-                        ).catch((rollbackErr: unknown) => {
+                // Rollback IPFS upload if files were uploaded (for any error)
+                if (needsRollback && imageUri) {
+                    logger.info("Rolling back uploaded IPFS files...");
+                    rollbackUpdate(imageUri, accessToken).catch(
+                        (rollbackErr: unknown) => {
                             logger.error("Failed to rollback:", rollbackErr);
-                        });
-                    }
-                    // Don't set error for user rejection - it's intentional
+                        }
+                    );
+                }
+
+                // User rejected the transaction - don't show error
+                if (rawMessage.includes("User rejected")) {
                     return { success: false, error: "User rejected" };
                 }
 
@@ -151,7 +138,6 @@ export function useEditBaseCard() {
         [
             address,
             accessToken,
-            tokenId,
             writeContractAsync,
             contractAddress,
             isAuthenticated,

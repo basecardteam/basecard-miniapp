@@ -2,6 +2,7 @@
 
 import BackButton from "@/components/buttons/BackButton";
 import BaseButton from "@/components/buttons/BaseButton";
+import { useAuth } from "@/components/providers/AuthProvider";
 import {
     MiniAppContext,
     useFrameContext,
@@ -11,10 +12,14 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/Toast";
 import { useMintBaseCardMutation } from "@/features/mint/hooks/useMintBaseCardMutation";
 import { useMintForm } from "@/features/mint/hooks/useMintForm";
+import { useUser } from "@/hooks/api/useUser";
+import { verifyQuestByAction } from "@/lib/api/quests";
 import { logger } from "@/lib/common/logger";
 import { MAX_WEBSITES, type Role } from "@/lib/constants/mint";
 import { shareToFarcaster } from "@/lib/farcaster/share";
 import { processProfileImage } from "@/lib/processProfileImage";
+import { generateBaseCardShareURL } from "@/lib/qrCodeGenerator";
+import { ACTION_TYPES } from "@/lib/quest-actions";
 import type { MintFormData } from "@/lib/schemas/mintFormSchema";
 import { activeChain } from "@/lib/wagmi";
 import defaultProfileImage from "@/public/assets/default-profile.png";
@@ -45,6 +50,8 @@ export default function MintScreen() {
     const router = useRouter();
     const { address } = useAccount();
     const { showToast } = useToast();
+    const { refetch: refetchMyCard } = useUser();
+    const { accessToken } = useAuth();
 
     const username = (frameContext?.context as MiniAppContext)?.user?.username;
     const defaultProfileUrl =
@@ -88,7 +95,14 @@ export default function MintScreen() {
         txHash: string;
         gatewayUrl: string;
         isExisting: boolean;
-    }>({ isOpen: false, txHash: "", gatewayUrl: "", isExisting: false });
+        cardId: string;
+    }>({
+        isOpen: false,
+        txHash: "",
+        gatewayUrl: "",
+        isExisting: false,
+        cardId: "",
+    });
 
     // Form submit handler
     const onSubmit = useCallback(
@@ -129,6 +143,7 @@ export default function MintScreen() {
                         txHash: result.hash || "",
                         gatewayUrl: result.gatewayUrl || "",
                         isExisting: result.isExisting || false,
+                        cardId: ("cardId" in result ? result.cardId : "") || "",
                     });
                 }
             } catch (error) {
@@ -379,13 +394,35 @@ export default function MintScreen() {
                 isExisting={successModal.isExisting}
                 onViewCard={() => {
                     setSuccessModal((prev) => ({ ...prev, isOpen: false }));
+                    refetchMyCard();
                     router.push("/");
                 }}
                 onShare={async () => {
                     // Uses DEFAULT_SHARE_TEXT from share.ts
-                    await shareToFarcaster({
-                        embedUrl: successModal.gatewayUrl,
+                    const shareUrl = generateBaseCardShareURL(
+                        successModal.cardId
+                    );
+                    console.log("shareUrl", shareUrl);
+                    const result = await shareToFarcaster({
+                        embedUrl: shareUrl,
                     });
+                    if (result.success) {
+                        showToast("Shared to Farcaster!", "success");
+                        if (accessToken) {
+                            // Fire and forget verification? Or await?
+                            // User said "request verification", usually better to await slightly or just fire.
+                            // But we navigate away immediately.
+                            // To ensure request is sent, await is safer.
+                            try {
+                                await verifyQuestByAction(
+                                    ACTION_TYPES.FC_SHARE,
+                                    accessToken
+                                );
+                            } catch (e) {
+                                console.error("Verify failed", e);
+                            }
+                        }
+                    }
                     router.push("/");
                 }}
             />

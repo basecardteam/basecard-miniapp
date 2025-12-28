@@ -45,6 +45,10 @@ export interface UserWallet {
     clientType: "farcaster" | "baseapp";
     clientFid: number;
     createdAt: string;
+    notification_token?: boolean;
+    notification_url?: string;
+    notification_enabled?: boolean;
+    miniapp_added?: boolean;
 }
 
 export interface User {
@@ -94,7 +98,7 @@ export interface BaseCard {
 export interface BaseCardDetail extends BaseCard {
     address: string;
     fid: number | null;
-    farcasterProfile: FarcasterProfile | null;
+    farcasterPfpUrl: string | null;
 }
 
 export interface Quest {

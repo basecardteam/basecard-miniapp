@@ -1,5 +1,6 @@
 import { useAuth } from "@/components/providers/AuthProvider";
 import { CreateBaseCardParams } from "@/lib/api/basecards";
+import { fetchUser } from "@/lib/api/users";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAccount, usePublicClient } from "wagmi";
 import { useMintBaseCard } from "./useMintBaseCard";
@@ -42,7 +43,7 @@ export function useMintBaseCardMutation() {
             if (accessToken) {
                 await Promise.all([
                     queryClient.invalidateQueries({
-                        queryKey: ["user", accessToken],
+                        queryKey: ["user"],
                     }),
                     queryClient.invalidateQueries({
                         queryKey: ["userQuests", accessToken],
@@ -51,6 +52,12 @@ export function useMintBaseCardMutation() {
                         queryKey: ["myBaseCard", accessToken],
                     }),
                 ]);
+
+                // 4. Fetch updated user to get the new card ID
+                const updatedUser = await fetchUser(accessToken);
+                if (updatedUser?.card?.id) {
+                    return { ...result, cardId: updatedUser.card.id };
+                }
             }
 
             return result;
