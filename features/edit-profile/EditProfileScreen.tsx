@@ -16,6 +16,7 @@ import { SocialsInput } from "@/features/mint/components/SocialsInput";
 import { WebsitesInput } from "@/features/mint/components/WebsitesInput";
 import { useUser } from "@/hooks/api/useUser";
 import type { MintFormData } from "@/lib/schemas/mintFormSchema";
+import { User } from "@/lib/types/api";
 import defaultProfileImage from "@/public/assets/default-profile.png";
 import { useQueryClient } from "@tanstack/react-query";
 import dynamic from "next/dynamic";
@@ -319,8 +320,41 @@ export default function EditProfileScreen() {
                         onClose={async () => {
                             setShowSuccessModal(false);
                             // Refetch both user and quests so QuestList can check updated socials
+                            // Optimistically update query cache with form data
+                            queryClient.setQueryData(
+                                ["user"],
+                                (oldData: User | null | undefined) => {
+                                    if (!oldData || !oldData.card)
+                                        return oldData;
+                                    const formValues = form.getValues();
+                                    return {
+                                        ...oldData,
+                                        card: {
+                                            ...oldData.card,
+                                            nickname: formValues.name,
+                                            role: formValues.role,
+                                            bio: formValues.bio,
+                                            socials: {
+                                                github:
+                                                    formValues.github ||
+                                                    undefined,
+                                                x: formValues.x || undefined,
+                                                farcaster:
+                                                    formValues.farcaster ||
+                                                    undefined,
+                                                linkedin:
+                                                    formValues.linkedin ||
+                                                    undefined,
+                                            },
+                                            // Update image if available (this is tricky as we have File not URL)
+                                            // But standard flow might update it later via background refetch
+                                        },
+                                    };
+                                }
+                            );
+
                             await Promise.all([
-                                queryClient.refetchQueries({
+                                queryClient.invalidateQueries({
                                     queryKey: ["user"],
                                 }),
                                 queryClient.invalidateQueries({

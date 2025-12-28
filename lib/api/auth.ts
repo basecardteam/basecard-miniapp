@@ -1,23 +1,15 @@
 import { config } from "@/lib/common/config";
-import { ApiResponse } from "@/lib/types/api";
-
-export interface AuthUser {
-    id: string;
-    walletAddress: string;
-    fid?: number;
-    role?: string;
-    totalPoints?: number;
-}
+import { ApiResponse, User } from "@/lib/types/api";
 
 export interface AuthResponse {
     accessToken: string;
-    user: AuthUser;
+    user: User;
 }
 
 // Backend response uses snake_case
 interface RawAuthResponse {
     access_token: string;
-    user: AuthUser;
+    user: User;
 }
 
 /**

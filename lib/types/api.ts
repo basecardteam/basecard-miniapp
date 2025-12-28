@@ -45,6 +45,10 @@ export interface UserWallet {
     clientType: "farcaster" | "baseapp";
     clientFid: number;
     createdAt: string;
+    notification_token?: boolean;
+    notification_url?: string;
+    notification_enabled?: boolean;
+    miniapp_added?: boolean;
 }
 
 export interface User {

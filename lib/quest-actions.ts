@@ -1,6 +1,6 @@
 "use client";
 
-import { upsertNotificationToken } from "@/lib/api/users";
+import { upsertMiniAppAdded, upsertNotificationToken } from "@/lib/api/users";
 import { shareToFarcaster } from "@/lib/farcaster/share";
 import { SocialKey } from "@/lib/types/api";
 import { sdk } from "@farcaster/miniapp-sdk";
@@ -310,6 +310,20 @@ const handleAppAddMiniapp = async (
         const result = await sdk.actions.addMiniApp();
         const miniappCtx = await sdk.context;
         if (result && miniappCtx.client.added) {
+            // Mark miniapp as added via API
+            if (ctx.accessToken && ctx.clientContext.clientFid) {
+                try {
+                    await upsertMiniAppAdded(
+                        ctx.accessToken,
+                        ctx.clientContext.clientFid
+                    );
+                    console.log("Miniapp added marked on server");
+                } catch (error) {
+                    console.error("Failed to mark miniapp added:", error);
+                    // Continue even if API call fails
+                }
+            }
+
             return {
                 success: true,
                 shouldSetPending: true,

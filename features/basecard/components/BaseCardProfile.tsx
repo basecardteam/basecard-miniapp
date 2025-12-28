@@ -93,6 +93,13 @@ export default function MyBaseCardProfile({
         return defaultProfileImage.src;
     }, [isViewer, viewerCard]);
 
+    const ownerFid = useMemo(() => {
+        if (isViewer && viewerCard?.fid) {
+            return viewerCard.fid;
+        }
+        return undefined;
+    }, [isViewer, viewerCard]);
+
     const isLoading = isProfile ? isMyCardLoading : isViewerCardLoading;
     const isNotFound = !isLoading && !card;
 
@@ -133,10 +140,8 @@ export default function MyBaseCardProfile({
             queryClient.invalidateQueries({ queryKey: ["collectedCards"] }); // Refetch in background
             setIsCollectSuccessModalOpen(true); // Show success modal
         } catch (error) {
-            const message =
-                error instanceof Error
-                    ? error.message
-                    : "Failed to collect card";
+            console.log(`cardId: ${card?.id}, error: ${error}`);
+            const message = "Failed to collect card";
             if (message.includes("already exists")) {
                 showToast("You have already collected this card.", "error");
                 setLocalCollected(true); // Already collected
@@ -269,6 +274,7 @@ export default function MyBaseCardProfile({
                     card={card!}
                     mode={mode}
                     ownerPfpUrl={ownerPfpUrl ?? undefined}
+                    ownerFid={ownerFid ?? undefined}
                     onClose={isViewer ? handleClose : undefined}
                     isCollected={isViewer ? isCollected : undefined}
                     onCollect={isViewer ? handleCollect : undefined}

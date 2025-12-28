@@ -36,6 +36,7 @@ interface ProfileCardContentProps {
     card: BaseCard;
     mode?: "profile" | "viewer";
     ownerPfpUrl?: string; // For viewer mode - fetched from Neynar
+    ownerFid?: number;
     onClose?: () => void;
     isCollected?: boolean;
     onCollect?: () => void;
@@ -113,6 +114,7 @@ export default function ProfileCardContent({
     card,
     mode = "profile",
     ownerPfpUrl,
+    ownerFid,
     onClose,
     isCollected = false,
     onCollect,
@@ -262,13 +264,21 @@ export default function ProfileCardContent({
                 {/* Content Wrapper */}
                 <div className="relative z-10 w-full h-full flex flex-col items-center p-5">
                     {/* Profile Image */}
-                    <div className="w-20 h-20 rounded-xl overflow-hidden shadow-lg border-2 border-white/20 flex-none bg-black/20">
+                    <div
+                        className="w-20 h-20 rounded-xl overflow-hidden shadow-lg border-2 border-white/20 flex-none bg-black/20 cursor-pointer"
+                        onClick={() => {
+                            console.log("ownerFid", ownerFid);
+                            if (ownerFid) {
+                                sdk.actions.viewProfile({ fid: ownerFid });
+                            }
+                        }}
+                    >
                         <Image
                             src={profileImageUrl}
                             alt={card.nickname || "User"}
                             width={80}
                             height={80}
-                            className="object-cover"
+                            className="object-cover w-full h-full"
                             priority
                         />
                     </div>

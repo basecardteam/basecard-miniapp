@@ -16,7 +16,7 @@ export async function fetchUser(accessToken: string): Promise<User> {
     }
 
     const data: ApiResponse<User> = await response.json();
-
+    console.log(data);
     if (!data.success || !data.result) {
         throw new Error(data.error || "Failed to fetch user");
     }
@@ -70,6 +70,36 @@ export async function upsertNotificationToken(
 
     if (!data.success) {
         throw new Error(data.error || "Failed to save notification settings");
+    }
+
+    return { success: true };
+}
+
+/**
+ * Mark miniapp as added for the user
+ * Called when user adds miniapp to home screen
+ */
+export async function upsertMiniAppAdded(
+    accessToken: string,
+    clientFid: number
+): Promise<{ success: boolean }> {
+    const response = await fetch(
+        `${config.BACKEND_API_URL}/v1/users/me/miniapp_added`,
+        {
+            method: "POST",
+            headers: createHeaders(accessToken),
+            body: JSON.stringify({ clientFid }),
+        }
+    );
+
+    if (!response.ok) {
+        throw new Error("Failed to mark miniapp added");
+    }
+
+    const data: ApiResponse<{ success: boolean }> = await response.json();
+
+    if (!data.success) {
+        throw new Error(data.error || "Failed to mark miniapp added");
     }
 
     return { success: true };
