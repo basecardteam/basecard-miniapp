@@ -95,7 +95,7 @@ export default function EditProfileScreen() {
                 bio: cardData.bio || "",
                 github: cardData.socials?.github || "",
                 x: cardData.socials?.x || "",
-                farcaster: cardData.socials?.farcaster || "",
+                farcaster: cardData.socials?.farcaster || username || "",
                 linkedin: cardData.socials?.linkedin || "",
                 websites: [],
                 selectedSkills: [],

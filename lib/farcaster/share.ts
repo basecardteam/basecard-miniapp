@@ -120,7 +120,7 @@ export async function shareToFarcaster(
         text = DEFAULT_SHARE_TEXT,
         embedUrl,
         imageUrl,
-        closeAfterPost = false,
+        closeAfterPost = true,
         channelKey,
     } = options;
 
@@ -142,6 +142,7 @@ export async function shareToFarcaster(
 
             // result.cast is null if user cancels
             if (result?.cast) {
+                console.log("cast hash: ", result.cast.hash);
                 return {
                     success: true,
                     castHash: result.cast.hash,

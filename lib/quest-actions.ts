@@ -268,6 +268,11 @@ const handleAppNotification = async (
     try {
         const result = await sdk.actions.addMiniApp();
         const miniappCtx = await sdk.context;
+        console.log("[handleAppNotification] result: ", result);
+        console.log(
+            "[handleAppNotification] miniappCtx: ",
+            miniappCtx.client.notificationDetails
+        );
         if (
             result &&
             miniappCtx.client.notificationDetails &&

@@ -7,6 +7,7 @@ import { useQuestHandler } from "@/features/quest/hooks/useQuestHandler";
 import { useMyQuests } from "@/hooks/api/useMyQuests";
 import { Gift, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 interface QuestBottomSheetProps {
     isOpen: boolean;
@@ -19,6 +20,13 @@ export default function QuestBottomSheet({
 }: QuestBottomSheetProps) {
     // Quest data
     const { quests, isLoading, refetch } = useMyQuests();
+
+    // Mount state for portal
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     // Quest actions + verifiable state
     const {
@@ -109,13 +117,15 @@ export default function QuestBottomSheet({
                 return;
             }
             if (e.target === e.currentTarget) {
+                e.preventDefault(); // Prevent ghost clicks
                 handleClose();
             }
         },
         [handleClose]
     );
 
-    // Don't render if not open and not closing
+    // Don't render if not mounted or (not open and not closing)
+    if (!mounted) return null;
     if (!isOpen && !isClosing) return null;
 
     const claimableCount = quests.filter(
@@ -125,7 +135,7 @@ export default function QuestBottomSheet({
         (q) => q.status === "completed"
     ).length;
 
-    return (
+    return createPortal(
         <>
             <div className="fixed inset-0 z-[1000] max-w-xl mx-auto ">
                 <style jsx>{`
@@ -269,6 +279,7 @@ export default function QuestBottomSheet({
                 title={processingMessage || "Processing..."}
                 description="Please wait a moment"
             />
-        </>
+        </>,
+        document.body
     );
 }

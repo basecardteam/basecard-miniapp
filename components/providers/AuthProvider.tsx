@@ -177,6 +177,9 @@ export default function AuthProvider({
                     throw new Error("Wallet not connected");
                 }
 
+                // console.log("[performFarcasterAuth] token:", token);
+                // console.log("[performFarcasterAuth] clientFid:", clientFid);
+                // console.log("[performFarcasterAuth] address:", address);
                 const response = await loginWithFarcaster(
                     token,
                     clientFid,
