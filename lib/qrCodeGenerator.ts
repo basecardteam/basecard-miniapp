@@ -77,13 +77,9 @@ export function generateBaseCardShareURL(cardId: string): string {
  * Generate a collectable URL for a BaseCard
  */
 export function generateBaseCardCollectURL(cardId: string): string {
-    const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
-    console.log(
-        "generated share URL",
-        `${baseUrl}?action=${ACTION_ADD_CARD}&id=${cardId}`
-    );
-
-    return `${baseUrl}?action=${ACTION_ADD_CARD}&id=${cardId}`;
+    const deepLink = `cbwallet://miniapp?url=${ROOT_URL}?action=${ACTION_ADD_CARD}&id=${cardId}`;
+    console.log("generated share URL", deepLink);
+    return deepLink;
 }
 
 /**

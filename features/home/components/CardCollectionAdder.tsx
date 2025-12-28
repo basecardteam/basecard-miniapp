@@ -57,11 +57,15 @@ export default function CardCollectionAdder({
     const handleCollect = useCallback(async () => {
         setIsConfirmDismissed(true);
 
-        if (!address || !myCard?.id) {
+        if (!address) {
+            showToast(
+                "Please connect your wallet to collect this card.",
+                "error"
+            );
             return;
         }
 
-        if (!isAuthenticated || !accessToken) {
+        if (!accessToken) {
             showToast(
                 "Please connect your wallet to collect this card.",
                 "error"
@@ -89,15 +93,7 @@ export default function CardCollectionAdder({
             }
             router.replace("/");
         }
-    }, [
-        address,
-        myCard,
-        collectedCardId,
-        router,
-        showToast,
-        accessToken,
-        isAuthenticated,
-    ]);
+    }, [address, myCard, collectedCardId, router, showToast, accessToken]);
 
     // -------------------------------------------------------------
     // 3. UX helper functions

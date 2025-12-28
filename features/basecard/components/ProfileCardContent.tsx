@@ -190,14 +190,14 @@ export default function ProfileCardContent({
             console.error("Failed to copy link:", error);
             showToast("Failed to copy link", "error");
         }
-    }, [address, showToast]);
+    }, [card, showToast]);
 
     const handleShareQR = useCallback(async () => {
-        if (!address) return;
+        if (!card) return;
         setIsQRModalOpen(true);
         setIsLoadingQR(true);
         try {
-            const qrCode = await generateBaseCardCollectQRCode(address, {
+            const qrCode = await generateBaseCardCollectQRCode(card.id, {
                 width: 250,
                 margin: 2,
                 color: { dark: "#000000", light: "#FFFFFF00" },
@@ -209,7 +209,7 @@ export default function ProfileCardContent({
         } finally {
             setIsLoadingQR(false);
         }
-    }, [address]);
+    }, [card]);
 
     const handleCastCard = useCallback(async () => {
         if (!card) return;
