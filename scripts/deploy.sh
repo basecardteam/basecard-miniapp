@@ -162,6 +162,16 @@ REMOTE_PATH_SETUP='export PATH="$HOME/.bun/bin:$HOME/.nvm/versions/node/$(ls $HO
 
 deploy_remote() {
     log_info "🌐 리모트 배포 시작: $SSH_HOST"
+    
+    # .env.prod 동기화 (빌드 전 필수)
+    log_info "🔄 .env.prod 동기화 중..."
+    if [ ! -f ".env.prod" ]; then
+        log_error ".env.prod 파일이 로컬에 없습니다!"
+        exit 1
+    fi
+    scp .env.prod "$SSH_HOST:$APP_DIR/.env"
+    log_info "✅ .env.prod -> $SSH_HOST:$APP_DIR/.env 전송 완료"
+
     log_info "📡 $APP_DIR 에서 배포 실행..."
     
     ssh "$SSH_HOST" "$REMOTE_PATH_SETUP && cd $APP_DIR && git pull origin $BRANCH && ./scripts/deploy.sh deploy"
@@ -182,6 +192,23 @@ remote_logs() {
 remote_rollback() {
     log_info "🔙 리모트 롤백: $SSH_HOST"
     ssh "$SSH_HOST" "cd $APP_DIR && ./scripts/deploy.sh rollback"
+}
+
+remote_sync_env() {
+    log_info "🔄 .env.prod 동기화 시작: $SSH_HOST"
+    if [ ! -f ".env.prod" ]; then
+        log_error ".env.prod 파일이 로컬에 없습니다!"
+        exit 1
+    fi
+    
+    log_info "📤 .env.prod -> $SSH_HOST:$APP_DIR/.env 복사 중..."
+    scp .env.prod "$SSH_HOST:$APP_DIR/.env"
+    
+    # Reload PM2 to apply new env
+    log_info "🔄 PM2 리로드 중 (환경변수 적용)..."
+    ssh "$SSH_HOST" "$REMOTE_PATH_SETUP && cd $APP_DIR && pm2 reload ecosystem.config.cjs --update-env"
+    
+    log_info "🎉 환경변수 동기화 완료!"
 }
 
 # ============================================================
@@ -215,6 +242,9 @@ case "$CMD" in
         ;;
     remote:rollback)
         remote_rollback
+        ;;
+    remote:env)
+        remote_sync_env
         ;;
     *)
         echo "Usage: $0 {deploy|rollback|status|logs|remote|remote:status|remote:logs|remote:rollback}"
