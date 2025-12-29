@@ -15,7 +15,7 @@ export function useBaseCard(cardId?: string) {
         queryFn: () =>
             cardId ? fetchBaseCardById(cardId) : Promise.resolve(null),
         enabled: !!cardId,
-        staleTime: 1000 * 10, // 10 seconds
+        staleTime: 0,
     });
 }
 
@@ -30,7 +30,7 @@ export function useBaseCards() {
             logger.debug("Fetching all basecards");
             return fetchAllBaseCards();
         },
-        staleTime: 1000 * 10, // 10 seconds
+        staleTime: 0,
         retry: 1,
     });
 }

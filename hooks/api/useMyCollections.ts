@@ -23,5 +23,6 @@ export function useMyCollections() {
             return collections ?? null;
         },
         enabled: isAuthenticated && !!accessToken && isConnected,
+        staleTime: 0,
     });
 }

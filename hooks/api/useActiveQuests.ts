@@ -13,7 +13,7 @@ export function useActiveQuests() {
     } = useQuery({
         queryKey: ["activeQuests"],
         queryFn: fetchActiveQuests,
-        staleTime: 1000 * 60, // 1 minute
+        staleTime: 0,
     });
 
     return {

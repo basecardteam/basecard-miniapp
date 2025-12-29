@@ -11,8 +11,7 @@ export function useConfig() {
     const { data, isLoading, error } = useQuery<AppConfigResult>({
         queryKey: ["appConfig"],
         queryFn: fetchAppConfig,
-        staleTime: 1000 * 60 * 60, // 1 hour - config rarely changes
-        gcTime: 1000 * 60 * 60 * 24, // 24 hours
+        staleTime: 0,
         retry: 1,
     });
 

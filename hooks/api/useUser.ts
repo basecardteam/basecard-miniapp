@@ -50,7 +50,7 @@ export function useUser(): UseUserResult {
             }
         },
         enabled: isAuthenticated && !!accessToken,
-        staleTime: 1000 * 60, // 1 minute
+        staleTime: 0,
         refetchOnMount: true,
         retry: 1,
     });
