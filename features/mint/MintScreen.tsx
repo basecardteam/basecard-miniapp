@@ -33,6 +33,7 @@ import MintSuccessModal from "./components/MintSuccessModal";
 import ProfileImagePreview from "./components/ProfileImagePreview";
 import { RoleSelector } from "./components/RoleSelector";
 import { SocialsInput } from "./components/SocialsInput";
+import SyncWaitModal from "./components/SyncWaitModal";
 import { WebsitesInput } from "./components/WebsitesInput";
 
 const LoadingModal = dynamic(
@@ -104,6 +105,9 @@ export default function MintScreen() {
         cardId: "",
     });
 
+    // Sync Wait modal state
+    const [syncWaitModalOpen, setSyncWaitModalOpen] = useState(false);
+
     // Form submit handler
     const onSubmit = useCallback(
         async (data: MintFormData) => {
@@ -155,6 +159,11 @@ export default function MintScreen() {
                 // Handle "User rejected" specifically if it was thrown
                 if (errorMessage === "User rejected") {
                     showToast("Transaction cancelled", "warning");
+                } else if (
+                    errorMessage.includes("Already minted") ||
+                    errorMessage.includes("You have already minted")
+                ) {
+                    setSyncWaitModalOpen(true);
                 } else {
                     console.error("❌ Card minting error:", error);
                     showToast(errorMessage, "error");
@@ -423,6 +432,14 @@ export default function MintScreen() {
                             }
                         }
                     }
+                    router.push("/");
+                }}
+            />
+            {/* Sync Wait Modal */}
+            <SyncWaitModal
+                isOpen={syncWaitModalOpen}
+                onClose={() => {
+                    setSyncWaitModalOpen(false);
                     router.push("/");
                 }}
             />

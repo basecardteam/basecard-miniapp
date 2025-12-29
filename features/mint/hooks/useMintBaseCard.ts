@@ -94,7 +94,10 @@ export function useMintBaseCard() {
                 }
 
                 // AlreadyMinted - 이미 카드가 있는 경우
-                if (rawMessage.includes("AlreadyMinted")) {
+                if (
+                    rawMessage.includes("AlreadyMinted") ||
+                    rawMessage.includes("You have already minted")
+                ) {
                     logger.info(
                         "User already has a card, fetching existing card..."
                     );
