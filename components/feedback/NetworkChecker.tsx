@@ -22,14 +22,6 @@ export function NetworkChecker() {
     const requiredChainId = activeChain.id;
     const isCorrectChain = chainId === requiredChainId;
 
-    // 한번만 나오게 바꿔야할 듯
-    // console.log("🌐 Network Checker Debug:", {
-    //     isDevelopment,
-    //     activeChainName: activeChain.name,
-    //     NEXT_PUBLIC_USE_TESTNET: process.env.NEXT_PUBLIC_USE_TESTNET,
-    //     NODE_ENV: process.env.NODE_ENV,
-    // });
-
     // Check network when user connects or changes
     useEffect(() => {
         const shouldShow = isConnected && address && !isCorrectChain;

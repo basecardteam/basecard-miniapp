@@ -15,10 +15,11 @@ import {
     RPC_CONFIG,
 } from "./rpc";
 
-// Use custom env variable for network selection
-// NEXT_PUBLIC_USE_TESTNET=true -> Base Sepolia (testnet)
-// NEXT_PUBLIC_USE_TESTNET=false or undefined -> Base Mainnet (production)
-export const isTestnet = true;
+/**
+ * Network Configuration
+ */
+export const isTestnet = process.env.NEXT_PUBLIC_USE_TESTNET === "true";
+export const activeChain = isTestnet ? baseSepolia : base;
 
 /**
  * Create wagmi config with RPC fallback
@@ -28,7 +29,7 @@ export const isTestnet = true;
  */
 export function getConfig() {
     return createConfig({
-        chains: isTestnet ? [baseSepolia] : [base],
+        chains: [activeChain],
         connectors: [
             farcasterMiniApp(),
             baseAccount({
@@ -68,5 +69,3 @@ export function getConfig() {
         },
     });
 }
-
-export const activeChain = isTestnet ? baseSepolia : base;
