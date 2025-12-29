@@ -242,7 +242,8 @@ const handleFcShare = async (
         return { success: false, error: "No cardId provided for share" };
     }
     const shareUrl = generateBaseCardShareURL(ctx.cardId);
-    await shareToFarcaster({ embedUrl: shareUrl });
+    const result = await shareToFarcaster({ embedUrl: shareUrl });
+    console.log("[handleFcShare] result: ", result);
     return { success: true, shouldSetPending: true };
 };
 

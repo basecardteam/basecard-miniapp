@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { useCallback, useMemo, useState } from "react";
-import { FaGithub, FaGlobe, FaLinkedin, FaTwitter } from "react-icons/fa";
+import { FaGithub, FaGlobe, FaLinkedin } from "react-icons/fa";
+import { FaXTwitter } from "react-icons/fa6";
 import { HiOutlinePencil } from "react-icons/hi";
 import { IoClose, IoShareOutline, IoTrashOutline } from "react-icons/io5";
 import { MdOutlineBookmarkAdd } from "react-icons/md";
@@ -79,7 +80,7 @@ const SOCIAL_ENTRIES: SocialEntry[] = [
     {
         key: "x",
         label: "X",
-        icon: <FaTwitter className="text-white" size={24} />,
+        icon: <FaXTwitter className="text-white" size={24} />,
     },
     {
         key: "linkedin",
@@ -311,6 +312,12 @@ export default function ProfileCardContent({
                                     onClick={(e) => {
                                         e.preventDefault();
                                         e.stopPropagation();
+                                        if (key === "farcaster" && ownerFid) {
+                                            sdk.actions.viewProfile({
+                                                fid: ownerFid,
+                                            });
+                                            return;
+                                        }
                                         if (hasUrl) handleOpenUrl(key, value);
                                     }}
                                     disabled={!hasUrl}
