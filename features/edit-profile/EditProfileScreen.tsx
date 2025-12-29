@@ -48,6 +48,16 @@ const LoadingModal = dynamic(
     }
 );
 
+const ErrorModal = dynamic(
+    () =>
+        import("@/components/modals/ErrorModal").then((mod) => ({
+            default: mod.default,
+        })),
+    {
+        ssr: false,
+    }
+);
+
 export default function EditProfileScreen() {
     const frameContext = useFrameContext();
     const router = useRouter();
@@ -106,6 +116,7 @@ export default function EditProfileScreen() {
 
     const [newWebsite, setNewWebsite] = useState("");
     const [showSuccessModal, setShowSuccessModal] = useState(false);
+    const [showErrorModal, setShowErrorModal] = useState(false);
     const [submitError, setSubmitError] = useState<string | null>(null);
 
     // WebsitesInput에서 실시간 검증하므로 여기서는 단순히 추가만
@@ -157,7 +168,8 @@ export default function EditProfileScreen() {
         if (result.success) {
             setShowSuccessModal(true);
         } else if (result.error && result.error !== "User rejected") {
-            setSubmitError(result.error);
+            setSubmitError("Please change your app to farcaster.");
+            setShowErrorModal(true);
         }
     };
 
@@ -271,11 +283,11 @@ export default function EditProfileScreen() {
                 </div>
 
                 {/* Error Message */}
-                {submitError && (
+                {/* {submitError && (
                     <p className="text-red-500 text-sm text-center w-full">
                         {submitError}
                     </p>
-                )}
+                )} */}
 
                 <BaseButton
                     type="submit"
@@ -367,6 +379,18 @@ export default function EditProfileScreen() {
                         description="Your profile changes have been saved on blockchain."
                         buttonText="Okay"
                         variant="success"
+                    />
+                </Suspense>
+            )}
+
+            {/* Error Modal */}
+            {showErrorModal && submitError && (
+                <Suspense fallback={null}>
+                    <ErrorModal
+                        isOpen={showErrorModal}
+                        onClose={() => setShowErrorModal(false)}
+                        title="Update Failed"
+                        description={submitError}
                     />
                 </Suspense>
             )}

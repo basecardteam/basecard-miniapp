@@ -137,6 +137,9 @@ export function useQuestHandler(): UseQuestHandlerResult {
             clientContext: {
                 clientFid: (frameContext.context as unknown as MiniAppContext)
                     .client.clientFid,
+                notificationDetails: (
+                    frameContext.context as unknown as MiniAppContext
+                ).client.notificationDetails,
             },
         }),
         [card, address, accessToken, frameContext]

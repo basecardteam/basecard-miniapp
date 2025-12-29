@@ -4,6 +4,8 @@
     "private": true,
     "scripts": {
         "dev": "next dev",
+        "dev:dev": "env-cmd -f .env.dev next dev",
+        "dev:prod": "env-cmd -f .env.prod.local next dev",
         "build": "next build",
         "start": "next start",
         "lint": "next lint",
@@ -63,6 +65,7 @@
         "@types/node": "^24.3.0",
         "@types/react": "19.2.6",
         "@types/react-dom": "19.2.3",
+        "env-cmd": "^11.0.0",
         "eruda": "^3.4.3",
         "eslint": "^9",
         "eslint-config-next": "16.0.7",

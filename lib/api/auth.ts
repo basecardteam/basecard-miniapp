@@ -6,12 +6,6 @@ export interface AuthResponse {
     user: User;
 }
 
-// Backend response uses snake_case
-interface RawAuthResponse {
-    access_token: string;
-    user: User;
-}
-
 /**
  * Login with Farcaster Quick Auth token
  * Backend verifies the JWT using @farcaster/quick-auth
@@ -48,17 +42,13 @@ export async function loginWithFarcaster(
         );
     }
 
-    const data: ApiResponse<RawAuthResponse> = await response.json();
+    const data: ApiResponse<AuthResponse> = await response.json();
 
     if (!data.success || !data.result) {
         throw new Error(data.error || "Failed to login with Farcaster");
     }
 
-    // Map snake_case to camelCase
-    return {
-        accessToken: data.result.access_token,
-        user: data.result.user,
-    };
+    return data.result;
 }
 
 /**
@@ -86,17 +76,13 @@ export async function loginWithWallet(
         throw new Error(errorData.message || "Failed to login with wallet");
     }
 
-    const data: ApiResponse<RawAuthResponse> = await response.json();
+    const data: ApiResponse<AuthResponse> = await response.json();
 
     if (!data.success || !data.result) {
         throw new Error(data.error || "Failed to login with wallet");
     }
 
-    // Map snake_case to camelCase
-    return {
-        accessToken: data.result.access_token,
-        user: data.result.user,
-    };
+    return data.result;
 }
 
 /**
