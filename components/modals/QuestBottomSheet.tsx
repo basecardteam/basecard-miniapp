@@ -5,7 +5,8 @@ import SuccessModal from "@/components/modals/SuccessModal";
 import QuestList from "@/features/quest/components/QuestList";
 import { useQuestHandler } from "@/features/quest/hooks/useQuestHandler";
 import { useMyQuests } from "@/hooks/api/useMyQuests";
-import { Gift, X } from "lucide-react";
+import { X } from "lucide-react";
+import { TbLicense } from "react-icons/tb";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
@@ -209,7 +210,7 @@ export default function QuestBottomSheet({
                     <div className="flex items-start justify-between px-4 pb-2 border-b border-gray-100">
                         <div className="flex items-center gap-2">
                             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center">
-                                <Gift className="w-4 h-4 text-white" />
+                                <TbLicense className="w-4 h-4 text-white" />
                             </div>
                             <div>
                                 <h2 className="text-base font-bold text-gray-900 leading-none">

@@ -172,7 +172,7 @@ export interface QuestActionContext {
     cardId?: string;
     cardImageUri?: string;
     isInMiniApp: boolean;
-    clientContext: {
+    clientContext?: {
         clientFid: number;
     };
 }
@@ -283,7 +283,7 @@ const handleAppNotification = async (
                 await upsertNotificationToken(
                     ctx.accessToken,
                     miniappCtx.client.notificationDetails,
-                    ctx.clientContext.clientFid
+                    ctx.clientContext!.clientFid
                 );
                 console.log("Notification token saved");
             } catch (error) {
@@ -317,7 +317,7 @@ const handleAppAddMiniapp = async (
         const miniappCtx = await sdk.context;
         if (result && miniappCtx.client.added) {
             // Mark miniapp as added via API
-            if (ctx.accessToken && ctx.clientContext.clientFid) {
+            if (ctx.accessToken && ctx.clientContext?.clientFid) {
                 try {
                     await upsertMiniAppAdded(
                         ctx.accessToken,

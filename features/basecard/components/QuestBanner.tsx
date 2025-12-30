@@ -3,7 +3,8 @@
 import QuestBottomSheet from "@/components/modals/QuestBottomSheet";
 import { useMyQuests } from "@/hooks/api/useMyQuests";
 import clsx from "clsx";
-import { ChevronRight, Gift } from "lucide-react";
+import { ChevronRight } from "lucide-react";
+import { TbLicense } from "react-icons/tb";
 import { useMemo, useState } from "react";
 
 /**
@@ -67,7 +68,7 @@ export default function QuestBanner() {
                     )}
                 >
                     <div className="flex items-center gap-2">
-                        <Gift
+                        <TbLicense
                             className={clsx(
                                 "w-4 h-4",
                                 hasClaimable ? "text-white" : "text-[#007AFF]"

@@ -81,9 +81,6 @@ export default function EditProfileScreen() {
     // Form state
     const {
         form,
-        fileInputRef,
-        handleImageClick,
-        handleFileChange,
         handleAddWebsite,
         handleRemoveWebsite,
         watch,
@@ -94,7 +91,6 @@ export default function EditProfileScreen() {
 
     const role = watch("role");
     const websites = watch("websites");
-    const profileImageFile = watch("profileImageFile");
 
     // Populate form when cardData is available
     useEffect(() => {
@@ -193,13 +189,7 @@ export default function EditProfileScreen() {
                 className="flex flex-col justify-center items-start px-5 gap-y-6"
             >
                 {/* Profile Image */}
-                <ProfileImagePreview
-                    defaultProfileUrl={profileImage}
-                    profileImageFile={profileImageFile || null}
-                    fileInputRef={fileInputRef}
-                    handleFileChange={handleFileChange}
-                    handleImageClick={handleImageClick}
-                />
+                <ProfileImagePreview defaultProfileUrl={profileImage} />
 
                 {/* Name */}
                 <div className="w-full space-y-1">

@@ -20,7 +20,6 @@ import {
 } from "react-icons/io5";
 import { NoCardState } from "./NoCardState";
 import ProfileCardContent from "./ProfileCardContent";
-import QuestBanner from "./QuestBanner";
 
 // =============================================================================
 // Types
@@ -256,9 +255,6 @@ export default function MyBaseCardProfile({
         // Main Content
         return (
             <div className="w-full flex flex-col items-center justify-start overflow-y-auto relative gap-y-3 pb-8">
-                {/* [PROFILE ONLY] Quest Banner */}
-                {isProfile && <QuestBanner />}
-
                 {/* [VIEWER ONLY] Back Button */}
                 {isViewer && (
                     <div className="w-full relative h-12 flex items-center justify-start">

@@ -62,9 +62,6 @@ export default function MintScreen() {
     // Form state management
     const {
         form,
-        fileInputRef,
-        handleImageClick,
-        handleFileChange,
         handleAddWebsite,
         handleRemoveWebsite,
         watch,
@@ -76,7 +73,6 @@ export default function MintScreen() {
     // Watch 복잡한 필드들만 (register로 관리되지 않는 필드)
     const role = watch("role");
     const websites = watch("websites");
-    const profileImageFile = watch("profileImageFile");
 
     // Temporary field for new website input (not in schema)
     const [newWebsite, setNewWebsite] = useState("");
@@ -254,13 +250,7 @@ export default function MintScreen() {
                 className="flex flex-col justify-center items-start px-5 py-4 gap-y-6"
             >
                 {/* 프로필 이미지 영역 */}
-                <ProfileImagePreview
-                    profileImageFile={profileImageFile || null}
-                    defaultProfileUrl={defaultProfileUrl}
-                    fileInputRef={fileInputRef}
-                    handleFileChange={handleFileChange}
-                    handleImageClick={handleImageClick}
-                />
+                <ProfileImagePreview defaultProfileUrl={defaultProfileUrl} />
 
                 {/* 이름 입력 */}
                 <div className="w-full space-y-2">

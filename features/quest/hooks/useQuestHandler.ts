@@ -62,11 +62,11 @@ export function useQuestHandler(): UseQuestHandlerResult {
     const { address } = useAccount();
     const { card } = useUser();
     const { showToast } = useToast();
-    const frameContext = useFrameContext()!;
+    const frameContext = useFrameContext();
+    const isInMiniApp = frameContext?.isInMiniApp ?? false;
+    const frameContextData = frameContext?.context;
     const { claim } = useMyQuests();
     const { accessToken } = useAuth();
-
-    const userSocials = card?.socials ?? {};
 
     // -----------------------------------------
     // State
@@ -84,9 +84,10 @@ export function useQuestHandler(): UseQuestHandlerResult {
     // Verifiable Actions 계산
     // -----------------------------------------
     const verifiableActions = useMemo(() => {
+        const socials = card?.socials ?? {};
         const auto = getAutoVerifiableActions({
             hasCard: !!card,
-            socials: userSocials,
+            socials,
         });
         const merged = [...new Set([...pendingActions, ...auto])];
 
@@ -96,7 +97,7 @@ export function useQuestHandler(): UseQuestHandlerResult {
             merged,
         });
         return merged;
-    }, [card, userSocials, pendingActions]);
+    }, [card, pendingActions]);
 
     // -----------------------------------------
     // Visibility API: 앱 복귀 시 pending → verifiable
@@ -127,22 +128,18 @@ export function useQuestHandler(): UseQuestHandlerResult {
     // -----------------------------------------
     // Action Context (외부 액션용)
     // -----------------------------------------
+    const clientFid = (frameContextData as MiniAppContext)?.client?.clientFid;
+
     const actionContext: QuestActionContext = useMemo(
         () => ({
             cardId: card?.id ?? "",
             address,
             accessToken: accessToken ?? undefined,
             cardImageUri: card?.imageUri ?? undefined,
-            isInMiniApp: frameContext.isInMiniApp,
-            clientContext: {
-                clientFid: (frameContext.context as unknown as MiniAppContext)
-                    .client.clientFid,
-                notificationDetails: (
-                    frameContext.context as unknown as MiniAppContext
-                ).client.notificationDetails,
-            },
+            isInMiniApp,
+            clientContext: clientFid ? { clientFid } : undefined,
         }),
-        [card, address, accessToken, frameContext]
+        [card?.id, card?.imageUri, address, accessToken, isInMiniApp, clientFid]
     );
 
     // -----------------------------------------

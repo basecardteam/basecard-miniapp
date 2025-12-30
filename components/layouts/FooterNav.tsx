@@ -3,10 +3,12 @@
 import { Coins, Home, IdCard } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { TbLicense } from "react-icons/tb";
 
 const navItems = [
     { href: "/basecard", label: "My Card", icon: IdCard },
     { href: "/", label: "Home", icon: Home },
+    { href: "/quest", label: "Quest", icon: TbLicense },
     { href: "/earn", label: "Earn", icon: Coins },
 ];
 
@@ -34,12 +36,12 @@ export default function FooterNav() {
                             href={item.href}
                             className={`flex flex-col items-center p-2 text-xs transition-colors text-center flex-1 
                                 ${
-                                    pathname === item.href
-                                        ? "text-basecard-blue font-bold"
-                                        : "text-gray-500 hover:text-gray-800"
-                                }`}
+                        pathname === item.href
+                            ? "text-basecard-blue font-bold"
+                            : "text-gray-500 hover:text-gray-800"
+                        }`}
                         >
-                            <IconComponent className="text-xl" />
+                            <IconComponent className="text-xl" width={24} height={24} size={24} />
                             <span className="mt-1">{item.label}</span>
                         </Link>
                     );

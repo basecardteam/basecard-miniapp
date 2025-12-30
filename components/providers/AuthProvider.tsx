@@ -81,11 +81,11 @@ export default function AuthProvider({
     // Refs to store latest function references (prevents useEffect re-runs)
     const performFarcasterAuthRef = useRef<
         ((isInitialLogin?: boolean) => Promise<void>) | null
-    >(null);
+            >(null);
     const performMetaMaskAuthRef = useRef<
         | ((walletAddress: string, isInitialLogin?: boolean) => Promise<void>)
-        | null
-    >(null);
+            | null
+            >(null);
 
     const frameContext = useFrameContext();
     const isInMiniApp = frameContext?.isInMiniApp ?? false;
@@ -233,15 +233,15 @@ export default function AuthProvider({
                 const errorDetails =
                     error instanceof Error
                         ? {
-                              message: error.message,
-                              name: error.name,
-                              stack: error.stack,
-                          }
+                            message: error.message,
+                            name: error.name,
+                            stack: error.stack,
+                        }
                         : {
-                              raw: String(error),
-                              typeof: typeof error,
-                              json: JSON.stringify(error),
-                          };
+                            raw: String(error),
+                            typeof: typeof error,
+                            json: JSON.stringify(error),
+                        };
 
                 logger.error(
                     isInitialLogin
@@ -259,7 +259,7 @@ export default function AuthProvider({
                 }
             }
         },
-        [saveAuthState, logout, frameContext, address, isConnected]
+        [saveAuthState, logout, address, isConnected]
     );
 
     // Unified MetaMask auth (for both initial login and refresh)
@@ -425,7 +425,8 @@ export default function AuthProvider({
         }
         setIsAuthLoading(false);
         hasRestoredAuth.current = true;
-    }, [logout, isInMiniApp, isConnected, address, queryClient]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [logout, isInMiniApp, isConnected, address]);
 
     // Periodic token expiry check (every minute)
     // Uses refs to avoid re-running on function reference changes

@@ -1,7 +1,7 @@
 "use client";
 
 import { sdk } from "@farcaster/miniapp-sdk";
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useState } from "react";
 
 interface SafeAreaInsets {
     top: number;
@@ -74,11 +74,14 @@ export default function FrameProvider({
         init();
     }, []);
 
-    const frameContext: FrameContextType = {
-        context,
-        isInMiniApp,
-        isContextReady,
-    };
+    const frameContext = useMemo<FrameContextType>(
+        () => ({
+            context,
+            isInMiniApp,
+            isContextReady,
+        }),
+        [context, isInMiniApp, isContextReady]
+    );
 
     return (
         <FrameContext.Provider value={frameContext}>
