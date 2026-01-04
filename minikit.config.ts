@@ -38,6 +38,11 @@ export const minikitConfig = {
         ogTitle: AppName,
         tags: ["social", "basecard", "identity", "earn", "card"],
         embedImageUrl: `${ROOT_URL}/bc-embed-image.png`,
+        screenshotUrls: [
+            `${ROOT_URL}/screenshots/screenshot-start.png`,
+            `${ROOT_URL}/screenshots/screenshot-collect.png`,
+            `${ROOT_URL}/screenshots/screenshot-discover.png`,
+        ],
         // if NODE_ENV is development, noindex is true
         noindex: !Indexing,
         // TODO: ...
