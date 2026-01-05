@@ -34,10 +34,10 @@ export const minikitConfig = {
             "Stop repeating your pitch. Mint your verified, onchain ID card, BaseCard! And, find people who share your interests.",
         primaryCategory: "social",
         heroImageUrl: `${ROOT_URL}/bc-hero.png`,
-        ogImageUrl: `${ROOT_URL}/bc-embed-image.png`,
+        ogImageUrl: `${ROOT_URL}/bc-ogimage.png`,
         ogTitle: AppName,
         tags: ["social", "basecard", "identity", "earn", "card"],
-        embedImageUrl: `${ROOT_URL}/bc-embed-image.png`,
+        embedImageUrl: `${ROOT_URL}/bc-ogimage.png`,
         screenshotUrls: [
             `${ROOT_URL}/screenshots/screenshot-start.png`,
             `${ROOT_URL}/screenshots/screenshot-collect.png`,
