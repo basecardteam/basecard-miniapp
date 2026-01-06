@@ -54,8 +54,8 @@
     --foreground: #171717;
 
     --bottom-nav-h: 64px;
-    --header-h: 60px;
-    --safe-bottom: env(safe-area-inset-bottom);
+    --header-h: 44px;
+    --safe-bottom: env(safe-area-inset-bottom, 0px);
 
     --radius: 0.625rem;
     --card: oklch(1 0 0);

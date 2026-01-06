@@ -2,7 +2,6 @@
 
 import { useUser } from "@/hooks/api/useUser";
 import { cn, text as dsText } from "@coinbase/onchainkit/theme";
-import { AiOutlineLoading } from "react-icons/ai";
 
 interface BalanceDisplayProps {
     className?: string;
@@ -16,7 +15,7 @@ export default function BalanceDisplay({ className }: BalanceDisplayProps) {
         >
             <div className="flex items-center gap-x-1">
                 {isPending ? (
-                    <AiOutlineLoading size={14} className="animate-spin" />
+                    "0 Point"
                 ) : (
                     <span className={cn(dsText.body, "font-k2d font-bold")}>
                         {user?.totalPoints?.toLocaleString() ?? 0} Point

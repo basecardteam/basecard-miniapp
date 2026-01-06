@@ -6,8 +6,8 @@ import { usePathname } from "next/navigation";
 import { TbLicense } from "react-icons/tb";
 
 const navItems = [
-    { href: "/basecard", label: "My Card", icon: IdCard },
     { href: "/", label: "Home", icon: Home },
+    { href: "/basecard", label: "My Card", icon: IdCard },
     { href: "/quest", label: "Quest", icon: TbLicense },
     { href: "/earn", label: "Earn", icon: Coins },
 ];

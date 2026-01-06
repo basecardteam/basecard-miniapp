@@ -80,6 +80,9 @@ module.exports = {
             animation: {
                 "toast-slide-in": "toast-slide-in 0.3s ease-out",
             },
+            height: {
+                header: "var(--header-h)",
+            },
         },
     },
     plugins: [require("tailwindcss-animate"), scrollbarHide],

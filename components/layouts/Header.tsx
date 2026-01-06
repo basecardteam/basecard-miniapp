@@ -17,7 +17,10 @@ export default function Header() {
     };
 
     return (
-        <div className="fixed top-0 z-50 flex w-full max-w-xl mx-auto px-4 items-center justify-between border-b border-b-gray-200 bg-basecard-white h-[60px]">
+        <div
+            className="fixed top-0 z-50 flex h-header w-full max-w-xl mx-auto px-4 items-center
+                justify-between border-b border-b-gray-200 bg-basecard-white"
+        >
             <div
                 onClick={handleLogoClick}
                 className="relative flex flex-shrink-0 h-10 cursor-pointer"
@@ -25,8 +28,8 @@ export default function Header() {
                 <Image
                     src={BaseCardLogoTypo}
                     alt="logo typo"
-                    height={40}
-                    className="object-contain"
+                    height={32}
+                    className="object-contain py-auto my-auto"
                     priority
                 />
             </div>

@@ -1,6 +1,5 @@
 "use client";
 
-import BaseButton from "@/components/buttons/BaseButton";
 import { activeChain } from "@/lib/wagmi";
 import { useCallback, useState } from "react";
 import { useAccount, useConnect, useDisconnect, useSwitchChain } from "wagmi";
@@ -119,14 +118,14 @@ export default function BrowserWalletConnect() {
     return (
         <div className="flex gap-2">
             {targetConnector ? (
-                <BaseButton
+                <div
                     key={targetConnector.uid}
-                    onClick={() => handleConnect(targetConnector)}
-                    disabled={isPending}
-                    className="w-auto py-2 px-4 text-xs font-bold bg-blue-600 hover:bg-blue-700 rounded-full shadow-none disabled:opacity-50"
+                    onClick={() => !isPending && handleConnect(targetConnector)}
+                    className={`w-auto py-1.5 text-white px-4 text-sm font-medium ${isPending?"bg-blue-400":"bg-blue-600"}
+                         hover:bg-blue-700 rounded-full shadow-none disabled:opacity-50`}
                 >
                     {isPending ? "Connecting..." : "Connect Wallet"}
-                </BaseButton>
+                </div>
             ) : (
                 <div className="text-xs text-red-500">No Wallet Found</div>
             )}
