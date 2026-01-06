@@ -19,7 +19,7 @@ export const DEFAULT_METADATA: Metadata = {
             "Stop repeating your pitch. Mint your verified, onchain ID card, BaseCard! And, find people who share your interests.",
         images: [
             {
-                url: `${ROOT_URL}/bc-embed-image.png`,
+                url: `${ROOT_URL}/bc-ogimage.png`,
                 width: 1200,
                 height: 630,
                 alt: "BaseCard - Builder Identity on Base",
@@ -33,12 +33,12 @@ export const DEFAULT_METADATA: Metadata = {
         title: "BaseCard - Builder Identity on Base",
         description:
             "Stop repeating your pitch. Mint your verified, onchain ID card, BaseCard! And, find people who share your interests.",
-        images: [`${ROOT_URL}/bc-embed-image.png`],
+        images: [`${ROOT_URL}/bc-ogimage.png`],
     },
     other: {
         "fc:miniapp": JSON.stringify({
             version: "next",
-            imageUrl: `${ROOT_URL}/bc-embed-image.png`,
+            imageUrl: `${ROOT_URL}/bc-ogimage.png`,
             button: {
                 title: minikitConfig.miniapp.buttonTitle,
                 action: {
@@ -90,7 +90,7 @@ export function constructMetadata({
 }: ConstructMetadataProps = {}): Metadata {
     // Generate full URL for deep linking
     const fullUrl = path ? `${ROOT_URL}${path}` : ROOT_URL;
-    const image = imageUrl || `${ROOT_URL}/bc-embed-image.png`;
+    const image = imageUrl || `${ROOT_URL}/bc-ogimage.png`;
 
     // Process title - append "| BaseCard" if not already included
     const processedTitle = title

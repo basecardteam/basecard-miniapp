@@ -255,15 +255,12 @@ export default function MyBaseCardProfile({
         // Main Content
         return (
             <div className="w-full flex flex-col items-center justify-start overflow-y-auto relative gap-y-3 pb-8">
-                {/* [VIEWER ONLY] Back Button */}
-                {isViewer && (
-                    <div className="w-full relative h-12 flex items-center justify-start">
-                        <BackButton
-                            size={40}
-                            className="text-gray-600 relative m-0 left-0 top-0"
-                        />
-                    </div>
-                )}
+                <div className="w-full relative h-12 flex items-center justify-start">
+                    <BackButton
+                        size={40}
+                        className="text-gray-600 relative m-0 left-0 top-0"
+                    />
+                </div>
 
                 {/* Card Section - Both modes */}
                 <ProfileCardContent
