@@ -23,6 +23,9 @@ export default function FooterNav() {
         (frameContext?.context as MiniAppContext)?.client?.safeAreaInsets
             ?.bottom ?? 0;
 
+    console.log("[FooterNav] safeAreaInsets:", (frameContext?.context as MiniAppContext)?.client?.safeAreaInsets);
+    console.log("[FooterNav] safeAreaBottom:", safeAreaBottom, "→ total height:", 64 + safeAreaBottom);
+
     const footerClasses =
         "absolute bottom-0 left-0 right-0 border-t bg-white z-50";
 
