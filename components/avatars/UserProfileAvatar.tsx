@@ -46,6 +46,7 @@ export default function UserProfileAvatar({
                     src={DefaultProfile}
                     alt="Default Profile"
                     fill
+                    sizes="100%"
                     className="object-cover"
                 />
             )}

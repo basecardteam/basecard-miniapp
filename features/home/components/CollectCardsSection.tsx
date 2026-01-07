@@ -1,5 +1,6 @@
 "use client";
 
+import CardItem from "@/features/collection/components/CardItem";
 import { CollectionFilter } from "@/features/collection/components/CollectionFilter";
 import { useBaseCards } from "@/hooks/api/useBaseCards";
 import { useUser } from "@/hooks/api/useUser";
@@ -9,7 +10,6 @@ import {
 } from "@/lib/filterCollections";
 import { useMemo, useState } from "react";
 import { CiSearch } from "react-icons/ci";
-import IOSCardList from "./IOSCardList";
 
 export default function CollectCardsSection() {
     const [searchInput, setSearchInput] = useState("");
@@ -100,7 +100,16 @@ export default function CollectCardsSection() {
             )}
 
             {/* 4. Success State */}
-            {isSuccess && <IOSCardList cards={filteredCards} />}
+            {/* {isSuccess && <IOSCardList cards={filteredCards} />} */}
+            {isSuccess && (
+                <div className="flex flex-col gap-2 pt-4 pb-40 px-5">
+                    {filteredCards.map((card) => (
+                        <div key={card.id} className="w-full max-w-[440px] mx-auto">
+                            <CardItem card={card} isActive={true} />
+                        </div>
+                    ))}
+                </div>
+            )}
         </div>
     );
 }

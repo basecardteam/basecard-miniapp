@@ -2,7 +2,7 @@
 
 import CardItem from "@/features/collection/components/CardItem";
 import { BaseCard } from "@/lib/types/api";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef } from "react";
 
 interface IOSCardListProps {
     cards: BaseCard[];
@@ -138,8 +138,11 @@ export default function IOSCardList({ cards }: IOSCardListProps) {
         });
     }, [cards]);
 
-    // cards가 변경될 때 Map 정리 (태그 필터 변경 시)
-    useEffect(() => {
+    // useLayoutEffect: paint 전에 offset 기록 및 transform 적용 (깜빡임 방지)
+    // useLayoutEffect는 useEffect보다 먼저 실행되므로 여기서 clear + 기록
+    useLayoutEffect(() => {
+        if (cards.length === 0) return;
+
         const currentCardIds = new Set(cards.map((c) => c.id));
 
         // 현재 cards에 없는 id들 제거
@@ -149,19 +152,19 @@ export default function IOSCardList({ cards }: IOSCardListProps) {
                 originalOffsets.current.delete(id);
             }
         });
-    }, [cards]);
 
+        // cards가 변경되면 offset clear 후 재기록
+        originalOffsets.current.clear();
+        recordOriginalOffsets();
+        updateAllTransforms();
+    }, [cards, recordOriginalOffsets, updateAllTransforms]);
+
+    // 스크롤/리사이즈 이벤트 리스너
     useEffect(() => {
         const scrollContainer = document.querySelector(".scroll-container");
-
-        // 약간의 딜레이 후 원래 위치 기록 (레이아웃 완료 후)
-        const timer = setTimeout(() => {
-            recordOriginalOffsets();
-            updateAllTransforms();
-        }, 50);
+        if (cards.length === 0) return;
 
         const handleScroll = () => {
-            // 이전 RAF가 실행 중이면 취소하고 새로 예약
             if (rafId.current) {
                 cancelAnimationFrame(rafId.current);
             }
@@ -171,29 +174,31 @@ export default function IOSCardList({ cards }: IOSCardListProps) {
             });
         };
 
-        const target = scrollContainer || window;
-        target.addEventListener("scroll", handleScroll, { passive: true });
-        window.addEventListener("resize", () => {
+        const handleResize = () => {
             originalOffsets.current.clear();
             recordOriginalOffsets();
             updateAllTransforms();
-        });
+        };
+
+        const target = scrollContainer || window;
+        target.addEventListener("scroll", handleScroll, { passive: true });
+        window.addEventListener("resize", handleResize);
 
         return () => {
-            clearTimeout(timer);
             if (rafId.current) {
                 cancelAnimationFrame(rafId.current);
             }
             target.removeEventListener("scroll", handleScroll);
+            window.removeEventListener("resize", handleResize);
         };
-    }, [recordOriginalOffsets, updateAllTransforms]);
+    }, [cards.length, recordOriginalOffsets, updateAllTransforms]);
 
     if (!cards.length) return null;
 
     return (
         <div
             ref={containerRef}
-            className="flex flex-col gap-2 pt-4 pb-40 overflow-hidden"
+            className="flex flex-col gap-2 pt-4 pb-[30vh] overflow-hidden"
         >
             {cards.map((card, index) => (
                 <div

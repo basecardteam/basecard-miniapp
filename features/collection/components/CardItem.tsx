@@ -49,6 +49,7 @@ const CardItem = React.memo(function CardItem({
                     src={getIPFSUrl(card.imageUri)}
                     alt={card.nickname || "Card image"}
                     fill={true}
+                    sizes="(max-width: 440px) 100vw, 440px"
                     priority={isActive}
                     style={{ objectFit: "cover" }}
                     className="object-cover aspect-[5/3] transition-transform duration-500 ease-out "
