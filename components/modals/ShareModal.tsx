@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { IoQrCode } from "react-icons/io5";
 import FarcasterIcon from "../icons/FarcasterIcon";
 
@@ -40,6 +41,12 @@ export const ShareModal: React.FC<ShareModalProps> = ({
     clientFid,
 }) => {
     const isWarpcast = clientFid === WARPCAST_CLIENT_FID;
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
     useEffect(() => {
         if (isOpen) {
             document.body.style.overflow = "hidden";
@@ -51,9 +58,11 @@ export const ShareModal: React.FC<ShareModalProps> = ({
         };
     }, [isOpen]);
 
-    return (
+    if (!mounted) return null;
+
+    return createPortal(
         <div
-            className={`fixed inset-0 z-[999] flex items-center justify-center backdrop-blur p-5
+            className={`fixed inset-0 z-[9999] flex items-center justify-center backdrop-blur p-5
                 transition-all duration-300
                 ${isOpen ? "opacity-100" : "opacity-0 pointer-events-none"}`}
         >
@@ -214,7 +223,8 @@ export const ShareModal: React.FC<ShareModalProps> = ({
                     </button>
                 </div>
             </div>
-        </div>
+        </div>,
+        document.body
     );
 };
 
