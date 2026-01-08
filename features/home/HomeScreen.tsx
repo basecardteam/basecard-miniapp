@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useAccount } from "wagmi";
 import CardCollectionAdder from "./components/CardCollectionAdder";
+import CardShareModal from "./components/CardShareModal";
 import CollectCardsSection from "./components/CollectCardsSection";
 import HeroSection from "./components/HeroSection";
 import HomeSkeleton from "./components/HomeSkeleton";
@@ -18,7 +19,7 @@ const LOADING_TIMEOUT_MS = 3000; // 3 seconds
 export default function HomeScreen() {
     const router = useRouter();
     const { address } = useAccount();
-    const { user, card, isPending } = useUser();
+    const {  card, isPending } = useUser();
     const { action, cardId } = useMiniappParams();
     const { showToast } = useToast();
 

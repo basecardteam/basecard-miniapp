@@ -27,7 +27,6 @@ import defaultProfileImage from "@/public/assets/default-profile.png";
 import BCLogo from "@/public/bc-icon.png";
 import { sdk } from "@farcaster/miniapp-sdk";
 import { useRouter } from "next/navigation";
-import { useAccount } from "wagmi";
 
 // =============================================================================
 // Types
@@ -125,7 +124,6 @@ export default function ProfileCardContent({
     const openUrl = sdk.actions.openUrl;
     const frameContext = useFrameContext();
     const { user } = useUser();
-    const { address } = useAccount();
     const { showToast } = useToast();
 
     // =========================================================================
@@ -220,6 +218,7 @@ export default function ProfileCardContent({
         });
     }, [card]);
 
+    
     // =========================================================================
     // Render
     // =========================================================================
@@ -378,6 +377,7 @@ export default function ProfileCardContent({
                     onCopyLink={handleCopyLink}
                     onShareQR={handleShareQR}
                     onCastCard={handleCastCard}
+                    clientFid={(frameContext?.context as MiniAppContext)?.client?.clientFid}
                 />
 
                 <ShareModal
@@ -395,6 +395,8 @@ export default function ProfileCardContent({
                     isLoadingQR={isLoadingQR}
                     qrErrorMessage="QR 코드 생성 실패"
                     logoSrc={BCLogo.src}
+                    onCastCard={handleCastCard}
+                    clientFid={(frameContext?.context as MiniAppContext)?.client?.clientFid}
                 />
             </div>
         </div>

@@ -2,7 +2,8 @@
 
 import ShareModal from "@/components/modals/ShareModal";
 import { useFrameContext } from "@/components/providers/FrameProvider";
-import { generateBaseCardCollectQRCode } from "@/lib/qrCodeGenerator";
+import { shareToFarcaster } from "@/lib/farcaster/share";
+import { generateBaseCardCollectQRCode, generateBaseCardShareURL } from "@/lib/qrCodeGenerator";
 import { BaseCard } from "@/lib/types";
 import BCLogo from "@/public/bc-icon.png";
 import { MiniAppContext } from "@farcaster/miniapp-core/dist/context";
@@ -57,6 +58,14 @@ export const CardShareModal: React.FC<CardShareModalProps> = ({
         }
     }, [isVisible, generateQRCode]);
 
+    const handleCastCard = useCallback(async () => {
+        if (!card) return;
+        const shareUrl = generateBaseCardShareURL(card.id);
+        await shareToFarcaster({
+            embedUrl: shareUrl,
+        });
+    }, [card]);
+
     return (
         <ShareModal
             isOpen={isVisible}
@@ -69,6 +78,8 @@ export const CardShareModal: React.FC<CardShareModalProps> = ({
             isLoadingQR={isLoading}
             qrErrorMessage="QR 코드 생성 실패"
             logoSrc={BCLogo.src}
+            onCastCard={handleCastCard}
+            clientFid={(frameContext?.context as MiniAppContext)?.client?.clientFid}
         />
     );
 };

@@ -2,6 +2,7 @@
 
 import { useCallback, useRef, useState } from "react";
 import { IoCopyOutline, IoQrCode } from "react-icons/io5";
+import Image from "next/image";
 import FarcasterIcon from "../icons/FarcasterIcon";
 
 interface ShareOption {
@@ -11,12 +12,15 @@ interface ShareOption {
     onClick: () => void;
 }
 
+const WARPCAST_CLIENT_FID = 9152;
+
 interface ShareBottomSheetProps {
     isOpen: boolean;
     onClose: () => void;
     onCopyLink: () => void;
     onShareQR: () => void;
     onCastCard: () => void;
+    clientFid?: number;
 }
 
 export default function ShareBottomSheet({
@@ -25,7 +29,9 @@ export default function ShareBottomSheet({
     onCopyLink,
     onShareQR,
     onCastCard,
+    clientFid,
 }: ShareBottomSheetProps) {
+    const isWarpcast = clientFid === WARPCAST_CLIENT_FID;
     const [isClosing, setIsClosing] = useState(false);
     const [dragY, setDragY] = useState(0);
     const [isDragging, setIsDragging] = useState(false);
@@ -128,8 +134,17 @@ export default function ShareBottomSheet({
         },
         {
             id: "cast-card",
-            label: "Cast my Card",
-            icon: <FarcasterIcon className="w-5 h-5 text-[#007aff]" />,
+            label: isWarpcast ? "Cast my Card" : "Share to Base",
+            icon: isWarpcast ? (
+                <FarcasterIcon className="w-5 h-5 text-[#007aff]" />
+            ) : (
+                <Image
+                    src="/assets/base_square_blue.svg"
+                    alt="Base"
+                    width={22}
+                    height={22}
+                />
+            ),
             onClick: onCastCard,
         },
     ];

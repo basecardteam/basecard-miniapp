@@ -33,7 +33,6 @@ export default function Header() {
                     priority
                 />
             </div>
-
             <div className="ml-auto flex items-center gap-x-1 bg-white rounded-full">
                 {!isInMiniApp ? (
                     <BrowserWalletConnect />

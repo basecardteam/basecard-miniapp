@@ -75,7 +75,7 @@ export default function MyCardSection() {
                                 className="w-full bg-basecard-black"
                                 leftIcon={<QrCode size={18} />}
                             >
-                                Share Code
+                                Share
                             </BaseButton>
                         </div>
                     </div>

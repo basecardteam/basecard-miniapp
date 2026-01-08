@@ -3,6 +3,9 @@
 import Image from "next/image";
 import { useEffect } from "react";
 import { IoQrCode } from "react-icons/io5";
+import FarcasterIcon from "../icons/FarcasterIcon";
+
+const WARPCAST_CLIENT_FID = 9152;
 
 interface ShareModalProps {
     isOpen: boolean;
@@ -15,6 +18,8 @@ interface ShareModalProps {
     isLoadingQR?: boolean;
     qrErrorMessage?: string;
     logoSrc?: string;
+    onCastCard?: () => void;
+    clientFid?: number;
 }
 
 /**
@@ -31,7 +36,10 @@ export const ShareModal: React.FC<ShareModalProps> = ({
     isLoadingQR = false,
     qrErrorMessage = "Failed to generate QR code",
     logoSrc,
+    onCastCard,
+    clientFid,
 }) => {
+    const isWarpcast = clientFid === WARPCAST_CLIENT_FID;
     useEffect(() => {
         if (isOpen) {
             document.body.style.overflow = "hidden";
@@ -172,11 +180,34 @@ export const ShareModal: React.FC<ShareModalProps> = ({
                     </div>
                 </div>
 
-                {/* Close Button */}
-                <div className="px-4 pb-4">
+                {/* Action Buttons */}
+                <div className="w-full p-4 flex flex-col gap-2">
+                    {onCastCard && (
+                        <button
+                            onClick={() => {
+                                onCastCard();
+                                onClose();
+                            }}
+                            className="w-full py-3 rounded-xl bg-white  font-medium text-[#007AFF]
+                                flex items-center justify-center gap-2 border border-gray-200
+                                hover:bg-gray-50 active:bg-gray-100 transition-colors"
+                        >
+                            {isWarpcast ? (
+                                <FarcasterIcon className="w-5 h-5 " />
+                            ) : (
+                                <Image
+                                    src="/assets/base_square_blue.svg"
+                                    alt="Base"
+                                    width={20}
+                                    height={20}
+                                />
+                            )}
+                            Cast my Card
+                        </button>
+                    )}
                     <button
                         onClick={onClose}
-                        className="w-full text-sm font-medium text-gray-500
+                        className="w-full text-sm font-medium text-gray-500 
                             hover:text-gray-700 transition-colors"
                     >
                         Close
