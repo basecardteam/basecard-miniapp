@@ -15,7 +15,7 @@ REPO_URL="git@github-miniapp:basecardteam/basecard-miniapp.git"
 BRANCH="main"
 
 # SSH 설정 (로컬에서 리모트 배포 시 사용)
-SSH_HOST="p-home-seoul-api-basecard-backend"
+SSH_HOST="p-home-bucheon-api-basecard-backend"
 
 # 색상 정의
 GREEN='\033[0;32m'
