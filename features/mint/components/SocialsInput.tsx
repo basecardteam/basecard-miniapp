@@ -5,15 +5,24 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { memo } from "react";
 import { FieldError, UseFormRegisterReturn } from "react-hook-form";
-import { FaGithub, FaLinkedin, FaSquareXTwitter } from "react-icons/fa6";
+import { FaGithub, FaLinkedin } from "react-icons/fa6";
+import {
+    TwitterConnect,
+    TwitterConnectStatus,
+} from "./TwitterConnect";
 
 interface SocialsInputProps {
-    xRegister: UseFormRegisterReturn;
+    // Twitter OAuth
+    twitterStatus: TwitterConnectStatus;
+    twitterUsername?: string;
+    onTwitterConnect: () => void;
+    onTwitterDisconnect: () => void;
+    twitterError?: string;
+    // Other socials
     githubRegister: UseFormRegisterReturn;
     farcasterRegister: UseFormRegisterReturn;
     linkedinRegister: UseFormRegisterReturn;
     errors: {
-        x?: FieldError;
         github?: FieldError;
         farcaster?: FieldError;
         linkedin?: FieldError;
@@ -21,13 +30,6 @@ interface SocialsInputProps {
 }
 
 const SOCIAL_CONFIG = [
-    {
-        id: "x",
-        label: "X (Twitter)",
-        icon: <FaSquareXTwitter className="w-5 h-5" />,
-        placeholder: "@username",
-        registerKey: "x" as const,
-    },
     {
         id: "github",
         label: "GitHub",
@@ -55,14 +57,17 @@ const SOCIAL_CONFIG = [
  * 소셜 링크 입력 컴포넌트 - 모던한 아이콘 디자인
  */
 export const SocialsInput = memo(function SocialsInput({
-    xRegister,
+    twitterStatus,
+    twitterUsername,
+    onTwitterConnect,
+    onTwitterDisconnect,
+    twitterError,
     githubRegister,
     farcasterRegister,
     linkedinRegister,
     errors,
 }: SocialsInputProps) {
     const registers = {
-        x: xRegister,
         github: githubRegister,
         farcaster: farcasterRegister,
         linkedin: linkedinRegister,
@@ -75,6 +80,16 @@ export const SocialsInput = memo(function SocialsInput({
             </label>
 
             <div className="space-y-3">
+                {/* Twitter OAuth Connect */}
+                <TwitterConnect
+                    status={twitterStatus}
+                    username={twitterUsername}
+                    onConnect={onTwitterConnect}
+                    onDisconnect={onTwitterDisconnect}
+                    error={twitterError}
+                />
+
+                {/* Other social inputs */}
                 {SOCIAL_CONFIG.map((social) => {
                     const register = registers[social.registerKey];
                     const error = errors[social.registerKey];

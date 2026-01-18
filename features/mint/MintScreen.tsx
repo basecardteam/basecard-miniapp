@@ -13,6 +13,7 @@ import { useToast } from "@/components/ui/Toast";
 import { useMintBaseCardMutation } from "@/features/mint/hooks/useMintBaseCardMutation";
 import { useMintForm } from "@/features/mint/hooks/useMintForm";
 import { useUser } from "@/hooks/api/useUser";
+import { useTwitterAuth } from "@/hooks/useTwitterAuth";
 import { verifyQuestByAction } from "@/lib/api/quests";
 import { logger } from "@/lib/common/logger";
 import { MAX_WEBSITES, type Role } from "@/lib/constants/mint";
@@ -76,6 +77,21 @@ export default function MintScreen() {
 
     // Temporary field for new website input (not in schema)
     const [newWebsite, setNewWebsite] = useState("");
+
+    // Twitter OAuth - useCallback으로 콜백 안정화
+    const handleTwitterUsernameChange = useCallback(
+        (username: string) => setValue("x", username),
+        [setValue]
+    );
+    const {
+        status: twitterStatus,
+        username: twitterUsername,
+        error: twitterError,
+        connect: handleTwitterConnect,
+        disconnect: handleTwitterDisconnect,
+    } = useTwitterAuth({
+        onUsernameChange: handleTwitterUsernameChange,
+    });
 
     // NFT minting mutation hook
     const {
@@ -286,12 +302,15 @@ export default function MintScreen() {
 
                 {/* 소셜 링크 입력 */}
                 <SocialsInput
-                    xRegister={register("x")}
+                    twitterStatus={twitterStatus}
+                    twitterUsername={twitterUsername}
+                    onTwitterConnect={handleTwitterConnect}
+                    onTwitterDisconnect={handleTwitterDisconnect}
+                    twitterError={twitterError}
                     githubRegister={register("github")}
                     farcasterRegister={register("farcaster")}
                     linkedinRegister={register("linkedin")}
                     errors={{
-                        x: errors.x,
                         github: errors.github,
                         farcaster: errors.farcaster,
                         linkedin: errors.linkedin,

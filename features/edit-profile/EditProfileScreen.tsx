@@ -15,6 +15,7 @@ import { RoleSelector } from "@/features/mint/components/RoleSelector";
 import { SocialsInput } from "@/features/mint/components/SocialsInput";
 import { WebsitesInput } from "@/features/mint/components/WebsitesInput";
 import { useUser } from "@/hooks/api/useUser";
+import { useTwitterAuth } from "@/hooks/useTwitterAuth";
 import type { MintFormData } from "@/lib/schemas/mintFormSchema";
 import { User } from "@/lib/types/api";
 import defaultProfileImage from "@/public/assets/default-profile.png";
@@ -114,6 +115,22 @@ export default function EditProfileScreen() {
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [showErrorModal, setShowErrorModal] = useState(false);
     const [submitError, setSubmitError] = useState<string | null>(null);
+
+    // Twitter OAuth - useCallback으로 콜백 안정화
+    const handleTwitterUsernameChange = useCallback(
+        (username: string) => setValue("x", username),
+        [setValue]
+    );
+    const {
+        status: twitterStatus,
+        username: twitterUsername,
+        error: twitterError,
+        connect: handleTwitterConnect,
+        disconnect: handleTwitterDisconnect,
+    } = useTwitterAuth({
+        onUsernameChange: handleTwitterUsernameChange,
+        initialUsername: cardData?.socials?.x,
+    });
 
     // WebsitesInput에서 실시간 검증하므로 여기서는 단순히 추가만
     const handleAddWebsiteSimple = useCallback(() => {
@@ -225,12 +242,15 @@ export default function EditProfileScreen() {
 
                 {/* Socials */}
                 <SocialsInput
-                    xRegister={register("x")}
+                    twitterStatus={twitterStatus}
+                    twitterUsername={twitterUsername}
+                    onTwitterConnect={handleTwitterConnect}
+                    onTwitterDisconnect={handleTwitterDisconnect}
+                    twitterError={twitterError}
                     githubRegister={register("github")}
                     farcasterRegister={register("farcaster")}
                     linkedinRegister={register("linkedin")}
                     errors={{
-                        x: errors.x,
                         github: errors.github,
                         farcaster: errors.farcaster,
                         linkedin: errors.linkedin,
