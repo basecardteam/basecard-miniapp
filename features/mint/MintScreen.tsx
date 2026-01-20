@@ -13,6 +13,8 @@ import { useToast } from "@/components/ui/Toast";
 import { useMintBaseCardMutation } from "@/features/mint/hooks/useMintBaseCardMutation";
 import { useMintForm } from "@/features/mint/hooks/useMintForm";
 import { useUser } from "@/hooks/api/useUser";
+import { useGitHubAuth } from "@/hooks/useGitHubAuth";
+import { useLinkedInAuth } from "@/hooks/useLinkedInAuth";
 import { useTwitterAuth } from "@/hooks/useTwitterAuth";
 import { verifyQuestByAction } from "@/lib/api/quests";
 import { logger } from "@/lib/common/logger";
@@ -44,7 +46,7 @@ const LoadingModal = dynamic(
         })),
     {
         ssr: false,
-    }
+    },
 );
 
 export default function MintScreen() {
@@ -61,12 +63,8 @@ export default function MintScreen() {
         defaultProfileImage;
 
     // Form state management
-    const {
-        form,
-        handleAddWebsite,
-        handleRemoveWebsite,
-        watch,
-    } = useMintForm();
+    const { form, handleAddWebsite, handleRemoveWebsite, watch } =
+        useMintForm();
 
     const { handleSubmit: formHandleSubmit, setValue, formState } = form;
     const { register } = form;
@@ -78,10 +76,20 @@ export default function MintScreen() {
     // Temporary field for new website input (not in schema)
     const [newWebsite, setNewWebsite] = useState("");
 
+    // Farcaster username from MiniApp context (auto-filled)
+    const farcasterUsername = username;
+
+    // Set Farcaster username in form on mount
+    useEffect(() => {
+        if (farcasterUsername) {
+            setValue("farcaster", farcasterUsername);
+        }
+    }, [farcasterUsername, setValue]);
+
     // Twitter OAuth - useCallback으로 콜백 안정화
     const handleTwitterUsernameChange = useCallback(
         (username: string) => setValue("x", username),
-        [setValue]
+        [setValue],
     );
     const {
         status: twitterStatus,
@@ -91,6 +99,37 @@ export default function MintScreen() {
         disconnect: handleTwitterDisconnect,
     } = useTwitterAuth({
         onUsernameChange: handleTwitterUsernameChange,
+    });
+
+    // GitHub OAuth
+    const handleGitHubUsernameChange = useCallback(
+        (username: string) => setValue("github", username),
+        [setValue],
+    );
+    const {
+        status: githubStatus,
+        username: githubUsername,
+        error: githubError,
+        connect: handleGitHubConnect,
+        disconnect: handleGitHubDisconnect,
+    } = useGitHubAuth({
+        onUsernameChange: handleGitHubUsernameChange,
+    });
+
+    // LinkedIn OAuth
+    const handleLinkedInUsernameChange = useCallback(
+        (username: string) => setValue("linkedin", username),
+        [setValue],
+    );
+    const {
+        status: linkedinStatus,
+        username: linkedinUsername,
+        displayName: linkedinDisplayName,
+        error: linkedinError,
+        connect: handleLinkedInConnect,
+        disconnect: handleLinkedInDisconnect,
+    } = useLinkedInAuth({
+        onUsernameChange: handleLinkedInUsernameChange,
     });
 
     // NFT minting mutation hook
@@ -182,7 +221,7 @@ export default function MintScreen() {
                 }
             }
         },
-        [defaultProfileUrl, mintCard, showToast]
+        [defaultProfileUrl, mintCard, showToast],
     );
 
     // Wrapper for form submit (with wallet validation)
@@ -238,7 +277,7 @@ export default function MintScreen() {
                 setUrlError(null);
             }
         },
-        [urlError]
+        [urlError],
     );
 
     const { errors } = formState;
@@ -307,14 +346,18 @@ export default function MintScreen() {
                     onTwitterConnect={handleTwitterConnect}
                     onTwitterDisconnect={handleTwitterDisconnect}
                     twitterError={twitterError}
-                    githubRegister={register("github")}
-                    farcasterRegister={register("farcaster")}
-                    linkedinRegister={register("linkedin")}
-                    errors={{
-                        github: errors.github,
-                        farcaster: errors.farcaster,
-                        linkedin: errors.linkedin,
-                    }}
+                    githubStatus={githubStatus}
+                    githubUsername={githubUsername}
+                    onGitHubConnect={handleGitHubConnect}
+                    onGitHubDisconnect={handleGitHubDisconnect}
+                    githubError={githubError}
+                    linkedinStatus={linkedinStatus}
+                    linkedinUsername={linkedinUsername}
+                    linkedinDisplayName={linkedinDisplayName}
+                    onLinkedInConnect={handleLinkedInConnect}
+                    onLinkedInDisconnect={handleLinkedInDisconnect}
+                    linkedinError={linkedinError}
+                    farcasterUsername={farcasterUsername}
                 />
 
                 {/* 웹사이트 입력 */}
@@ -418,7 +461,7 @@ export default function MintScreen() {
                 onShare={async () => {
                     // Uses DEFAULT_SHARE_TEXT from share.ts
                     const shareUrl = generateBaseCardShareURL(
-                        successModal.cardId
+                        successModal.cardId,
                     );
                     console.log("shareUrl", shareUrl);
                     const result = await shareToFarcaster({
@@ -434,7 +477,7 @@ export default function MintScreen() {
                             try {
                                 await verifyQuestByAction(
                                     ACTION_TYPES.FC_SHARE,
-                                    accessToken
+                                    accessToken,
                                 );
                             } catch (e) {
                                 console.error("Verify failed", e);

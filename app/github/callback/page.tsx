@@ -3,27 +3,25 @@
 import {
     clearOAuthState,
     exchangeCodeForToken,
+    getGitHubUser,
     getOAuthConfig,
     getOAuthState,
-    getTwitterUser,
     saveTokens,
-} from "@/lib/api/twitter";
+} from "@/lib/api/github";
 import { useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
-import { FaSquareXTwitter } from "react-icons/fa6";
+import { FaGithub } from "react-icons/fa6";
 
-// 단일 상태로 관리하여 한 번의 렌더로 처리
 interface CallbackState {
     status: "loading" | "success" | "error";
     username: string;
     errorMessage: string;
-    returnUrl?: string; // 추가
+    returnUrl?: string;
 }
 
-function TwitterCallbackContent() {
+function GitHubCallbackContent() {
     const searchParams = useSearchParams();
 
-    // URL 파라미터를 한 번만 추출 (primitive values로 안정화)
     const params = useMemo(
         () => ({
             code: searchParams.get("code"),
@@ -34,7 +32,6 @@ function TwitterCallbackContent() {
         [searchParams],
     );
 
-    // 단일 상태 객체로 관리 - 한 번의 setState로 모든 값 업데이트
     const [callbackState, setCallbackState] = useState<CallbackState>({
         status: "loading",
         username: "",
@@ -85,14 +82,13 @@ function TwitterCallbackContent() {
                 const config = getOAuthConfig();
                 const tokens = await exchangeCodeForToken(
                     code,
-                    savedState.codeVerifier,
                     config.redirectUri,
                     config.clientId,
                 );
 
                 saveTokens(tokens);
 
-                const user = await getTwitterUser(tokens.access_token);
+                const user = await getGitHubUser(tokens.access_token);
 
                 // 돌아갈 URL 저장 (clearOAuthState 전에)
                 const returnUrl = savedState.returnUrl || "/mint";
@@ -100,21 +96,20 @@ function TwitterCallbackContent() {
                 clearOAuthState();
 
                 localStorage.setItem(
-                    "twitter_oauth_result",
+                    "github_oauth_result",
                     JSON.stringify({ success: true, user }),
                 );
 
-                // 단일 setState로 모든 상태 업데이트 - 한 번의 렌더만 발생
                 setCallbackState({
                     status: "success",
-                    username: user.username,
+                    username: user.login,
                     errorMessage: "",
                     returnUrl: returnUrl,
                 });
 
                 if (window.opener) {
                     window.opener.postMessage(
-                        { type: "TWITTER_AUTH_SUCCESS", user },
+                        { type: "GITHUB_AUTH_SUCCESS", user },
                         window.location.origin,
                     );
                     setTimeout(() => window.close(), 800);
@@ -136,7 +131,7 @@ function TwitterCallbackContent() {
                 });
 
                 localStorage.setItem(
-                    "twitter_oauth_result",
+                    "github_oauth_result",
                     JSON.stringify({
                         success: false,
                         error:
@@ -156,16 +151,17 @@ function TwitterCallbackContent() {
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-50 to-white">
             <div className="text-center p-8 max-w-sm w-full">
-                {/* 공통 컨테이너 - 부드러운 전환 */}
                 <div className="flex flex-col items-center gap-5">
-                    {/* 로고 영역 - 항상 표시 */}
+                    {/* 로고 영역 */}
                     <div className="relative">
                         <div
                             className={`w-20 h-20 rounded-2xl flex items-center justify-center shadow-lg transition-all duration-1000 ${
-                                status === "error" ? "bg-gray-100" : "bg-black"
+                                status === "error"
+                                    ? "bg-gray-100"
+                                    : "bg-[#24292e]"
                             } ${status === "loading" ? "animate-pulse" : ""}`}
                         >
-                            <FaSquareXTwitter
+                            <FaGithub
                                 className={`w-10 h-10 transition-colors duration-500 ${
                                     status === "error"
                                         ? "text-gray-400"
@@ -174,7 +170,7 @@ function TwitterCallbackContent() {
                             />
                         </div>
 
-                        {/* 에러 인디케이터만 표시 */}
+                        {/* 에러 인디케이터 */}
                         {status === "error" && (
                             <div
                                 className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full
@@ -197,12 +193,12 @@ function TwitterCallbackContent() {
                         )}
                     </div>
 
-                    {/* 텍스트 영역 - 상태별 전환 */}
+                    {/* 텍스트 영역 */}
                     <div className="space-y-1.5 min-h-[60px] flex flex-col items-center justify-center">
                         {status === "loading" && (
                             <>
                                 <p className="text-lg font-semibold text-gray-900">
-                                    Connecting to X
+                                    Connecting to GitHub
                                 </p>
                                 <p className="text-sm text-gray-500">
                                     Please wait a moment...
@@ -240,8 +236,8 @@ function TwitterCallbackContent() {
                             onClick={() =>
                                 (window.location.href = returnUrl || "/mint")
                             }
-                            className="mt-2 px-6 py-2.5 bg-black text-white text-sm font-medium
-                                rounded-xl hover:bg-gray-800 active:scale-95 transition-all"
+                            className="mt-2 px-6 py-2.5 bg-[#24292e] text-white text-sm font-medium
+                                rounded-xl hover:bg-gray-700 active:scale-95 transition-all"
                         >
                             Go Back
                         </button>
@@ -252,18 +248,18 @@ function TwitterCallbackContent() {
     );
 }
 
-export default function TwitterCallbackPage() {
+export default function GitHubCallbackPage() {
     return (
         <Suspense
             fallback={
                 <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-50 to-white">
-                    <div className="w-16 h-16 rounded-2xl bg-black flex items-center justify-center shadow-lg animate-pulse">
-                        <FaSquareXTwitter className="w-8 h-8 text-white" />
+                    <div className="w-16 h-16 rounded-2xl bg-[#24292e] flex items-center justify-center shadow-lg animate-pulse">
+                        <FaGithub className="w-8 h-8 text-white" />
                     </div>
                 </div>
             }
         >
-            <TwitterCallbackContent />
+            <GitHubCallbackContent />
         </Suspense>
     );
 }
