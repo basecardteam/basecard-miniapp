@@ -35,6 +35,7 @@ export interface TwitterOAuthConfig {
 export interface TwitterOAuthState {
     codeVerifier: string;
     state: string;
+    returnUrl?: string; // OAuth 완료 후 돌아갈 URL
 }
 
 export interface TwitterTokenResponse {

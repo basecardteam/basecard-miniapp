@@ -87,6 +87,9 @@ function TwitterCallbackContent() {
 
                 const user = await getTwitterUser(tokens.access_token);
 
+                // 돌아갈 URL 저장 (clearOAuthState 전에)
+                const returnUrl = savedState.returnUrl || "/mint";
+
                 clearOAuthState();
 
                 localStorage.setItem(
@@ -109,7 +112,7 @@ function TwitterCallbackContent() {
                     setTimeout(() => window.close(), 800);
                 } else {
                     setTimeout(() => {
-                        window.location.href = "/mint";
+                        window.location.href = returnUrl;
                     }, 1200);
                 }
             } catch (err) {

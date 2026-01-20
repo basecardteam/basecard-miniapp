@@ -175,10 +175,11 @@ export function useTwitterAuth(
             const pkceParams = await generatePKCE();
             const state = generateState();
 
-            // OAuth state 저장 (콜백에서 검증용)
+            // OAuth state 저장 (콜백에서 검증용 + 돌아갈 URL)
             saveOAuthState({
                 codeVerifier: pkceParams.codeVerifier,
                 state,
+                returnUrl: window.location.pathname,
             });
 
             // 인증 URL 생성 및 팝업/탭 열기
