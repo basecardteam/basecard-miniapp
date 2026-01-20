@@ -10,7 +10,6 @@ import {
     LinkedInUser,
     saveOAuthState,
 } from "@/lib/api/linkedin";
-import { sdk } from "@farcaster/miniapp-sdk";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 const OAUTH_RESULT_KEY = "linkedin_oauth_result";
@@ -204,31 +203,27 @@ export function useLinkedInAuth(
             const config = getOAuthConfig();
             const state = generateState();
 
-            saveOAuthState({ state });
+            saveOAuthState({
+                state,
+                returnUrl: window.location.pathname,
+            });
 
             const authUrl = generateAuthUrl(config, state);
 
-            // MiniApp 환경인지 확인
-            const isInMiniApp = await sdk.isInMiniApp();
+            // 팝업 열기 (모바일에서는 새 탭으로 열림)
+            const POPUP_WIDTH = 600;
+            const POPUP_HEIGHT = 700;
+            const left = window.screenX + (window.outerWidth - POPUP_WIDTH) / 2;
+            const top =
+                window.screenY + (window.outerHeight - POPUP_HEIGHT) / 2;
 
-            if (isInMiniApp) {
-                // MiniApp 환경: sdk.actions.openUrl 사용
-                await sdk.actions.openUrl({ url: authUrl });
-            } else {
-                // 일반 웹: 팝업 열기
-                const POPUP_WIDTH = 600;
-                const POPUP_HEIGHT = 700;
-                const left =
-                    window.screenX + (window.outerWidth - POPUP_WIDTH) / 2;
-                const top =
-                    window.screenY + (window.outerHeight - POPUP_HEIGHT) / 2;
+            window.open(
+                authUrl,
+                "linkedin-oauth",
+                `width=${POPUP_WIDTH},height=${POPUP_HEIGHT},left=${left},top=${top},scrollbars=yes`,
+            );
 
-                window.open(
-                    authUrl,
-                    "linkedin-oauth",
-                    `width=${POPUP_WIDTH},height=${POPUP_HEIGHT},left=${left},top=${top},scrollbars=yes`,
-                );
-            }
+            // 결과는 postMessage 또는 localStorage를 통해 수신
         } catch (err) {
             setStatus("disconnected");
             setError(

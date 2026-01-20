@@ -16,6 +16,7 @@ interface CallbackState {
     status: "loading" | "success" | "error";
     displayName: string;
     errorMessage: string;
+    returnUrl?: string;
 }
 
 function LinkedInCallbackContent() {
@@ -35,6 +36,7 @@ function LinkedInCallbackContent() {
         status: "loading",
         displayName: "",
         errorMessage: "",
+        returnUrl: "/mint",
     });
     const isProcessingRef = useRef(false);
 
@@ -44,6 +46,10 @@ function LinkedInCallbackContent() {
 
             const { code, oauthState, error, errorDescription } = params;
 
+            // 초기 return URL 설정 (에러 처리 시 사용)
+            const savedState = getOAuthState();
+            const initialReturnUrl = savedState?.returnUrl || "/mint";
+
             if (error) {
                 isProcessingRef.current = true;
                 setCallbackState({
@@ -51,6 +57,7 @@ function LinkedInCallbackContent() {
                     displayName: "",
                     errorMessage:
                         errorDescription || error || "Authentication failed",
+                    returnUrl: initialReturnUrl,
                 });
                 return;
             }
@@ -61,12 +68,12 @@ function LinkedInCallbackContent() {
 
             isProcessingRef.current = true;
 
-            const savedState = getOAuthState();
             if (!savedState || savedState.state !== oauthState) {
                 setCallbackState({
                     status: "error",
                     displayName: "",
                     errorMessage: "Session expired. Please try again.",
+                    returnUrl: initialReturnUrl,
                 });
                 return;
             }
@@ -83,6 +90,9 @@ function LinkedInCallbackContent() {
 
                 const user = await getLinkedInUser(tokens.access_token);
 
+                // 돌아갈 URL 저장 (clearOAuthState 전에)
+                const returnUrl = savedState.returnUrl || "/mint";
+
                 clearOAuthState();
 
                 localStorage.setItem(
@@ -94,16 +104,20 @@ function LinkedInCallbackContent() {
                     status: "success",
                     displayName: user.name,
                     errorMessage: "",
+                    returnUrl: returnUrl,
                 });
 
-                // MiniApp 딥링크로 리다이렉트 (결과를 URL에 포함)
-                const miniAppDomain = "miniapp.basecardteam.org";
-                const redirectPath = `/edit-profile?linkedin_connected=${encodeURIComponent(user.sub)}&linkedin_name=${encodeURIComponent(user.name)}`;
-                const miniAppDeepLink = `https://farcaster.xyz/~/mini-apps/launch?domain=${miniAppDomain}&path=${encodeURIComponent(redirectPath)}`;
-
-                setTimeout(() => {
-                    window.location.href = miniAppDeepLink;
-                }, 1200);
+                if (window.opener) {
+                    window.opener.postMessage(
+                        { type: "LINKEDIN_AUTH_SUCCESS", user },
+                        window.location.origin,
+                    );
+                    setTimeout(() => window.close(), 800);
+                } else {
+                    setTimeout(() => {
+                        window.location.href = returnUrl;
+                    }, 1200);
+                }
             } catch (err) {
                 clearOAuthState();
                 setCallbackState({
@@ -113,6 +127,7 @@ function LinkedInCallbackContent() {
                         err instanceof Error
                             ? err.message
                             : "Authentication failed",
+                    returnUrl: initialReturnUrl,
                 });
 
                 localStorage.setItem(
@@ -131,7 +146,7 @@ function LinkedInCallbackContent() {
         handleCallback();
     }, [params]);
 
-    const { status, displayName, errorMessage } = callbackState;
+    const { status, displayName, errorMessage, returnUrl } = callbackState;
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-50 to-white">
@@ -218,7 +233,9 @@ function LinkedInCallbackContent() {
                     {/* 에러 시 버튼 */}
                     {status === "error" && (
                         <button
-                            onClick={() => (window.location.href = "/mint")}
+                            onClick={() =>
+                                (window.location.href = returnUrl || "/mint")
+                            }
                             className="mt-2 px-6 py-2.5 bg-[#0A66C2] text-white text-sm font-medium
                                 rounded-xl hover:bg-[#004182] active:scale-95 transition-all"
                         >

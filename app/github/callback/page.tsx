@@ -16,6 +16,7 @@ interface CallbackState {
     status: "loading" | "success" | "error";
     username: string;
     errorMessage: string;
+    returnUrl?: string;
 }
 
 function GitHubCallbackContent() {
@@ -35,6 +36,7 @@ function GitHubCallbackContent() {
         status: "loading",
         username: "",
         errorMessage: "",
+        returnUrl: "/mint",
     });
     const isProcessingRef = useRef(false);
 
@@ -44,6 +46,10 @@ function GitHubCallbackContent() {
 
             const { code, oauthState, error, errorDescription } = params;
 
+            // 초기 return URL 설정 (에러 처리 시 사용)
+            const savedState = getOAuthState();
+            const initialReturnUrl = savedState?.returnUrl || "/mint";
+
             if (error) {
                 isProcessingRef.current = true;
                 setCallbackState({
@@ -51,6 +57,7 @@ function GitHubCallbackContent() {
                     username: "",
                     errorMessage:
                         errorDescription || error || "Authentication failed",
+                    returnUrl: initialReturnUrl,
                 });
                 return;
             }
@@ -61,12 +68,12 @@ function GitHubCallbackContent() {
 
             isProcessingRef.current = true;
 
-            const savedState = getOAuthState();
             if (!savedState || savedState.state !== oauthState) {
                 setCallbackState({
                     status: "error",
                     username: "",
                     errorMessage: "Session expired. Please try again.",
+                    returnUrl: initialReturnUrl,
                 });
                 return;
             }
@@ -97,6 +104,7 @@ function GitHubCallbackContent() {
                     status: "success",
                     username: user.login,
                     errorMessage: "",
+                    returnUrl: returnUrl,
                 });
 
                 if (window.opener) {
@@ -119,6 +127,7 @@ function GitHubCallbackContent() {
                         err instanceof Error
                             ? err.message
                             : "Authentication failed",
+                    returnUrl: initialReturnUrl,
                 });
 
                 localStorage.setItem(
@@ -137,7 +146,7 @@ function GitHubCallbackContent() {
         handleCallback();
     }, [params]);
 
-    const { status, username, errorMessage } = callbackState;
+    const { status, username, errorMessage, returnUrl } = callbackState;
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-50 to-white">
@@ -224,7 +233,9 @@ function GitHubCallbackContent() {
                     {/* 에러 시 버튼 */}
                     {status === "error" && (
                         <button
-                            onClick={() => (window.location.href = "/mint")}
+                            onClick={() =>
+                                (window.location.href = returnUrl || "/mint")
+                            }
                             className="mt-2 px-6 py-2.5 bg-[#24292e] text-white text-sm font-medium
                                 rounded-xl hover:bg-gray-700 active:scale-95 transition-all"
                         >

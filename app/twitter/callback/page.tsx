@@ -17,6 +17,7 @@ interface CallbackState {
     status: "loading" | "success" | "error";
     username: string;
     errorMessage: string;
+    returnUrl?: string; // 추가
 }
 
 function TwitterCallbackContent() {
@@ -30,7 +31,7 @@ function TwitterCallbackContent() {
             error: searchParams.get("error"),
             errorDescription: searchParams.get("error_description"),
         }),
-        [searchParams]
+        [searchParams],
     );
 
     // 단일 상태 객체로 관리 - 한 번의 setState로 모든 값 업데이트
@@ -38,6 +39,7 @@ function TwitterCallbackContent() {
         status: "loading",
         username: "",
         errorMessage: "",
+        returnUrl: "/mint",
     });
     const isProcessingRef = useRef(false);
 
@@ -47,6 +49,10 @@ function TwitterCallbackContent() {
 
             const { code, oauthState, error, errorDescription } = params;
 
+            // 초기 return URL 설정 (에러 처리 시 사용)
+            const savedState = getOAuthState();
+            const initialReturnUrl = savedState?.returnUrl || "/mint";
+
             if (error) {
                 isProcessingRef.current = true;
                 setCallbackState({
@@ -54,6 +60,7 @@ function TwitterCallbackContent() {
                     username: "",
                     errorMessage:
                         errorDescription || error || "Authentication failed",
+                    returnUrl: initialReturnUrl,
                 });
                 return;
             }
@@ -64,12 +71,12 @@ function TwitterCallbackContent() {
 
             isProcessingRef.current = true;
 
-            const savedState = getOAuthState();
             if (!savedState || savedState.state !== oauthState) {
                 setCallbackState({
                     status: "error",
                     username: "",
                     errorMessage: "Session expired. Please try again.",
+                    returnUrl: initialReturnUrl,
                 });
                 return;
             }
@@ -80,7 +87,7 @@ function TwitterCallbackContent() {
                     code,
                     savedState.codeVerifier,
                     config.redirectUri,
-                    config.clientId
+                    config.clientId,
                 );
 
                 saveTokens(tokens);
@@ -94,7 +101,7 @@ function TwitterCallbackContent() {
 
                 localStorage.setItem(
                     "twitter_oauth_result",
-                    JSON.stringify({ success: true, user })
+                    JSON.stringify({ success: true, user }),
                 );
 
                 // 단일 setState로 모든 상태 업데이트 - 한 번의 렌더만 발생
@@ -102,12 +109,13 @@ function TwitterCallbackContent() {
                     status: "success",
                     username: user.username,
                     errorMessage: "",
+                    returnUrl: returnUrl,
                 });
 
                 if (window.opener) {
                     window.opener.postMessage(
                         { type: "TWITTER_AUTH_SUCCESS", user },
-                        window.location.origin
+                        window.location.origin,
                     );
                     setTimeout(() => window.close(), 800);
                 } else {
@@ -124,6 +132,7 @@ function TwitterCallbackContent() {
                         err instanceof Error
                             ? err.message
                             : "Authentication failed",
+                    returnUrl: initialReturnUrl,
                 });
 
                 localStorage.setItem(
@@ -134,7 +143,7 @@ function TwitterCallbackContent() {
                             err instanceof Error
                                 ? err.message
                                 : "Authentication failed",
-                    })
+                    }),
                 );
             }
         }
@@ -142,7 +151,7 @@ function TwitterCallbackContent() {
         handleCallback();
     }, [params]);
 
-    const { status, username, errorMessage } = callbackState;
+    const { status, username, errorMessage, returnUrl } = callbackState;
 
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-gray-50 to-white">
@@ -153,9 +162,7 @@ function TwitterCallbackContent() {
                     <div className="relative">
                         <div
                             className={`w-20 h-20 rounded-2xl flex items-center justify-center shadow-lg transition-all duration-1000 ${
-                                status === "error"
-                                    ? "bg-gray-100"
-                                    : "bg-black"
+                                status === "error" ? "bg-gray-100" : "bg-black"
                             } ${status === "loading" ? "animate-pulse" : ""}`}
                         >
                             <FaSquareXTwitter
@@ -230,7 +237,9 @@ function TwitterCallbackContent() {
                     {/* 에러 시 버튼 */}
                     {status === "error" && (
                         <button
-                            onClick={() => (window.location.href = "/mint")}
+                            onClick={() =>
+                                (window.location.href = returnUrl || "/mint")
+                            }
                             className="mt-2 px-6 py-2.5 bg-black text-white text-sm font-medium
                                 rounded-xl hover:bg-gray-800 active:scale-95 transition-all"
                         >

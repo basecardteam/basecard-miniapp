@@ -91,7 +91,7 @@ export const TwitterConnect = memo(function TwitterConnect({
                 {status === "connected" && username && (
                     <div className="w-full pl-12 pr-4 h-12 flex items-center justify-between text-base rounded-xl border-2 border-gray-200 bg-white">
                         <div className="flex items-center gap-1.5">
-                            <span className="text-gray-900">{username}</span>
+                            <span className="text-gray-900">@{username}</span>
                         </div>
                         <button
                             type="button"
