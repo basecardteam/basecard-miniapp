@@ -15,6 +15,8 @@ import { RoleSelector } from "@/features/mint/components/RoleSelector";
 import { SocialsInput } from "@/features/mint/components/SocialsInput";
 import { WebsitesInput } from "@/features/mint/components/WebsitesInput";
 import { useUser } from "@/hooks/api/useUser";
+import { useGitHubAuth } from "@/hooks/useGitHubAuth";
+import { useLinkedInAuth } from "@/hooks/useLinkedInAuth";
 import { useTwitterAuth } from "@/hooks/useTwitterAuth";
 import type { MintFormData } from "@/lib/schemas/mintFormSchema";
 import { User } from "@/lib/types/api";
@@ -36,7 +38,7 @@ const BaseModal = dynamic(
         })),
     {
         ssr: false,
-    }
+    },
 );
 
 const LoadingModal = dynamic(
@@ -46,7 +48,7 @@ const LoadingModal = dynamic(
         })),
     {
         ssr: false,
-    }
+    },
 );
 
 const ErrorModal = dynamic(
@@ -56,7 +58,7 @@ const ErrorModal = dynamic(
         })),
     {
         ssr: false,
-    }
+    },
 );
 
 export default function EditProfileScreen() {
@@ -80,12 +82,8 @@ export default function EditProfileScreen() {
     const queryClient = useQueryClient();
 
     // Form state
-    const {
-        form,
-        handleAddWebsite,
-        handleRemoveWebsite,
-        watch,
-    } = useEditProfileForm();
+    const { form, handleAddWebsite, handleRemoveWebsite, watch } =
+        useEditProfileForm();
 
     const { handleSubmit: formHandleSubmit, setValue, formState, reset } = form;
     const { register } = form;
@@ -116,10 +114,13 @@ export default function EditProfileScreen() {
     const [showErrorModal, setShowErrorModal] = useState(false);
     const [submitError, setSubmitError] = useState<string | null>(null);
 
+    // Farcaster username from MiniApp context (auto-filled)
+    const farcasterUsername = cardData?.socials?.farcaster || username;
+
     // Twitter OAuth - useCallback으로 콜백 안정화
     const handleTwitterUsernameChange = useCallback(
         (username: string) => setValue("x", username),
-        [setValue]
+        [setValue],
     );
     const {
         status: twitterStatus,
@@ -130,6 +131,39 @@ export default function EditProfileScreen() {
     } = useTwitterAuth({
         onUsernameChange: handleTwitterUsernameChange,
         initialUsername: cardData?.socials?.x,
+    });
+
+    // GitHub OAuth
+    const handleGitHubUsernameChange = useCallback(
+        (username: string) => setValue("github", username),
+        [setValue],
+    );
+    const {
+        status: githubStatus,
+        username: githubUsername,
+        error: githubError,
+        connect: handleGitHubConnect,
+        disconnect: handleGitHubDisconnect,
+    } = useGitHubAuth({
+        onUsernameChange: handleGitHubUsernameChange,
+        initialUsername: cardData?.socials?.github,
+    });
+
+    // LinkedIn OAuth
+    const handleLinkedInUsernameChange = useCallback(
+        (username: string) => setValue("linkedin", username),
+        [setValue],
+    );
+    const {
+        status: linkedinStatus,
+        username: linkedinUsername,
+        displayName: linkedinDisplayName,
+        error: linkedinError,
+        connect: handleLinkedInConnect,
+        disconnect: handleLinkedInDisconnect,
+    } = useLinkedInAuth({
+        onUsernameChange: handleLinkedInUsernameChange,
+        initialUsername: cardData?.socials?.linkedin,
     });
 
     // WebsitesInput에서 실시간 검증하므로 여기서는 단순히 추가만
@@ -247,14 +281,18 @@ export default function EditProfileScreen() {
                     onTwitterConnect={handleTwitterConnect}
                     onTwitterDisconnect={handleTwitterDisconnect}
                     twitterError={twitterError}
-                    githubRegister={register("github")}
-                    farcasterRegister={register("farcaster")}
-                    linkedinRegister={register("linkedin")}
-                    errors={{
-                        github: errors.github,
-                        farcaster: errors.farcaster,
-                        linkedin: errors.linkedin,
-                    }}
+                    githubStatus={githubStatus}
+                    githubUsername={githubUsername}
+                    onGitHubConnect={handleGitHubConnect}
+                    onGitHubDisconnect={handleGitHubDisconnect}
+                    githubError={githubError}
+                    linkedinStatus={linkedinStatus}
+                    linkedinUsername={linkedinUsername}
+                    linkedinDisplayName={linkedinDisplayName}
+                    onLinkedInConnect={handleLinkedInConnect}
+                    onLinkedInDisconnect={handleLinkedInDisconnect}
+                    linkedinError={linkedinError}
+                    farcasterUsername={farcasterUsername}
                 />
 
                 {/* Websites */}
@@ -307,8 +345,8 @@ export default function EditProfileScreen() {
                     {isCreatingBaseCard
                         ? "Updating..."
                         : isSendingTransaction
-                        ? "Confirming..."
-                        : "Save"}
+                          ? "Confirming..."
+                          : "Save"}
                 </BaseButton>
             </form>
 
@@ -372,7 +410,7 @@ export default function EditProfileScreen() {
                                             // But standard flow might update it later via background refetch
                                         },
                                     };
-                                }
+                                },
                             );
 
                             await Promise.all([

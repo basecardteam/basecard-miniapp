@@ -2,33 +2,31 @@
 
 import { Label } from "@/components/ui/label";
 import { memo } from "react";
-import { FaSquareXTwitter } from "react-icons/fa6";
+import { FaGithub } from "react-icons/fa6";
 import { LuLoader } from "react-icons/lu";
 
-export type TwitterConnectStatus = "disconnected" | "connecting" | "connected";
+export type GitHubConnectStatus = "disconnected" | "connecting" | "connected";
 
-interface TwitterConnectProps {
-    status: TwitterConnectStatus;
+interface GitHubConnectProps {
+    status: GitHubConnectStatus;
     username?: string;
     onConnect: () => void;
     onDisconnect: () => void;
     error?: string;
 }
 
-export const TwitterConnect = memo(function TwitterConnect({
+export const GitHubConnect = memo(function GitHubConnect({
     status,
     username,
     onConnect,
     onDisconnect,
     error,
-}: TwitterConnectProps) {
+}: GitHubConnectProps) {
     const hasError = !!error;
 
     return (
         <div className="space-y-1">
-            <Label className="text-sm font-medium text-gray-700">
-                X (Twitter)
-            </Label>
+            <Label className="text-sm font-medium text-gray-700">GitHub</Label>
 
             <div className="relative">
                 {/* 아이콘 (왼쪽) */}
@@ -44,7 +42,7 @@ export const TwitterConnect = memo(function TwitterConnect({
                     {status === "connecting" ? (
                         <LuLoader className="w-5 h-5 text-basecard-blue animate-spin" />
                     ) : (
-                        <FaSquareXTwitter className="w-5 h-5" />
+                        <FaGithub className="w-5 h-5" />
                     )}
                 </div>
 
@@ -60,7 +58,7 @@ export const TwitterConnect = memo(function TwitterConnect({
                         }`}
                     >
                         <span className="text-gray-700 font-medium">
-                            Connect with X
+                            Connect with GitHub
                         </span>
                         <svg
                             className="w-4 h-4 text-gray-400"
@@ -87,11 +85,11 @@ export const TwitterConnect = memo(function TwitterConnect({
                     </div>
                 )}
 
-                {/* 연결됨: @username + 체크 + Disconnect */}
+                {/* 연결됨: @username + Disconnect */}
                 {status === "connected" && username && (
                     <div className="w-full pl-12 pr-4 h-12 flex items-center justify-between text-base rounded-xl border-2 border-gray-200 bg-white">
                         <div className="flex items-center gap-1.5">
-                            <span className="text-gray-900">{username}</span>
+                            <span className="text-gray-900">@{username}</span>
                         </div>
                         <button
                             type="button"

@@ -4,12 +4,10 @@ import FarcasterIcon from "@/components/icons/FarcasterIcon";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { memo } from "react";
-import { FieldError, UseFormRegisterReturn } from "react-hook-form";
-import { FaGithub, FaLinkedin } from "react-icons/fa6";
-import {
-    TwitterConnect,
-    TwitterConnectStatus,
-} from "./TwitterConnect";
+import { FieldError } from "react-hook-form";
+import { GitHubConnect, GitHubConnectStatus } from "./GitHubConnect";
+import { LinkedInConnect, LinkedInConnectStatus } from "./LinkedInConnect";
+import { TwitterConnect, TwitterConnectStatus } from "./TwitterConnect";
 
 interface SocialsInputProps {
     // Twitter OAuth
@@ -18,43 +16,28 @@ interface SocialsInputProps {
     onTwitterConnect: () => void;
     onTwitterDisconnect: () => void;
     twitterError?: string;
-    // Other socials
-    githubRegister: UseFormRegisterReturn;
-    farcasterRegister: UseFormRegisterReturn;
-    linkedinRegister: UseFormRegisterReturn;
-    errors: {
-        github?: FieldError;
+    // GitHub OAuth
+    githubStatus: GitHubConnectStatus;
+    githubUsername?: string;
+    onGitHubConnect: () => void;
+    onGitHubDisconnect: () => void;
+    githubError?: string;
+    // LinkedIn OAuth
+    linkedinStatus: LinkedInConnectStatus;
+    linkedinUsername?: string;
+    linkedinDisplayName?: string;
+    onLinkedInConnect: () => void;
+    onLinkedInDisconnect: () => void;
+    linkedinError?: string;
+    // Farcaster (auto-filled from MiniApp context)
+    farcasterUsername?: string;
+    errors?: {
         farcaster?: FieldError;
-        linkedin?: FieldError;
     };
 }
 
-const SOCIAL_CONFIG = [
-    {
-        id: "github",
-        label: "GitHub",
-        icon: <FaGithub className="w-5 h-5" />,
-        placeholder: "@username",
-        registerKey: "github" as const,
-    },
-    {
-        id: "farcaster",
-        label: "Farcaster",
-        icon: <FarcasterIcon size={20} className="text-gray-400" />,
-        placeholder: "@username",
-        registerKey: "farcaster" as const,
-    },
-    {
-        id: "linkedin",
-        label: "LinkedIn",
-        icon: <FaLinkedin className="w-5 h-5" />,
-        placeholder: "username or url",
-        registerKey: "linkedin" as const,
-    },
-];
-
 /**
- * 소셜 링크 입력 컴포넌트 - 모던한 아이콘 디자인
+ * 소셜 링크 입력 컴포넌트 - OAuth 기반 연동
  */
 export const SocialsInput = memo(function SocialsInput({
     twitterStatus,
@@ -62,17 +45,19 @@ export const SocialsInput = memo(function SocialsInput({
     onTwitterConnect,
     onTwitterDisconnect,
     twitterError,
-    githubRegister,
-    farcasterRegister,
-    linkedinRegister,
-    errors,
+    githubStatus,
+    githubUsername,
+    onGitHubConnect,
+    onGitHubDisconnect,
+    githubError,
+    linkedinStatus,
+    linkedinUsername,
+    linkedinDisplayName,
+    onLinkedInConnect,
+    onLinkedInDisconnect,
+    linkedinError,
+    farcasterUsername,
 }: SocialsInputProps) {
-    const registers = {
-        github: githubRegister,
-        farcaster: farcasterRegister,
-        linkedin: linkedinRegister,
-    };
-
     return (
         <div className="w-full">
             <label className="text-lg font-semibold text-basecard-black">
@@ -89,54 +74,72 @@ export const SocialsInput = memo(function SocialsInput({
                     error={twitterError}
                 />
 
-                {/* Other social inputs */}
-                {SOCIAL_CONFIG.map((social) => {
-                    const register = registers[social.registerKey];
-                    const error = errors[social.registerKey];
-                    const hasError = !!error;
+                {/* GitHub OAuth Connect */}
+                <GitHubConnect
+                    status={githubStatus}
+                    username={githubUsername}
+                    onConnect={onGitHubConnect}
+                    onDisconnect={onGitHubDisconnect}
+                    error={githubError}
+                />
 
-                    return (
-                        <div key={social.id} className="space-y-1">
-                            <Label
-                                htmlFor={social.id}
-                                className="text-sm font-medium text-gray-700"
-                            >
-                                {social.label}
-                            </Label>
-                            <div className="relative">
-                                <div
-                                    className={`absolute left-4 top-1/2 -translate-y-1/2 transition-colors duration-300 ${
-                                        hasError
-                                            ? "text-red-500"
-                                            : "text-gray-400 group-focus-within:text-basecard-blue"
-                                    }`}
-                                >
-                                    {social.icon}
-                                </div>
+                {/* LinkedIn OAuth Connect */}
+                <LinkedInConnect
+                    status={linkedinStatus}
+                    username={linkedinUsername}
+                    displayName={linkedinDisplayName}
+                    onConnect={onLinkedInConnect}
+                    onDisconnect={onLinkedInDisconnect}
+                    error={linkedinError}
+                />
 
-                                {/* Input */}
-                                <Input
-                                    id={social.id}
-                                    type="text"
-                                    {...register}
-                                    placeholder={social.placeholder}
-                                    className={`pl-12 pr-4 h-12 text-base rounded-xl border-2 transition-all duration-300 ${
-                                        hasError
-                                            ? "border-red-500 focus:border-red-600 focus:ring-red-500/20"
-                                            : "border-gray-200 focus:border-basecard-blue focus:ring-basecard-blue/20 hover:border-gray-300"
-                                    }`}
-                                />
-                            </div>
-
-                            {/* 에러 메시지 */}
-                            {hasError && (
-                                <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
-                                    <span>⚠</span> {error.message}
-                                </p>
-                            )}
+                {/* Farcaster - Auto-filled and disabled */}
+                <div className="space-y-1">
+                    <Label
+                        htmlFor="farcaster"
+                        className="text-sm font-medium text-gray-700"
+                    >
+                        Farcaster
+                    </Label>
+                    <div className="relative">
+                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-purple-500">
+                            <FarcasterIcon size={20} />
                         </div>
-                    );
-                })}
+                        <Input
+                            id="farcaster"
+                            type="text"
+                            value={
+                                farcasterUsername ? `${farcasterUsername}` : ""
+                            }
+                            disabled
+                            readOnly
+                            placeholder="Auto-filled from Farcaster login"
+                            className="pl-12 pr-4 h-12 text-base rounded-xl border-2 border-gray-200 bg-gray-50 text-gray-700 cursor-not-allowed"
+                        />
+                        {farcasterUsername && (
+                            <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                                <svg
+                                    className="w-5 h-5 text-green-500"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                    strokeWidth={2}
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        d="M5 13l4 4L19 7"
+                                    />
+                                </svg>
+                            </div>
+                        )}
+                    </div>
+                    {farcasterUsername && (
+                        <p className="text-xs text-gray-400">
+                            Connected via Farcaster MiniApp
+                        </p>
+                    )}
+                </div>
             </div>
         </div>
     );
