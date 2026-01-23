@@ -1,241 +1,199 @@
-"use client";
-
+import { useState, useCallback, useRef, useEffect } from "react";
+import { useAuth } from "@/components/providers/AuthProvider";
+import { useUser } from "@/hooks/api/useUser";
 import { GitHubConnectStatus } from "@/features/mint/components/GitHubConnect";
-import {
-    clearStoredTokens,
-    generateAuthUrl,
-    generateState,
-    getCurrentGitHubUser,
-    getOAuthConfig,
-    GitHubUser,
-    saveOAuthState,
-} from "@/lib/api/github";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { disconnectOAuth, getOAuthStatus, initOAuth } from "@/lib/api/oauth";
 
-const OAUTH_RESULT_KEY = "github_oauth_result";
+const POLLING_INTERVAL = 3000; // 3 seconds
 
-interface UseGitHubAuthOptions {
-    /** form의 github 필드를 업데이트하는 함수 */
+interface UseGitHubAuthProps {
     onUsernameChange?: (username: string) => void;
-    /** 초기 username (Edit 화면에서 기존 값 표시용) */
     initialUsername?: string;
+    initialVerified?: boolean;
 }
 
 interface UseGitHubAuthReturn {
     status: GitHubConnectStatus;
-    username: string | undefined;
-    error: string | undefined;
-    connect: () => Promise<void>;
-    disconnect: () => void;
+    username: string | null;
+    error: string | null;
+    authUrl: string | null;
+    isConnecting: boolean;
+    connect: () => Promise<string | null>;
+    disconnect: () => Promise<void>;
+    clearAuthUrl: () => void;
 }
 
-interface OAuthResult {
-    success: boolean;
-    user?: GitHubUser;
-    error?: string;
-}
-
-export function useGitHubAuth(
-    options: UseGitHubAuthOptions = {},
-): UseGitHubAuthReturn {
-    const { onUsernameChange, initialUsername } = options;
-
-    const [status, setStatus] = useState<GitHubConnectStatus>(() =>
-        initialUsername ? "connected" : "disconnected",
+export function useGitHubAuth({
+    onUsernameChange,
+    initialUsername,
+    initialVerified = false,
+}: UseGitHubAuthProps = {}): UseGitHubAuthReturn {
+    const { user } = useUser();
+    const { accessToken } = useAuth();
+    const [isConnecting, setIsConnecting] = useState(false);
+    const [status, setStatus] = useState<GitHubConnectStatus>(
+        initialUsername && initialVerified ? "connected" : "disconnected",
     );
-    const [username, setUsername] = useState<string | undefined>(
-        initialUsername,
+    const [username, setUsername] = useState<string | null>(
+        initialUsername || null,
     );
-    const [error, setError] = useState<string | undefined>();
-    const isConnectingRef = useRef(false);
+    const [error, setError] = useState<string | null>(null);
+    const [authUrl, setAuthUrl] = useState<string | null>(null);
 
-    // Ref로 콜백 저장하여 의존성 제거
-    const onUsernameChangeRef = useRef(onUsernameChange);
+    // Polling control
+    const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
+    const isPollingRef = useRef(false);
+
+    // Initial check
     useEffect(() => {
-        onUsernameChangeRef.current = onUsernameChange;
-    });
-
-    // OAuth 결과 처리 함수
-    const handleOAuthResult = useCallback((result: OAuthResult) => {
-        if (result.success && result.user) {
+        if (initialUsername && initialVerified) {
             setStatus("connected");
-            setUsername(result.user.login);
-            onUsernameChangeRef.current?.(result.user.login);
+            setUsername(initialUsername);
+            if (onUsernameChange && initialUsername) {
+                onUsernameChange(initialUsername);
+            }
+        } else if (!initialUsername) {
+            // Only check if we have a user and no initial username
+            if (user?.id) {
+                checkConnectionStatus();
+            }
         } else {
+            // Handle case where handle exists but not verified (e.g. forced disconnect state or wait for verification?)
+            // For now, if verified is false, we want it to be disconnected.
             setStatus("disconnected");
-            setError(result.error || "연결에 실패했습니다.");
-        }
-        isConnectingRef.current = false;
-    }, []);
-
-    // localStorage에서 OAuth 결과 확인
-    const checkLocalStorageResult = useCallback(async () => {
-        if (!isConnectingRef.current) return;
-
-        const stored = localStorage.getItem(OAUTH_RESULT_KEY);
-        if (stored) {
-            localStorage.removeItem(OAUTH_RESULT_KEY);
-            try {
-                const result: OAuthResult = JSON.parse(stored);
-                handleOAuthResult(result);
-                return;
-            } catch {
-                // JSON parse error
-            }
         }
 
-        // 토큰이 저장되었는지 확인
-        const user = await getCurrentGitHubUser();
-        if (user) {
-            handleOAuthResult({ success: true, user });
-        }
-    }, [handleOAuthResult]);
+        return () => stopPolling();
+    }, [initialUsername, initialVerified, user?.id]);
 
-    // postMessage 리스너
-    useEffect(() => {
-        function handleMessage(event: MessageEvent) {
-            if (event.origin !== window.location.origin) return;
-            if (event.data?.type === "GITHUB_AUTH_SUCCESS" && event.data.user) {
-                handleOAuthResult({ success: true, user: event.data.user });
-            }
-        }
-
-        window.addEventListener("message", handleMessage);
-        return () => window.removeEventListener("message", handleMessage);
-    }, [handleOAuthResult]);
-
-    // 페이지 포커스 시 localStorage 확인
-    useEffect(() => {
-        function handleFocus() {
-            checkLocalStorageResult();
-        }
-
-        function handleVisibilityChange() {
-            if (document.visibilityState === "visible") {
-                checkLocalStorageResult();
-            }
-        }
-
-        window.addEventListener("focus", handleFocus);
-        document.addEventListener("visibilitychange", handleVisibilityChange);
-
-        return () => {
-            window.removeEventListener("focus", handleFocus);
-            document.removeEventListener(
-                "visibilitychange",
-                handleVisibilityChange,
-            );
-        };
-    }, [checkLocalStorageResult]);
-
-    // 초기 로드 시 저장된 토큰 또는 URL 파라미터 확인
-    useEffect(() => {
-        async function checkExistingAuth() {
-            // URL 파라미터에서 MiniApp 콜백 결과 확인
-            if (typeof window !== "undefined") {
-                const urlParams = new URLSearchParams(window.location.search);
-                const githubConnected = urlParams.get("github_connected");
-                if (githubConnected) {
-                    setStatus("connected");
-                    setUsername(githubConnected);
-                    onUsernameChangeRef.current?.(githubConnected);
-                    // URL 파라미터 제거 (히스토리 교체)
-                    urlParams.delete("github_connected");
-                    const newUrl = urlParams.toString()
-                        ? `${window.location.pathname}?${urlParams.toString()}`
-                        : window.location.pathname;
-                    window.history.replaceState({}, "", newUrl);
-                    return;
-                }
-            }
-
-            const stored = localStorage.getItem(OAUTH_RESULT_KEY);
-            if (stored) {
-                localStorage.removeItem(OAUTH_RESULT_KEY);
-                try {
-                    const result: OAuthResult = JSON.parse(stored);
-                    if (result.success && result.user) {
-                        setStatus("connected");
-                        setUsername(result.user.login);
-                        onUsernameChangeRef.current?.(result.user.login);
-                        return;
-                    }
-                } catch {
-                    // JSON parse error
-                }
-            }
-
-            if (initialUsername) {
-                setStatus("connected");
-                setUsername(initialUsername);
-                return;
-            }
-
-            const user = await getCurrentGitHubUser();
-            if (user) {
-                setStatus("connected");
-                setUsername(user.login);
-                onUsernameChangeRef.current?.(user.login);
-            }
-        }
-
-        checkExistingAuth();
-    }, [initialUsername]);
-
-    const connect = useCallback(async () => {
-        setError(undefined);
-        setStatus("connecting");
-        isConnectingRef.current = true;
+    // Check connection status from backend
+    const checkConnectionStatus = useCallback(async () => {
+        if (!user) return;
 
         try {
-            const config = getOAuthConfig();
-            const state = generateState();
+            if (!accessToken) return;
 
-            // OAuth state 저장 (콜백에서 검증용 + 돌아갈 URL)
-            saveOAuthState({
-                state,
-                returnUrl: window.location.pathname,
-            });
+            const result = await getOAuthStatus("github", accessToken);
 
-            const authUrl = generateAuthUrl(config, state);
-
-            // 팝업 열기 (모바일에서는 새 탭으로 열림)
-            const POPUP_WIDTH = 600;
-            const POPUP_HEIGHT = 700;
-            const left = window.screenX + (window.outerWidth - POPUP_WIDTH) / 2;
-            const top =
-                window.screenY + (window.outerHeight - POPUP_HEIGHT) / 2;
-
-            window.open(
-                authUrl,
-                "github-oauth",
-                `width=${POPUP_WIDTH},height=${POPUP_HEIGHT},left=${left},top=${top},scrollbars=yes`,
-            );
-
-            // 결과는 postMessage 또는 localStorage를 통해 수신
-            // (팝업이 닫히면 focus 이벤트로 localStorage 확인)
+            if (result.connected && result.username) {
+                setStatus("connected");
+                setUsername(result.username);
+                if (onUsernameChange) {
+                    onUsernameChange(result.username);
+                }
+                stopPolling(); // Connected, stop polling
+                setAuthUrl(null); // Close modal if open
+            }
         } catch (err) {
-            setStatus("disconnected");
-            setError(
-                err instanceof Error ? err.message : "연결에 실패했습니다.",
-            );
-            isConnectingRef.current = false;
+            console.error("Failed to check GitHub status:", err);
         }
+    }, [user, accessToken, onUsernameChange]);
+
+    const startPolling = useCallback(() => {
+        if (isPollingRef.current) return;
+        isPollingRef.current = true;
+
+        // Immediate check
+        checkConnectionStatus();
+
+        pollingIntervalRef.current = setInterval(
+            checkConnectionStatus,
+            POLLING_INTERVAL,
+        );
+    }, [checkConnectionStatus]);
+
+    const stopPolling = useCallback(() => {
+        if (pollingIntervalRef.current) {
+            clearInterval(pollingIntervalRef.current);
+            pollingIntervalRef.current = null;
+        }
+        isPollingRef.current = false;
     }, []);
 
-    const disconnect = useCallback(() => {
-        clearStoredTokens();
-        setStatus("disconnected");
-        setUsername(undefined);
-        setError(undefined);
-        onUsernameChangeRef.current?.("");
+    // Listen for window focus to refresh status when coming back from OAuth
+    useEffect(() => {
+        const handleFocus = () => {
+            if (status !== "connected") {
+                checkConnectionStatus();
+            }
+        };
+
+        window.addEventListener("focus", handleFocus);
+        return () => window.removeEventListener("focus", handleFocus);
+    }, [checkConnectionStatus, status]);
+
+    const connect = useCallback(async () => {
+        if (!user) {
+            setError("Login is required.");
+            return null;
+        }
+
+        setIsConnecting(true);
+        setError(null);
+
+        try {
+            if (!accessToken) throw new Error("No access token");
+
+            // 1. Get Auth URL from Backend
+            const clientFid = user.fid?.toString();
+            const { authUrl: url } = await initOAuth(
+                "github",
+                accessToken,
+                clientFid,
+            );
+
+            console.log("GitHub auth URL:", url);
+
+            // 2. Return URL for Iframe/Modal to display
+            setAuthUrl(url);
+
+            // 3. Start polling for completion
+            startPolling();
+
+            return url;
+        } catch (err) {
+            setStatus("disconnected");
+            setError(err instanceof Error ? err.message : "Failed to connect.");
+            return null;
+        } finally {
+            setIsConnecting(false);
+        }
+    }, [user, accessToken, startPolling]);
+
+    const disconnect = useCallback(async () => {
+        try {
+            if (!accessToken) {
+                console.warn("No access token found for disconnect");
+                return;
+            }
+
+            await disconnectOAuth("github", accessToken);
+
+            console.log("GitHub disconnected successfully");
+            setStatus("disconnected");
+            setUsername(null);
+            if (onUsernameChange) {
+                onUsernameChange("");
+            }
+            stopPolling();
+        } catch (err) {
+            console.error("Disconnect failed:", err);
+            setError("Failed to disconnect.");
+        }
+    }, [accessToken, onUsernameChange, stopPolling]);
+
+    const clearAuthUrl = useCallback(() => {
+        setAuthUrl(null);
     }, []);
 
     return {
+        connect,
+        disconnect,
+        isConnecting,
         status,
         username,
         error,
-        connect,
-        disconnect,
+        authUrl,
+        clearAuthUrl,
     };
 }

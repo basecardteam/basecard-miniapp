@@ -1,28 +1,60 @@
 "use client";
 
+import { useGitHubAuth } from "@/hooks/useGitHubAuth";
 import { Label } from "@/components/ui/label";
 import { memo } from "react";
 import { FaGithub } from "react-icons/fa6";
 import { LuLoader } from "react-icons/lu";
+import { sdk } from "@farcaster/miniapp-sdk";
 
 export type GitHubConnectStatus = "disconnected" | "connecting" | "connected";
 
-interface GitHubConnectProps {
-    status: GitHubConnectStatus;
-    username?: string;
-    onConnect: () => void;
-    onDisconnect: () => void;
-    error?: string;
+export interface GitHubConnectProps {
+    initialUsername?: string;
+    initialVerified?: boolean;
+    onUpdate?: (username: string) => void;
 }
 
 export const GitHubConnect = memo(function GitHubConnect({
-    status,
-    username,
-    onConnect,
-    onDisconnect,
-    error,
+    initialUsername,
+    initialVerified,
+    onUpdate,
 }: GitHubConnectProps) {
+    const { status, username, error, connect, disconnect } = useGitHubAuth({
+        initialUsername,
+        initialVerified,
+        onUsernameChange: onUpdate,
+    });
     const hasError = !!error;
+
+    const handleConnect = async () => {
+        try {
+            const isMiniApp = await sdk.isInMiniApp();
+
+            if (isMiniApp) {
+                const url = await connect();
+                if (url) {
+                    sdk.actions.openUrl(url);
+                }
+            } else {
+                // Browser: Open popup first to avoid blocker
+                const popup = window.open("about:blank", "_blank");
+                if (!popup) {
+                    alert("Please allow popups to connect with GitHub");
+                    return;
+                }
+
+                const url = await connect();
+                if (url) {
+                    popup.location.href = url;
+                } else {
+                    popup.close();
+                }
+            }
+        } catch (err) {
+            console.error("Failed to connect:", err);
+        }
+    };
 
     return (
         <div className="space-y-1">
@@ -50,7 +82,7 @@ export const GitHubConnect = memo(function GitHubConnect({
                 {status === "disconnected" && (
                     <button
                         type="button"
-                        onClick={onConnect}
+                        onClick={handleConnect}
                         className={`w-full pl-12 pr-4 h-12 flex items-center justify-between text-base rounded-xl border-2 transition-all duration-300 ${
                             hasError
                                 ? "border-red-500 hover:border-red-600"
@@ -76,7 +108,7 @@ export const GitHubConnect = memo(function GitHubConnect({
                     </button>
                 )}
 
-                {/* 연결 중 */}
+                {/* 연결 중 (Modal이 떴을 때도 connecting 상태) */}
                 {status === "connecting" && (
                     <div className="w-full pl-12 pr-4 h-12 flex items-center text-base rounded-xl border-2 border-basecard-blue/30 bg-basecard-blue/5">
                         <span className="text-basecard-blue">
@@ -89,11 +121,11 @@ export const GitHubConnect = memo(function GitHubConnect({
                 {status === "connected" && username && (
                     <div className="w-full pl-12 pr-4 h-12 flex items-center justify-between text-base rounded-xl border-2 border-gray-200 bg-white">
                         <div className="flex items-center gap-1.5">
-                            <span className="text-gray-900">@{username}</span>
+                            <span className="text-gray-900">{username}</span>
                         </div>
                         <button
                             type="button"
-                            onClick={onDisconnect}
+                            onClick={disconnect}
                             className="text-sm text-gray-400 hover:text-red-500 transition-colors"
                         >
                             Disconnect

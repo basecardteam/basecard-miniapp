@@ -15,11 +15,9 @@ import { RoleSelector } from "@/features/mint/components/RoleSelector";
 import { SocialsInput } from "@/features/mint/components/SocialsInput";
 import { WebsitesInput } from "@/features/mint/components/WebsitesInput";
 import { useUser } from "@/hooks/api/useUser";
-import { useGitHubAuth } from "@/hooks/useGitHubAuth";
-import { useLinkedInAuth } from "@/hooks/useLinkedInAuth";
-import { useTwitterAuth } from "@/hooks/useTwitterAuth";
+
 import type { MintFormData } from "@/lib/schemas/mintFormSchema";
-import { User } from "@/lib/types/api";
+import { Socials, User } from "@/lib/types/api";
 import defaultProfileImage from "@/public/assets/default-profile.png";
 import { useQueryClient } from "@tanstack/react-query";
 import dynamic from "next/dynamic";
@@ -98,73 +96,43 @@ export default function EditProfileScreen() {
                 name: cardData.nickname || "",
                 role: (cardData.role as any) || undefined,
                 bio: cardData.bio || "",
-                github: cardData.socials?.github || "",
-                x: cardData.socials?.x || "",
-                farcaster: cardData.socials?.farcaster || username || "",
-                linkedin: cardData.socials?.linkedin || "",
+                github: cardData.socials?.github?.handle || "",
+                x: cardData.socials?.x?.handle || "",
+                // Always use latest username from context (override DB if different)
+                farcaster:
+                    username || cardData.socials?.farcaster?.handle || "",
+                linkedin: cardData.socials?.linkedin?.handle || "",
                 websites: [],
-                selectedSkills: [],
                 profileImageFile: null,
             });
         }
-    }, [cardData, reset]);
+    }, [cardData, reset, username]);
 
     const [newWebsite, setNewWebsite] = useState("");
     const [showSuccessModal, setShowSuccessModal] = useState(false);
     const [showErrorModal, setShowErrorModal] = useState(false);
     const [submitError, setSubmitError] = useState<string | null>(null);
 
-    // Farcaster username from MiniApp context (auto-filled)
-    const farcasterUsername = cardData?.socials?.farcaster || username;
+    // Farcaster username from MiniApp context (always prefer latest)
+    const farcasterUsername = username || cardData?.socials?.farcaster?.handle;
 
-    // Twitter OAuth - useCallback으로 콜백 안정화
+    // Twitter Callback
     const handleTwitterUsernameChange = useCallback(
         (username: string) => setValue("x", username),
         [setValue],
     );
-    const {
-        status: twitterStatus,
-        username: twitterUsername,
-        error: twitterError,
-        connect: handleTwitterConnect,
-        disconnect: handleTwitterDisconnect,
-    } = useTwitterAuth({
-        onUsernameChange: handleTwitterUsernameChange,
-        initialUsername: cardData?.socials?.x,
-    });
 
-    // GitHub OAuth
+    // GitHub Callback
     const handleGitHubUsernameChange = useCallback(
         (username: string) => setValue("github", username),
         [setValue],
     );
-    const {
-        status: githubStatus,
-        username: githubUsername,
-        error: githubError,
-        connect: handleGitHubConnect,
-        disconnect: handleGitHubDisconnect,
-    } = useGitHubAuth({
-        onUsernameChange: handleGitHubUsernameChange,
-        initialUsername: cardData?.socials?.github,
-    });
 
-    // LinkedIn OAuth
+    // LinkedIn Callback
     const handleLinkedInUsernameChange = useCallback(
         (username: string) => setValue("linkedin", username),
         [setValue],
     );
-    const {
-        status: linkedinStatus,
-        username: linkedinUsername,
-        displayName: linkedinDisplayName,
-        error: linkedinError,
-        connect: handleLinkedInConnect,
-        disconnect: handleLinkedInDisconnect,
-    } = useLinkedInAuth({
-        onUsernameChange: handleLinkedInUsernameChange,
-        initialUsername: cardData?.socials?.linkedin,
-    });
 
     // WebsitesInput에서 실시간 검증하므로 여기서는 단순히 추가만
     const handleAddWebsiteSimple = useCallback(() => {
@@ -196,11 +164,17 @@ export default function EditProfileScreen() {
 
         setSubmitError(null);
 
-        const socials: Record<string, string> = {};
-        if (data.github) socials.github = data.github;
-        if (data.x) socials.x = data.x;
-        if (data.farcaster) socials.farcaster = data.farcaster;
-        if (data.linkedin) socials.linkedin = data.linkedin;
+        const socials: Socials = {};
+        if (data.github)
+            socials.github = { handle: data.github, verified: true };
+        if (data.x) socials.x = { handle: data.x, verified: true };
+        if (data.farcaster)
+            socials.farcaster = { handle: data.farcaster, verified: true };
+        if (data.linkedin) {
+            // Strip query string from LinkedIn URL
+            const linkedinUrl = data.linkedin.split("?")[0];
+            socials.linkedin = { handle: linkedinUrl, verified: true };
+        }
 
         const processedImage = await processProfileImage(profileImage);
 
@@ -208,7 +182,7 @@ export default function EditProfileScreen() {
             nickname: data.name,
             role: data.role,
             bio: data.bio || "",
-            socials: Object.keys(socials).length > 0 ? socials : {},
+            socials: Object.keys(socials).length > 0 ? socials : undefined,
             profileImageFile: processedImage,
         });
 
@@ -220,7 +194,9 @@ export default function EditProfileScreen() {
         }
     };
 
-    const handleSubmit = formHandleSubmit(onSubmit);
+    const handleSubmit = formHandleSubmit(onSubmit, (errors) => {
+        console.error("Form validation errors:", errors);
+    });
 
     if (isCardLoading) {
         return (
@@ -276,22 +252,24 @@ export default function EditProfileScreen() {
 
                 {/* Socials */}
                 <SocialsInput
-                    twitterStatus={twitterStatus}
-                    twitterUsername={twitterUsername}
-                    onTwitterConnect={handleTwitterConnect}
-                    onTwitterDisconnect={handleTwitterDisconnect}
-                    twitterError={twitterError}
-                    githubStatus={githubStatus}
-                    githubUsername={githubUsername}
-                    onGitHubConnect={handleGitHubConnect}
-                    onGitHubDisconnect={handleGitHubDisconnect}
-                    githubError={githubError}
-                    linkedinStatus={linkedinStatus}
-                    linkedinUsername={linkedinUsername}
-                    linkedinDisplayName={linkedinDisplayName}
-                    onLinkedInConnect={handleLinkedInConnect}
-                    onLinkedInDisconnect={handleLinkedInDisconnect}
-                    linkedinError={linkedinError}
+                    // X
+                    xInitialUsername={cardData?.socials?.x?.handle}
+                    xInitialVerified={cardData?.socials?.x?.verified}
+                    onXUpdate={handleTwitterUsernameChange}
+                    // GitHub
+                    githubInitialUsername={cardData?.socials?.github?.handle}
+                    githubInitialVerified={cardData?.socials?.github?.verified}
+                    onGitHubUpdate={handleGitHubUsernameChange}
+                    // LinkedIn
+                    linkedinInitialUsername={
+                        cardData?.socials?.linkedin?.handle
+                    }
+                    linkedinInitialVerified={
+                        cardData?.socials?.linkedin?.verified
+                    }
+                    linkedinValidationError={errors.linkedin?.message}
+                    onLinkedInUpdate={handleLinkedInUsernameChange}
+                    // Farcaster
                     farcasterUsername={farcasterUsername}
                 />
 
@@ -329,13 +307,6 @@ export default function EditProfileScreen() {
                         </p>
                     )}
                 </div>
-
-                {/* Error Message */}
-                {/* {submitError && (
-                    <p className="text-red-500 text-sm text-center w-full">
-                        {submitError}
-                    </p>
-                )} */}
 
                 <BaseButton
                     type="submit"

@@ -31,8 +31,13 @@ export const SOCIAL_KEYS = [
     "basename",
 ] as const;
 
+export interface SocialEntry {
+    handle: string;
+    verified: boolean;
+}
+
 export type SocialKey = (typeof SOCIAL_KEYS)[number];
-export type Socials = Partial<Record<SocialKey, string>>;
+export type Socials = Partial<Record<SocialKey, SocialEntry>>;
 
 // =============================================================================
 // Entity Types

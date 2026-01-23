@@ -1,4 +1,4 @@
-import { MAX_SKILLS, MAX_WEBSITES, ROLES } from "@/lib/constants/mint";
+import { MAX_WEBSITES, ROLES } from "@/lib/constants/mint";
 import { z } from "zod";
 
 /**
@@ -13,13 +13,17 @@ export const mintFormSchema = z.object({
     github: z.string().optional(),
     farcaster: z.string().optional(),
     x: z.string().optional(),
-    linkedin: z.string().optional(),
+    linkedin: z
+        .string()
+        .regex(
+            /^(https?:\/\/)?(www\.)?linkedin\.com\/in\/[\w-]+(\/)?(\?.*)?$/,
+            "LinkedIn URL must be in format: linkedin.com/in/your-handle",
+        )
+        .optional()
+        .or(z.literal("")),
     websites: z
-        .array(z.string().url("Invalid URL"))
+        .array(z.url("Invalid URL"))
         .max(MAX_WEBSITES, `Maximum ${MAX_WEBSITES} websites allowed`),
-    selectedSkills: z
-        .array(z.string())
-        .max(MAX_SKILLS, `Maximum ${MAX_SKILLS} skills allowed`),
     profileImageFile: z.instanceof(File).optional().nullable(),
 });
 

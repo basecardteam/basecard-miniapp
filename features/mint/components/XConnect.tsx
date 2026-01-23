@@ -1,34 +1,63 @@
 "use client";
 
+import { useXAuth, XConnectStatus } from "@/hooks/useXAuth";
 import { Label } from "@/components/ui/label";
 import { memo } from "react";
 import { FaSquareXTwitter } from "react-icons/fa6";
 import { LuLoader } from "react-icons/lu";
+import { sdk } from "@farcaster/miniapp-sdk";
 
-export type TwitterConnectStatus = "disconnected" | "connecting" | "connected";
+export type { XConnectStatus };
 
-interface TwitterConnectProps {
-    status: TwitterConnectStatus;
-    username?: string;
-    onConnect: () => void;
-    onDisconnect: () => void;
-    error?: string;
+export interface XConnectProps {
+    initialUsername?: string;
+    initialVerified?: boolean;
+    onUpdate?: (username: string) => void;
 }
 
-export const TwitterConnect = memo(function TwitterConnect({
-    status,
-    username,
-    onConnect,
-    onDisconnect,
-    error,
-}: TwitterConnectProps) {
+export const XConnect = memo(function XConnect({
+    initialUsername,
+    initialVerified,
+    onUpdate,
+}: XConnectProps) {
+    const { status, username, error, connect, disconnect } = useXAuth({
+        initialUsername,
+        initialVerified,
+        onUsernameChange: onUpdate,
+    });
     const hasError = !!error;
+
+    const handleConnect = async () => {
+        try {
+            const isMiniApp = await sdk.isInMiniApp();
+
+            if (isMiniApp) {
+                const url = await connect();
+                if (url) {
+                    sdk.actions.openUrl(url);
+                }
+            } else {
+                const popup = window.open("about:blank", "_blank");
+                if (!popup) {
+                    alert("Please allow popups to connect with X");
+                    return;
+                }
+
+                const url = await connect();
+                if (url) {
+                    popup.location.href = url;
+                } else {
+                    popup.close();
+                }
+            }
+        } catch (err) {
+            console.error("Failed to connect:", err);
+        }
+    };
 
     return (
         <div className="space-y-1">
-            <Label className="text-sm font-medium text-gray-700">
-                X (Twitter)
-            </Label>
+            <Label className="text-sm font-medium text-gray-700">X</Label>
 
             <div className="relative">
                 {/* 아이콘 (왼쪽) */}
@@ -52,7 +81,7 @@ export const TwitterConnect = memo(function TwitterConnect({
                 {status === "disconnected" && (
                     <button
                         type="button"
-                        onClick={onConnect}
+                        onClick={handleConnect}
                         className={`w-full pl-12 pr-4 h-12 flex items-center justify-between text-base rounded-xl border-2 transition-all duration-300 ${
                             hasError
                                 ? "border-red-500 hover:border-red-600"
@@ -87,7 +116,7 @@ export const TwitterConnect = memo(function TwitterConnect({
                     </div>
                 )}
 
-                {/* 연결됨: @username + 체크 + Disconnect */}
+                {/* 연결됨: @username + Disconnect */}
                 {status === "connected" && username && (
                     <div className="w-full pl-12 pr-4 h-12 flex items-center justify-between text-base rounded-xl border-2 border-gray-200 bg-white">
                         <div className="flex items-center gap-1.5">
@@ -95,7 +124,7 @@ export const TwitterConnect = memo(function TwitterConnect({
                         </div>
                         <button
                             type="button"
-                            onClick={onDisconnect}
+                            onClick={disconnect}
                             className="text-sm text-gray-400 hover:text-red-500 transition-colors"
                         >
                             Disconnect

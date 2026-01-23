@@ -13,9 +13,6 @@ import { useToast } from "@/components/ui/Toast";
 import { useMintBaseCardMutation } from "@/features/mint/hooks/useMintBaseCardMutation";
 import { useMintForm } from "@/features/mint/hooks/useMintForm";
 import { useUser } from "@/hooks/api/useUser";
-import { useGitHubAuth } from "@/hooks/useGitHubAuth";
-import { useLinkedInAuth } from "@/hooks/useLinkedInAuth";
-import { useTwitterAuth } from "@/hooks/useTwitterAuth";
 import { verifyQuestByAction } from "@/lib/api/quests";
 import { logger } from "@/lib/common/logger";
 import { MAX_WEBSITES, type Role } from "@/lib/constants/mint";
@@ -86,51 +83,21 @@ export default function MintScreen() {
         }
     }, [farcasterUsername, setValue]);
 
-    // Twitter OAuth - useCallback으로 콜백 안정화
+    // Callback handlers only updates local form state methods
     const handleTwitterUsernameChange = useCallback(
         (username: string) => setValue("x", username),
         [setValue],
     );
-    const {
-        status: twitterStatus,
-        username: twitterUsername,
-        error: twitterError,
-        connect: handleTwitterConnect,
-        disconnect: handleTwitterDisconnect,
-    } = useTwitterAuth({
-        onUsernameChange: handleTwitterUsernameChange,
-    });
 
-    // GitHub OAuth
     const handleGitHubUsernameChange = useCallback(
         (username: string) => setValue("github", username),
         [setValue],
     );
-    const {
-        status: githubStatus,
-        username: githubUsername,
-        error: githubError,
-        connect: handleGitHubConnect,
-        disconnect: handleGitHubDisconnect,
-    } = useGitHubAuth({
-        onUsernameChange: handleGitHubUsernameChange,
-    });
 
-    // LinkedIn OAuth
     const handleLinkedInUsernameChange = useCallback(
         (username: string) => setValue("linkedin", username),
         [setValue],
     );
-    const {
-        status: linkedinStatus,
-        username: linkedinUsername,
-        displayName: linkedinDisplayName,
-        error: linkedinError,
-        connect: handleLinkedInConnect,
-        disconnect: handleLinkedInDisconnect,
-    } = useLinkedInAuth({
-        onUsernameChange: handleLinkedInUsernameChange,
-    });
 
     // NFT minting mutation hook
     const {
@@ -178,9 +145,15 @@ export default function MintScreen() {
                     bio: data.bio || "",
                     profileImageFile: profileImage,
                     socials: {
-                        x: data.x || "",
-                        github: data.github || "",
-                        farcaster: data.farcaster || "",
+                        x: data.x
+                            ? { handle: data.x, verified: false }
+                            : undefined,
+                        github: data.github
+                            ? { handle: data.github, verified: false }
+                            : undefined,
+                        farcaster: data.farcaster
+                            ? { handle: data.farcaster, verified: false }
+                            : undefined,
                     },
                 });
 
@@ -340,23 +313,11 @@ export default function MintScreen() {
                 />
 
                 {/* 소셜 링크 입력 */}
+                {/* 소셜 링크 입력 */}
                 <SocialsInput
-                    twitterStatus={twitterStatus}
-                    twitterUsername={twitterUsername}
-                    onTwitterConnect={handleTwitterConnect}
-                    onTwitterDisconnect={handleTwitterDisconnect}
-                    twitterError={twitterError}
-                    githubStatus={githubStatus}
-                    githubUsername={githubUsername}
-                    onGitHubConnect={handleGitHubConnect}
-                    onGitHubDisconnect={handleGitHubDisconnect}
-                    githubError={githubError}
-                    linkedinStatus={linkedinStatus}
-                    linkedinUsername={linkedinUsername}
-                    linkedinDisplayName={linkedinDisplayName}
-                    onLinkedInConnect={handleLinkedInConnect}
-                    onLinkedInDisconnect={handleLinkedInDisconnect}
-                    linkedinError={linkedinError}
+                    onTwitterUpdate={handleTwitterUsernameChange}
+                    onGitHubUpdate={handleGitHubUsernameChange}
+                    onLinkedInUpdate={handleLinkedInUsernameChange}
                     farcasterUsername={farcasterUsername}
                 />
 
