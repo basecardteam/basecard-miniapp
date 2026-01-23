@@ -1,4 +1,4 @@
-import { MAX_SKILLS, MAX_WEBSITES } from "@/lib/constants/mint";
+import { MAX_WEBSITES } from "@/lib/constants/mint";
 import {
     mintFormSchema,
     type MintFormData,
@@ -22,8 +22,8 @@ export function useEditProfileForm(initialData?: Partial<MintFormData>) {
             github: initialData?.github || "",
             farcaster: initialData?.farcaster || "",
             x: initialData?.x || "",
+            linkedin: initialData?.linkedin || "",
             websites: initialData?.websites || [],
-            selectedSkills: initialData?.selectedSkills || [],
             profileImageFile: initialData?.profileImageFile || null,
         },
         mode: "onBlur",
@@ -44,37 +44,7 @@ export function useEditProfileForm(initialData?: Partial<MintFormData>) {
                 setValue("profileImageFile", file, { shouldValidate: true });
             }
         },
-        [setValue]
-    );
-
-    // Skill Toggle Handler
-    const toggleSkill = useCallback(
-        (
-            skill: string,
-            showWarning?: (title: string, description: string) => void
-        ) => {
-            const currentSkills = getValues("selectedSkills");
-
-            if (currentSkills.includes(skill)) {
-                setValue(
-                    "selectedSkills",
-                    currentSkills.filter((s) => s !== skill),
-                    { shouldValidate: true }
-                );
-            } else {
-                if (currentSkills.length >= MAX_SKILLS) {
-                    showWarning?.(
-                        "Maximum Skills Reached",
-                        `You can select up to ${MAX_SKILLS} skills. Please deselect a skill to add a new one.`
-                    );
-                    return;
-                }
-                setValue("selectedSkills", [...currentSkills, skill], {
-                    shouldValidate: true,
-                });
-            }
-        },
-        [getValues, setValue]
+        [setValue],
     );
 
     // Add Website Handler
@@ -101,7 +71,7 @@ export function useEditProfileForm(initialData?: Partial<MintFormData>) {
                 return false;
             }
         },
-        [getValues, setValue]
+        [getValues, setValue],
     );
 
     // Remove Website Handler
@@ -111,10 +81,10 @@ export function useEditProfileForm(initialData?: Partial<MintFormData>) {
             setValue(
                 "websites",
                 currentWebsites.filter((url) => url !== urlToRemove),
-                { shouldValidate: true }
+                { shouldValidate: true },
             );
         },
-        [getValues, setValue]
+        [getValues, setValue],
     );
 
     return {
@@ -122,7 +92,6 @@ export function useEditProfileForm(initialData?: Partial<MintFormData>) {
         fileInputRef,
         handleImageClick,
         handleFileChange,
-        toggleSkill,
         handleAddWebsite,
         handleRemoveWebsite,
         watch,

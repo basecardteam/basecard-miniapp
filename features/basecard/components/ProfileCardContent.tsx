@@ -176,7 +176,7 @@ export default function ProfileCardContent({
                 window.open(url, "_blank");
             }
         },
-        [openUrl, frameContext]
+        [openUrl, frameContext],
     );
 
     const handleCopyLink = useCallback(async () => {
@@ -218,7 +218,6 @@ export default function ProfileCardContent({
         });
     }, [card]);
 
-    
     // =========================================================================
     // Render
     // =========================================================================
@@ -300,7 +299,11 @@ export default function ProfileCardContent({
                     {/* Social Icons */}
                     <div className="mt-4 flex items-center gap-3">
                         {SOCIAL_ENTRIES.map(({ key, icon, label }) => {
-                            const rawValue = socials?.[key] ?? "";
+                            const entry = socials?.[key];
+                            const rawValue =
+                                (typeof entry === "string"
+                                    ? entry
+                                    : entry?.handle) ?? "";
                             const value = rawValue.trim();
                             const hasUrl = value.length > 0;
 
@@ -377,7 +380,10 @@ export default function ProfileCardContent({
                     onCopyLink={handleCopyLink}
                     onShareQR={handleShareQR}
                     onCastCard={handleCastCard}
-                    clientFid={(frameContext?.context as MiniAppContext)?.client?.clientFid}
+                    clientFid={
+                        (frameContext?.context as MiniAppContext)?.client
+                            ?.clientFid
+                    }
                 />
 
                 <ShareModal
@@ -396,7 +402,10 @@ export default function ProfileCardContent({
                     qrErrorMessage="QR 코드 생성 실패"
                     logoSrc={BCLogo.src}
                     onCastCard={handleCastCard}
-                    clientFid={(frameContext?.context as MiniAppContext)?.client?.clientFid}
+                    clientFid={
+                        (frameContext?.context as MiniAppContext)?.client
+                            ?.clientFid
+                    }
                 />
             </div>
         </div>

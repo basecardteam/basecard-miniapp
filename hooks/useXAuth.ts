@@ -1,21 +1,21 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useUser } from "@/hooks/api/useUser";
-import { LinkedInConnectStatus } from "@/features/mint/components/LinkedInConnect";
+
+export type XConnectStatus = "disconnected" | "connecting" | "connected";
 
 const POLLING_INTERVAL = 3000; // 3 seconds
 import { useAuth } from "@/components/providers/AuthProvider";
 import { disconnectOAuth, getOAuthStatus, initOAuth } from "@/lib/api/oauth";
 
-interface UseLinkedInAuthProps {
+interface UseXAuthProps {
     onUsernameChange?: (username: string) => void;
     initialUsername?: string;
     initialVerified?: boolean;
 }
 
-interface UseLinkedInAuthReturn {
-    status: LinkedInConnectStatus;
+interface UseXAuthReturn {
+    status: XConnectStatus;
     username: string | null;
-    displayName: string | null;
     error: string | null;
     authUrl: string | null;
     isConnecting: boolean;
@@ -24,21 +24,20 @@ interface UseLinkedInAuthReturn {
     clearAuthUrl: () => void;
 }
 
-export function useLinkedInAuth({
+export function useXAuth({
     onUsernameChange,
     initialUsername,
     initialVerified = false,
-}: UseLinkedInAuthProps = {}): UseLinkedInAuthReturn {
+}: UseXAuthProps = {}): UseXAuthReturn {
     const { user } = useUser();
     const { accessToken } = useAuth();
     const [isConnecting, setIsConnecting] = useState(false);
-    const [status, setStatus] = useState<LinkedInConnectStatus>(
+    const [status, setStatus] = useState<XConnectStatus>(
         initialUsername && initialVerified ? "connected" : "disconnected",
     );
     const [username, setUsername] = useState<string | null>(
         initialUsername || null,
     );
-    const [displayName, setDisplayName] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [authUrl, setAuthUrl] = useState<string | null>(null);
 
@@ -72,13 +71,12 @@ export function useLinkedInAuth({
         try {
             if (!accessToken) return;
 
-            const result = await getOAuthStatus("linkedin", accessToken);
+            // Backend uses 'x' as provider key
+            const result = await getOAuthStatus("x", accessToken);
 
             if (result.connected && result.username) {
                 setStatus("connected");
                 setUsername(result.username);
-                // If backend sends displayName, use it. Otherwise fallback to handle.
-                setDisplayName(result.displayName || result.username);
                 if (onUsernameChange) {
                     onUsernameChange(result.username);
                 }
@@ -86,7 +84,7 @@ export function useLinkedInAuth({
                 setAuthUrl(null); // Close modal if open
             }
         } catch (err) {
-            console.error("Failed to check LinkedIn status:", err);
+            console.error("Failed to check X status:", err);
         }
     }, [user, accessToken, onUsernameChange]);
 
@@ -135,10 +133,10 @@ export function useLinkedInAuth({
         try {
             if (!accessToken) throw new Error("No access token");
 
-            // 1. Get Auth URL from Backend
+            // 1. Get Auth URL from Backend (provider key is still 'twitter')
             const clientFid = user.fid?.toString();
             const { authUrl: url } = await initOAuth(
-                "linkedin",
+                "x",
                 accessToken,
                 clientFid,
             );
@@ -165,11 +163,11 @@ export function useLinkedInAuth({
         try {
             if (!accessToken) return;
 
-            await disconnectOAuth("linkedin", accessToken);
+            // Provider key is 'x'
+            await disconnectOAuth("x", accessToken);
 
             setStatus("disconnected");
             setUsername(null);
-            setDisplayName(null);
             if (onUsernameChange) {
                 onUsernameChange("");
             }
@@ -190,7 +188,6 @@ export function useLinkedInAuth({
         isConnecting,
         status,
         username,
-        displayName,
         error,
         authUrl,
         clearAuthUrl,
