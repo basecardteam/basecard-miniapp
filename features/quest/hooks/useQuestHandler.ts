@@ -84,10 +84,12 @@ export function useQuestHandler(): UseQuestHandlerResult {
     // Verifiable Actions 계산
     // -----------------------------------------
     const verifiableActions = useMemo(() => {
+        // Transform socials object for getAutoVerifiableActions
         const socials = card?.socials ?? {};
+
         const auto = getAutoVerifiableActions({
             hasCard: !!card,
-            socials,
+            socials: socials as any,
         });
         const merged = [...new Set([...pendingActions, ...auto])];
 
@@ -139,7 +141,14 @@ export function useQuestHandler(): UseQuestHandlerResult {
             isInMiniApp,
             clientContext: clientFid ? { clientFid } : undefined,
         }),
-        [card?.id, card?.imageUri, address, accessToken, isInMiniApp, clientFid]
+        [
+            card?.id,
+            card?.imageUri,
+            address,
+            accessToken,
+            isInMiniApp,
+            clientFid,
+        ],
     );
 
     // -----------------------------------------
@@ -160,14 +169,14 @@ export function useQuestHandler(): UseQuestHandlerResult {
             setPendingActions((prev) => prev.filter((a) => a !== actionType));
             return result;
         },
-        [accessToken, queryClient]
+        [accessToken, queryClient],
     );
 
     const showSuccess = useCallback(
         (rewarded: number, newTotalPoints: number) => {
             setSuccessModalState({ isOpen: true, rewarded, newTotalPoints });
         },
-        []
+        [],
     );
 
     // -----------------------------------------
@@ -180,7 +189,7 @@ export function useQuestHandler(): UseQuestHandlerResult {
                 "[QuestHandler] action:",
                 actionType,
                 "status:",
-                status
+                status,
             );
 
             // 1️⃣ Claimable → Claim
@@ -192,13 +201,13 @@ export function useQuestHandler(): UseQuestHandlerResult {
                     if (result?.verified) {
                         showSuccess(
                             result.rewarded ?? 0,
-                            result.newTotalPoints ?? 0
+                            result.newTotalPoints ?? 0,
                         );
                     }
                 } catch (err) {
                     showToast(
                         err instanceof Error ? err.message : "Failed to claim",
-                        "error"
+                        "error",
                     );
                 } finally {
                     setIsProcessing(false);
@@ -216,14 +225,14 @@ export function useQuestHandler(): UseQuestHandlerResult {
                         result?.verified
                             ? "Quest verified! Claim your reward."
                             : "Verification failed.",
-                        result?.verified ? "success" : "error"
+                        result?.verified ? "success" : "error",
                     );
                 } catch (err) {
                     showToast(
                         err instanceof Error
                             ? err.message
                             : "Verification failed",
-                        "error"
+                        "error",
                     );
                 } finally {
                     setIsProcessing(false);
@@ -257,7 +266,7 @@ export function useQuestHandler(): UseQuestHandlerResult {
                         if (verifyResult?.verified) {
                             showToast(
                                 "Quest verified! Claim your reward.",
-                                "success"
+                                "success",
                             );
                         }
                     } catch {
@@ -284,7 +293,7 @@ export function useQuestHandler(): UseQuestHandlerResult {
             showToast,
             actionContext,
             showSuccess,
-        ]
+        ],
     );
 
     return {

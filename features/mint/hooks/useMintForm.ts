@@ -1,4 +1,4 @@
-import { MAX_SKILLS, MAX_WEBSITES } from "@/lib/constants/mint";
+import { MAX_WEBSITES } from "@/lib/constants/mint";
 import {
     mintFormSchema,
     type MintFormData,
@@ -25,7 +25,6 @@ export function useMintForm(initialData?: Partial<MintFormData>) {
             farcaster: initialData?.farcaster || "",
             x: initialData?.x || "",
             websites: initialData?.websites || [],
-            selectedSkills: initialData?.selectedSkills || [],
             profileImageFile: initialData?.profileImageFile || null,
         },
         mode: "onBlur", // 성능 최적화: onBlur 시에만 유효성 검사 (onChange 대신)
@@ -76,39 +75,7 @@ export function useMintForm(initialData?: Partial<MintFormData>) {
                 setValue("profileImageFile", file, { shouldValidate: true });
             }
         },
-        [setValue]
-    );
-
-    // 스킬 토글 핸들러
-    const toggleSkill = useCallback(
-        (
-            skill: string,
-            showWarning?: (title: string, description: string) => void
-        ) => {
-            const currentSkills = getValues("selectedSkills");
-
-            if (currentSkills.includes(skill)) {
-                // 제거
-                setValue(
-                    "selectedSkills",
-                    currentSkills.filter((s) => s !== skill),
-                    { shouldValidate: true }
-                );
-            } else {
-                // 추가
-                if (currentSkills.length >= MAX_SKILLS) {
-                    showWarning?.(
-                        "Maximum Skills Reached",
-                        `You can select up to ${MAX_SKILLS} skills. Please deselect a skill to add a new one.`
-                    );
-                    return;
-                }
-                setValue("selectedSkills", [...currentSkills, skill], {
-                    shouldValidate: true,
-                });
-            }
-        },
-        [getValues, setValue]
+        [setValue],
     );
 
     // 웹사이트 추가 핸들러
@@ -137,7 +104,7 @@ export function useMintForm(initialData?: Partial<MintFormData>) {
                 return false;
             }
         },
-        [getValues, setValue]
+        [getValues, setValue],
     );
 
     // 웹사이트 제거 핸들러
@@ -147,10 +114,10 @@ export function useMintForm(initialData?: Partial<MintFormData>) {
             setValue(
                 "websites",
                 currentWebsites.filter((url) => url !== urlToRemove),
-                { shouldValidate: true }
+                { shouldValidate: true },
             );
         },
-        [getValues, setValue]
+        [getValues, setValue],
     );
 
     return {
@@ -158,7 +125,6 @@ export function useMintForm(initialData?: Partial<MintFormData>) {
         fileInputRef,
         handleImageClick,
         handleFileChange,
-        toggleSkill,
         handleAddWebsite,
         handleRemoveWebsite,
         watch,

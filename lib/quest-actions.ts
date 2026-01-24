@@ -147,7 +147,9 @@ export const AUTO_VERIFIABLE_ACTIONS: Partial<
 
 export interface VerifiableContext {
     hasCard?: boolean;
-    socials?: Partial<Record<SocialKey, string>>;
+    socials?: Partial<
+        Record<SocialKey, string | { handle: string; verified: boolean }>
+    >;
 }
 
 /**
@@ -214,7 +216,7 @@ export const getRouteForAction = (actionType: string): string | null => {
  * Check auto-verifiable actions
  */
 export const getAutoVerifiableActions = (
-    ctx: VerifiableContext
+    ctx: VerifiableContext,
 ): ActionType[] => {
     return Object.entries(AUTO_VERIFIABLE_ACTIONS)
         .filter(([, check]) => check && check(ctx))
@@ -236,7 +238,7 @@ const handleFcFollow = async (): Promise<ActionResult> => {
 };
 
 const handleFcShare = async (
-    ctx: QuestActionContext
+    ctx: QuestActionContext,
 ): Promise<ActionResult> => {
     if (!ctx.cardId) {
         return { success: false, error: "No cardId provided for share" };
@@ -248,7 +250,7 @@ const handleFcShare = async (
 };
 
 const handleXFollow = async (
-    ctx: QuestActionContext
+    ctx: QuestActionContext,
 ): Promise<ActionResult> => {
     const xUrl = "https://x.com/basecardteam";
     if (ctx.isInMiniApp) {
@@ -264,7 +266,7 @@ const handleXFollow = async (
 };
 
 const handleAppNotification = async (
-    ctx: QuestActionContext
+    ctx: QuestActionContext,
 ): Promise<ActionResult> => {
     try {
         const result = await sdk.actions.addMiniApp();
@@ -272,7 +274,7 @@ const handleAppNotification = async (
         console.log("[handleAppNotification] result: ", result);
         console.log(
             "[handleAppNotification] miniappCtx: ",
-            miniappCtx.client.notificationDetails
+            miniappCtx.client.notificationDetails,
         );
         if (
             result &&
@@ -283,7 +285,7 @@ const handleAppNotification = async (
                 await upsertNotificationToken(
                     ctx.accessToken,
                     miniappCtx.client.notificationDetails,
-                    ctx.clientContext!.clientFid
+                    ctx.clientContext!.clientFid,
                 );
                 console.log("Notification token saved");
             } catch (error) {
@@ -310,7 +312,7 @@ const handleAppNotification = async (
 };
 
 const handleAppAddMiniapp = async (
-    ctx: QuestActionContext
+    ctx: QuestActionContext,
 ): Promise<ActionResult> => {
     try {
         const result = await sdk.actions.addMiniApp();
@@ -321,7 +323,7 @@ const handleAppAddMiniapp = async (
                 try {
                     await upsertMiniAppAdded(
                         ctx.accessToken,
-                        ctx.clientContext.clientFid
+                        ctx.clientContext.clientFid,
                     );
                     console.log("Miniapp added marked on server");
                 } catch (error) {
@@ -345,7 +347,7 @@ const handleAppAddMiniapp = async (
 };
 
 const handleAppReferral = async (
-    ctx: QuestActionContext
+    ctx: QuestActionContext,
 ): Promise<ActionResult> => {
     const baseUrl =
         process.env.NEXT_PUBLIC_URL || "https://basecard.vercel.app";
@@ -376,7 +378,7 @@ export const ACTION_HANDLERS: Partial<Record<ActionType, ActionHandler>> = {
 
 export const executeAction = async (
     actionType: string,
-    ctx: QuestActionContext
+    ctx: QuestActionContext,
 ): Promise<ActionResult> => {
     // 1. Check Route Actions
     const route = ROUTE_ACTIONS[actionType as ActionType];
@@ -398,7 +400,7 @@ export const executeAction = async (
 
 export const isSocialLinked = (
     actionType: string,
-    socials: Partial<Record<SocialKey, string>>
+    socials: Partial<Record<SocialKey, string>>,
 ): boolean => {
     const socialKey = ACTION_TO_SOCIAL_KEY[actionType as ActionType];
     if (!socialKey) return false;

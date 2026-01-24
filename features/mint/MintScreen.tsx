@@ -315,7 +315,7 @@ export default function MintScreen() {
                 {/* 소셜 링크 입력 */}
                 {/* 소셜 링크 입력 */}
                 <SocialsInput
-                    onTwitterUpdate={handleTwitterUsernameChange}
+                    onXUpdate={handleTwitterUsernameChange}
                     onGitHubUpdate={handleGitHubUsernameChange}
                     onLinkedInUpdate={handleLinkedInUsernameChange}
                     farcasterUsername={farcasterUsername}
