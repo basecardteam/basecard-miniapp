@@ -72,11 +72,6 @@ const SOCIAL_ENTRIES: SocialEntry[] = [
         icon: <FaGithub className="text-white" size={24} />,
     },
     {
-        key: "website",
-        label: "Website",
-        icon: <FaGlobe className="text-white" size={24} />,
-    },
-    {
         key: "x",
         label: "X",
         icon: <FaXTwitter className="text-white" size={24} />,
@@ -85,6 +80,11 @@ const SOCIAL_ENTRIES: SocialEntry[] = [
         key: "linkedin",
         label: "LinkedIn",
         icon: <FaLinkedin className="text-white" size={24} />,
+    },
+    {
+        key: "website",
+        label: "Website",
+        icon: <FaGlobe className="text-white" size={24} />,
     },
 ];
 

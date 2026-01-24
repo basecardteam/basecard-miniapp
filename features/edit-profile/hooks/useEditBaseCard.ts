@@ -106,10 +106,31 @@ export function useEditBaseCard() {
                 // Reset loading states
                 setIsCreatingBaseCard(false);
                 setIsSendingTransaction(false);
-                const rawMessage =
-                    err instanceof Error ? err.message : String(err);
 
-                logger.debug(rawMessage);
+                logger.debug("Edit error:", err);
+
+                if (
+                    err instanceof Error &&
+                    err.message.includes(
+                        "This card is owned by a different wallet",
+                    )
+                ) {
+                    setError("This card is owned by a different wallet.");
+                    return {
+                        success: false,
+                        error: err.message,
+                    };
+                }
+
+                // Extract error message
+                const rawMessage =
+                    typeof err === "object" && err !== null
+                        ? (err as any).message ||
+                          (err as any).error ||
+                          String(err)
+                        : err instanceof Error
+                          ? err.message
+                          : String(err);
 
                 // Rollback IPFS upload if files were uploaded (for any error)
                 if (needsRollback && imageUri) {
@@ -117,7 +138,7 @@ export function useEditBaseCard() {
                     rollbackUpdate(imageUri, accessToken).catch(
                         (rollbackErr: unknown) => {
                             logger.error("Failed to rollback:", rollbackErr);
-                        }
+                        },
                     );
                 }
 
@@ -142,7 +163,7 @@ export function useEditBaseCard() {
             contractAddress,
             isAuthenticated,
             queryClient,
-        ]
+        ],
     );
 
     return {

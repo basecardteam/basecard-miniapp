@@ -13,7 +13,7 @@ import { Socials } from "../types";
  */
 function createHeaders(
     accessToken?: string,
-    includeContentType: boolean = false
+    includeContentType: boolean = false,
 ): HeadersInit {
     const headers: HeadersInit = {};
     if (includeContentType) {
@@ -52,13 +52,13 @@ export async function fetchAllBaseCards(): Promise<BaseCard[]> {
  * Cached for 60 seconds to improve metadata generation performance
  */
 export async function fetchBaseCardById(
-    cardId: string
+    cardId: string,
 ): Promise<BaseCardDetail | null> {
     const response = await fetch(
         `${config.BACKEND_API_URL}/v1/basecards/${cardId}`,
         {
             next: { revalidate: 60 }, // Cache for 60 seconds
-        }
+        },
     );
 
     if (!response.ok) {
@@ -83,7 +83,7 @@ export async function fetchBaseCardById(
  * Returns null if card not found instead of throwing error
  */
 export async function fetchCardByAddress(
-    accessToken: string
+    accessToken: string,
 ): Promise<BaseCard | null> {
     const response = await fetch(`${config.BACKEND_API_URL}/v1/basecards/me`, {
         headers: createHeaders(accessToken),
@@ -118,7 +118,7 @@ export interface CreateBaseCardParams {
 export async function createBaseCard(
     address: string,
     params: CreateBaseCardParams,
-    accessToken: string
+    accessToken: string,
 ): Promise<CreateCardResponse> {
     const formData = new FormData();
     formData.append("address", address);
@@ -177,7 +177,7 @@ export interface UpdateBaseCardResponse {
 
 export async function updateBaseCard(
     params: UpdateBaseCardParams,
-    accessToken: string
+    accessToken: string,
 ): Promise<UpdateBaseCardResponse> {
     const formData = new FormData();
 
@@ -197,22 +197,14 @@ export async function updateBaseCard(
     });
 
     if (!response.ok) {
-        let errorMessage = `Failed to update card (status: ${response.status})`;
-        try {
-            const errorData = await response.json();
-            logger.error("Update card error response:", errorData);
-            errorMessage = errorData.message || errorData.error || errorMessage;
-        } catch {
-            const textBody = await response.text().catch(() => "");
-            logger.error("Failed to parse error response:", textBody);
-        }
-        throw new Error(errorMessage);
+        const errorData = await response.json();
+        logger.error("Update card error response:", errorData);
+        throw errorData;
     }
 
-    const data = await response.json();
+    const data: ApiResponse<UpdateBaseCardResponse> = await response.json();
     logger.debug("Update card response:", data);
 
-    // Handle wrapped API response ({ success: true, result: {...} })
     if (!data.success || !data.result) {
         throw new Error(data.error || "Failed to update card");
     }
@@ -222,7 +214,7 @@ export async function updateBaseCard(
 
 export async function rollbackUpdate(
     imageUri: string,
-    accessToken: string
+    accessToken: string,
 ): Promise<void> {
     const response = await fetch(
         `${config.BACKEND_API_URL}/v1/basecards/me/rollback`,
@@ -230,7 +222,7 @@ export async function rollbackUpdate(
             method: "POST",
             headers: createHeaders(accessToken, true),
             body: JSON.stringify({ imageUri }),
-        }
+        },
     );
 
     if (!response.ok) {
@@ -241,14 +233,14 @@ export async function rollbackUpdate(
 
 export async function deleteBaseCard(
     address: string,
-    accessToken: string
+    accessToken: string,
 ): Promise<void> {
     const response = await fetch(
         `${config.BACKEND_API_URL}/v1/basecards/${address}`,
         {
             method: "DELETE",
             headers: createHeaders(accessToken),
-        }
+        },
     );
 
     if (!response.ok) {

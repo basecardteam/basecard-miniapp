@@ -7,6 +7,9 @@ import { BaseModal } from "@/components/modals/BaseModal";
 import LoadingModal from "@/components/modals/LoadingModal";
 import ErrorModal from "@/components/modals/ErrorModal";
 import ConfirmationModal from "@/components/modals/ConfirmationModal";
+import SuccessModal from "@/components/modals/SuccessModal";
+import { SocialsVerificationModal } from "@/components/modals/SocialsVerificationModal";
+import ShareModal from "@/components/modals/ShareModal";
 
 type ModalType =
     | "loading"
@@ -17,6 +20,9 @@ type ModalType =
     | "alertDefault"
     | "alertSuccess"
     | "alertError"
+    | "successModal"
+    | "socialsVerification"
+    | "share"
     | null;
 
 const isDev = process.env.NODE_ENV === "development";
@@ -42,6 +48,7 @@ export default function DevDesignPage() {
 
     const modalButtons: { type: ModalType; label: string; color: string }[] = [
         { type: "loading", label: "Loading Modal", color: "bg-blue-500" },
+        { type: "successModal", label: "Success Modal", color: "bg-green-500" },
         { type: "error", label: "Error Modal", color: "bg-red-500" },
         {
             type: "confirmation",
@@ -49,16 +56,22 @@ export default function DevDesignPage() {
             color: "bg-purple-500",
         },
         {
+            type: "socialsVerification",
+            label: "Socials Verification",
+            color: "bg-orange-500",
+        },
+        { type: "share", label: "Share Modal", color: "bg-pink-500" },
+        {
             type: "alertDefault",
-            label: "Alert (Default)",
+            label: "BaseModal (Default)",
             color: "bg-basecard-blue",
         },
         {
             type: "alertSuccess",
-            label: "Alert (Success)",
+            label: "BaseModal (Success)",
             color: "bg-green-600",
         },
-        { type: "alertError", label: "Alert (Error)", color: "bg-red-600" },
+        { type: "alertError", label: "BaseModal (Error)", color: "bg-red-600" },
     ];
 
     return (
@@ -183,6 +196,31 @@ export default function DevDesignPage() {
                 title="Error Occurred"
                 description="Something went wrong. Please try again."
                 variant="error"
+            />
+
+            <SuccessModal
+                isOpen={activeModal === "successModal"}
+                onClose={closeModal}
+                title="Success!"
+                description="Your action was completed successfully."
+            />
+
+            <SocialsVerificationModal
+                isOpen={activeModal === "socialsVerification"}
+                onClose={closeModal}
+                socials={{
+                    x: { handle: "testuser", verified: false },
+                    github: { handle: "testdev", verified: true },
+                    linkedin: { handle: "testpro", verified: false },
+                }}
+            />
+
+            <ShareModal
+                isOpen={activeModal === "share"}
+                onClose={closeModal}
+                title="Share My Card"
+                name="Test User"
+                subtitle="Frontend Developer"
             />
         </main>
     );

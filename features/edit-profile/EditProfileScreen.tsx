@@ -189,7 +189,7 @@ export default function EditProfileScreen() {
         if (result.success) {
             setShowSuccessModal(true);
         } else if (result.error && result.error !== "User rejected") {
-            setSubmitError("Please change your app to farcaster.");
+            setSubmitError(result.error);
             setShowErrorModal(true);
         }
     };
