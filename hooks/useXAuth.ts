@@ -1,11 +1,12 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useUser } from "@/hooks/api/useUser";
+import { useAuth } from "@/components/providers/AuthProvider";
+import { useFrameContext, MiniAppContext } from "@/components/providers/FrameProvider";
+import { disconnectOAuth, getOAuthStatus, initOAuth } from "@/lib/api/oauth";
 
 export type XConnectStatus = "disconnected" | "connecting" | "connected";
 
 const POLLING_INTERVAL = 3000; // 3 seconds
-import { useAuth } from "@/components/providers/AuthProvider";
-import { disconnectOAuth, getOAuthStatus, initOAuth } from "@/lib/api/oauth";
 
 interface UseXAuthProps {
     onUsernameChange?: (username: string) => void;
@@ -31,6 +32,7 @@ export function useXAuth({
 }: UseXAuthProps = {}): UseXAuthReturn {
     const { user } = useUser();
     const { accessToken } = useAuth();
+    const frameContext = useFrameContext();
     const [isConnecting, setIsConnecting] = useState(false);
     const [status, setStatus] = useState<XConnectStatus>(
         initialUsername && initialVerified ? "connected" : "disconnected",
@@ -133,8 +135,10 @@ export function useXAuth({
         try {
             if (!accessToken) throw new Error("No access token");
 
-            // 1. Get Auth URL from Backend (provider key is still 'twitter')
-            const clientFid = user.fid?.toString();
+            // 1. Get Auth URL from Backend
+            // Use client FID from frame context (app's FID: 9152=Warpcast, 309857=BaseApp)
+            // NOT user.fid which is the user's personal Farcaster ID
+            const clientFid = (frameContext?.context as MiniAppContext)?.client?.clientFid?.toString();
             const { authUrl: url } = await initOAuth(
                 "x",
                 accessToken,

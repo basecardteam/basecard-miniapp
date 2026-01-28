@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useUser } from "@/hooks/api/useUser";
+import { useFrameContext, MiniAppContext } from "@/components/providers/FrameProvider";
 import { GitHubConnectStatus } from "@/features/mint/components/GitHubConnect";
 import { disconnectOAuth, getOAuthStatus, initOAuth } from "@/lib/api/oauth";
 
@@ -30,6 +31,7 @@ export function useGitHubAuth({
 }: UseGitHubAuthProps = {}): UseGitHubAuthReturn {
     const { user } = useUser();
     const { accessToken } = useAuth();
+    const frameContext = useFrameContext();
     const [isConnecting, setIsConnecting] = useState(false);
     const [status, setStatus] = useState<GitHubConnectStatus>(
         initialUsername && initialVerified ? "connected" : "disconnected",
@@ -135,7 +137,9 @@ export function useGitHubAuth({
             if (!accessToken) throw new Error("No access token");
 
             // 1. Get Auth URL from Backend
-            const clientFid = user.fid?.toString();
+            // Use client FID from frame context (app's FID: 9152=Warpcast, 309857=BaseApp)
+            // NOT user.fid which is the user's personal Farcaster ID
+            const clientFid = (frameContext?.context as MiniAppContext)?.client?.clientFid?.toString();
             const { authUrl: url } = await initOAuth(
                 "github",
                 accessToken,

@@ -1,10 +1,11 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useUser } from "@/hooks/api/useUser";
+import { useAuth } from "@/components/providers/AuthProvider";
+import { useFrameContext, MiniAppContext } from "@/components/providers/FrameProvider";
 import { LinkedInConnectStatus } from "@/features/mint/components/LinkedInConnect";
+import { disconnectOAuth, getOAuthStatus, initOAuth } from "@/lib/api/oauth";
 
 const POLLING_INTERVAL = 3000; // 3 seconds
-import { useAuth } from "@/components/providers/AuthProvider";
-import { disconnectOAuth, getOAuthStatus, initOAuth } from "@/lib/api/oauth";
 
 interface UseLinkedInAuthProps {
     onUsernameChange?: (username: string) => void;
@@ -31,6 +32,7 @@ export function useLinkedInAuth({
 }: UseLinkedInAuthProps = {}): UseLinkedInAuthReturn {
     const { user } = useUser();
     const { accessToken } = useAuth();
+    const frameContext = useFrameContext();
     const [isConnecting, setIsConnecting] = useState(false);
     const [status, setStatus] = useState<LinkedInConnectStatus>(
         initialUsername && initialVerified ? "connected" : "disconnected",
@@ -136,7 +138,9 @@ export function useLinkedInAuth({
             if (!accessToken) throw new Error("No access token");
 
             // 1. Get Auth URL from Backend
-            const clientFid = user.fid?.toString();
+            // Use client FID from frame context (app's FID: 9152=Warpcast, 309857=BaseApp)
+            // NOT user.fid which is the user's personal Farcaster ID
+            const clientFid = (frameContext?.context as MiniAppContext)?.client?.clientFid?.toString();
             const { authUrl: url } = await initOAuth(
                 "linkedin",
                 accessToken,
