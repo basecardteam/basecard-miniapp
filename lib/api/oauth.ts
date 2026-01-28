@@ -25,11 +25,16 @@ export interface OAuthStatusResponse {
 export async function initOAuth(
     provider: ProviderKey,
     accessToken: string,
-    clientFid?: string,
+    clientFid: string | undefined,
     returnUrl: string = "/edit-profile",
 ): Promise<InitOAuthResponse> {
+    // clientFid is required for OAuth deeplink
+    if (!clientFid) {
+        throw new Error("clientFid is required for OAuth");
+    }
+
     const params = new URLSearchParams({
-        clientFid: clientFid || "",
+        clientFid,
         returnUrl,
     });
 
